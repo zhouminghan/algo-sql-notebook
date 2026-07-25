@@ -148,9 +148,127 @@
     background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 4px;
   }
 
-  /* walkthrough table */
-    margin: 2px 4px 2px 0;
+  /* playback trigger button */
+  .playback-trigger {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px; margin-bottom: 12px;
+    background: linear-gradient(135deg, #2d1f5e, #1a3a4a);
+    border: 1px solid var(--accent); border-radius: var(--radius);
+    color: #fff; cursor: pointer; font-size: 0.82rem; font-weight: 600;
   }
+  .playback-trigger:hover { filter: brightness(1.2); }
+  .playback-trigger .pb-icon { font-size: 1.1rem; }
+
+  /* ── modal overlay ── */
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-dialog {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; width: min(96vw, 1100px); height: min(88vh, 700px);
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+  .modal-titlebar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; background: #12121a; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .modal-titlebar h3 { font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+  .modal-titlebar .close-modal {
+    background: none; border: none; color: var(--text-muted); font-size: 1.4rem;
+    cursor: pointer; line-height: 1; padding: 0 4px;
+  }
+  .modal-titlebar .close-modal:hover { color: var(--red); }
+
+  .modal-body {
+    flex: 1; display: flex; overflow: hidden;
+    min-height: 0;
+  }
+  .modal-code-panel {
+    width: 45%; overflow-y: auto; border-right: 1px solid var(--border);
+    background: var(--code-bg); padding: 0; flex-shrink: 0;
+  }
+  .modal-code-panel pre {
+    padding: 14px 0 14px 0; margin: 0; counter-reset: line;
+    font-family: "SF Mono","Monaco","Menlo",monospace; font-size: 13px;
+    line-height: 1.65; color: var(--text); min-height: 100%;
+    white-space: pre;
+  }
+  .modal-code-panel .code-line {
+    display: block; padding: 0 16px 0 52px; position: relative;
+    min-height: 21.45px;
+  }
+  .modal-code-panel .code-line::before {
+    content: counter(line); counter-increment: line;
+    position: absolute; left: 8px; width: 34px; text-align: right;
+    color: var(--text-muted); font-size: 0.72rem; padding-right: 6px;
+    user-select: none;
+  }
+  .modal-code-panel .code-line.active {
+    background: rgba(108, 92, 231, 0.25); border-left: 3px solid var(--accent);
+  }
+  .modal-code-panel .code-line.found {
+    background: rgba(0, 184, 148, 0.2); border-left: 3px solid var(--green);
+  }
+
+  .modal-viz-panel {
+    flex: 1; padding: 20px; overflow-y: auto; display: flex;
+    flex-direction: column; gap: 14px; background: #12121a;
+  }
+  .modal-viz-panel .step-indicator {
+    display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+  }
+  .modal-viz-panel .step-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: #2a2a3a;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .modal-viz-panel .step-dot.done { background: var(--accent); }
+  .modal-viz-panel .step-dot.current { background: #fff; transform: scale(1.3); }
+  .modal-viz-panel .step-dot.found { background: var(--green); }
+
+  .modal-hint-box {
+    background: #1a1a28; border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; font-size: 0.85rem; line-height: 1.6;
+  }
+  .modal-hint-box .hint-step-num {
+    font-size: 0.7rem; color: var(--accent); margin-bottom: 4px;
+  }
+  .modal-hint-box .hint-text { font-size: 0.88rem; color: var(--text); }
+  .modal-hint-box .hint-text.found-status { color: var(--green); font-weight: 700; }
+
+  .modal-state-table {
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 0.82rem;
+  }
+  .modal-state-table table { width: 100%; border-collapse: collapse; }
+  .modal-state-table th {
+    padding: 7px 10px; background: #1a1a28; color: var(--text-muted);
+    font-weight: 500; text-align: left;
+  }
+  .modal-state-table td { padding: 6px 10px; border-top: 1px solid var(--border); }
+  .modal-state-table .step-current { background: rgba(108, 92, 231, 0.15); }
+
+  .modal-controls {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 12px 20px; border-top: 1px solid var(--border);
+    background: #1a1a28; flex-shrink: 0;
+  }
+  .modal-controls button {
+    padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px;
+    background: transparent; color: var(--text); font-size: 0.82rem;
+    cursor: pointer; display: flex; align-items: center; gap: 4px;
+  }
+  .modal-controls button:hover { border-color: var(--accent); background: #2a2a40; }
+  .modal-controls button:disabled { opacity: 0.3; cursor: default; }
+  .modal-controls .btn-play { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 80px; justify-content: center; }
+  .modal-controls .speed-label { font-size: 0.7rem; color: var(--text-muted); margin: 0 4px; }
+  .modal-controls input[type=range] { width: 80px; accent-color: var(--accent); }
 
   /* ── right panel ── */
   .right-panel {
@@ -219,6 +337,10 @@
 
   {{WALKTHROUGH}}
 
+  <button class="playback-trigger" id="playbackTrigger" onclick="openPlayback()">
+    <span class="pb-icon">🎮</span> 执行过程回放（逐步查看每一步的数据变化）
+  </button>
+
   <div class="approach-section" id="approachSection">
     <div class="approach-header" id="approachHeader">
       <h4>🧠 解题思路对比</h4>
@@ -281,6 +403,43 @@
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  Walkthrough 步骤回放弹窗                           -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="playbackModal">
+  <div class="modal-dialog">
+    <div class="modal-titlebar">
+      <h3>🎮 执行过程回放 · {{TITLE}}</h3>
+      <button class="close-modal" onclick="closePlayback()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-code-panel" id="modalCodePanel"></div>
+      <div class="modal-viz-panel" id="modalVizPanel"></div>
+    </div>
+    <div class="modal-controls">
+      <button onclick="playerPrev()" id="btnPrev">⏮ 上一步</button>
+      <button onclick="playerReset()" id="btnReset">↻ 重置</button>
+      <button class="btn-play" onclick="playerTogglePlay()" id="btnPlay">▶ 播放</button>
+      <button onclick="playerNext()" id="btnNext">下一步 ⏭</button>
+      <span class="speed-label">慢</span>
+      <input type="range" min="300" max="2000" value="800" step="100" id="speedSlider" oninput="playerSetSpeed(this.value)">
+      <span class="speed-label">快</span>
+      <span style="font-size:0.72rem;color:var(--text-muted);margin-left:8px" id="stepCounter">0/0</span>
+    </div>
+  </div>
+</div>
+
+<!-- Walkthrough data (injected by render.py) -->
+<script>
+var WALKTHROUGH_DATA = {{WALKTHROUGH_STEPS_JSON}} || null;
+if (typeof WALKTHROUGH_DATA === "string" && WALKTHROUGH_DATA === "") WALKTHROUGH_DATA = null;
+// Hide playback button if no walkthrough data
+if (!WALKTHROUGH_DATA) {
+  var btn = document.getElementById("playbackTrigger");
+  if (btn) btn.style.display = "none";
+}
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
@@ -404,6 +563,194 @@ document.addEventListener("mouseup", function() {
 
 // ── Initial refresh ──
 setTimeout(function() { pyEditor.refresh(); }, 50);
+
+// ═══════════════════════════════════════════════════════
+//  Walkthrough Player
+// ═══════════════════════════════════════════════════════
+var playerState = { current: 0, playing: false, timer: null, speed: 800 };
+
+function openPlayback() {
+  if (!WALKTHROUGH_DATA || !WALKTHROUGH_DATA.steps) return;
+  document.getElementById("playbackModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+  playerState.current = 0;
+  renderCodePanel();
+  renderPlayerStep();
+}
+
+function closePlayback() {
+  playerPause();
+  document.getElementById("playbackModal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function renderCodePanel() {
+  var d = WALKTHROUGH_DATA;
+  var code = d.code_python;
+  var lines = code.split("\n");
+  var html = "<pre>";
+  for (var i = 0; i < lines.length; i++) {
+    var cls = "code-line";
+    html += '<span class="' + cls + '" data-line="' + i + '">' + escHtml(lines[i]) + "</span>\n";
+  }
+  html += "</pre>";
+  document.getElementById("modalCodePanel").innerHTML = html;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderPlayerStep() {
+  var d = WALKTHROUGH_DATA;
+  var steps = d.steps;
+  var idx = playerState.current;
+  var step = steps[idx];
+  if (!step) return;
+
+  // ── Highlight code line ──
+  var codeLines = document.querySelectorAll("#modalCodePanel .code-line");
+  codeLines.forEach(function(el) {
+    el.classList.remove("active", "found");
+    if (parseInt(el.dataset.line) === (step.line || -1)) {
+      el.classList.add(step.status === "found" ? "found" : "active");
+    }
+  });
+  // Scroll highlighted line into view
+  var activeLine = document.querySelector("#modalCodePanel .code-line.active, #modalCodePanel .code-line.found");
+  if (activeLine) activeLine.scrollIntoView({ block: "center", behavior: "smooth" });
+
+  // ── Step dots ──
+  var dotsHtml = '<div class="step-indicator">';
+  for (var i = 0; i < steps.length; i++) {
+    var cls = "step-dot";
+    var s = steps[i];
+    if (s.status === "found") cls += " found";
+    else if (i < idx) cls += " done";
+    else if (i === idx) cls += " current";
+    dotsHtml += '<span class="' + cls + '" onclick="playerGoTo(' + i + ')" title="步骤 ' + (i+1) + '"></span>';
+  }
+  dotsHtml += '</div>';
+
+  // ── Hint box ──
+  var hintStatus = step.status === "found" ? " found-status" : "";
+  var hintHtml = '<div class="modal-hint-box">';
+  hintHtml += '<div class="hint-step-num">步骤 ' + (idx + 1) + ' / ' + steps.length + '</div>';
+  hintHtml += '<div class="hint-text' + hintStatus + '">' + step.hint + '</div>';
+  hintHtml += '</div>';
+
+  // ── State table ──
+  var stateCols = [];
+  if (step.idx !== undefined) stateCols.push(["索引 i", step.idx]);
+  if (step.num !== undefined) stateCols.push(["当前值 nums[i]", step.num]);
+  if (step.comp !== undefined) stateCols.push(["补数 target-nums[i]", step.comp]);
+  if (step.seen !== undefined) stateCols.push(["seen 哈希表", step.seen]);
+
+  // ── Full step history table ──
+  var tableHtml = '<div class="modal-state-table"><table>';
+  tableHtml += '<thead><tr><th>#</th>';
+  var headers = [];
+  for (var h = 0; h < stateCols.length; h++) headers.push(stateCols[h][0]);
+  for (var hh = 0; hh < headers.length; hh++) tableHtml += '<th>' + headers[hh] + '</th>';
+  tableHtml += '</tr></thead><tbody>';
+
+  // Show all steps up to current
+  for (var j = 0; j <= idx; j++) {
+    var sj = steps[j];
+    var rowCls = j === idx ? " step-current" : "";
+    tableHtml += '<tr class="' + rowCls + '"><td>' + (j + 1) + '</td>';
+    tableHtml += '<td>' + (sj.idx !== undefined ? sj.idx : "-") + '</td>';
+    tableHtml += '<td>' + (sj.num !== undefined ? sj.num : "-") + '</td>';
+    tableHtml += '<td>' + (sj.comp !== undefined ? sj.comp : "-") + '</td>';
+    tableHtml += '<td><code style="color:var(--yellow);font-size:0.78rem">' + (sj.seen || "-") + '</code></td>';
+    tableHtml += '</tr>';
+  }
+  tableHtml += '</tbody></table></div>';
+
+  document.getElementById("modalVizPanel").innerHTML = dotsHtml + hintHtml + tableHtml;
+
+  // ── Update counter + buttons ──
+  document.getElementById("stepCounter").textContent = (idx + 1) + "/" + steps.length;
+  document.getElementById("btnPrev").disabled = idx === 0;
+  document.getElementById("btnNext").disabled = idx >= steps.length - 1;
+}
+
+function playerGoTo(idx) {
+  playerPause();
+  playerState.current = Math.max(0, Math.min(WALKTHROUGH_DATA.steps.length - 1, idx));
+  renderPlayerStep();
+}
+
+function playerNext() {
+  if (playerState.current < WALKTHROUGH_DATA.steps.length - 1) {
+    playerGoTo(playerState.current + 1);
+  } else {
+    playerPause();
+  }
+}
+
+function playerPrev() { playerGoTo(playerState.current - 1); }
+
+function playerReset() { playerGoTo(0); }
+
+function playerTogglePlay() {
+  if (playerState.playing) {
+    playerPause();
+  } else {
+    playerPlay();
+  }
+}
+
+function playerPlay() {
+  if (playerState.current >= WALKTHROUGH_DATA.steps.length - 1) {
+    playerState.current = 0;
+    renderPlayerStep();
+  }
+  playerState.playing = true;
+  document.getElementById("btnPlay").innerHTML = "⏸ 暂停";
+  playerAdvance();
+}
+
+function playerPause() {
+  playerState.playing = false;
+  document.getElementById("btnPlay").innerHTML = "▶ 播放";
+  if (playerState.timer) { clearTimeout(playerState.timer); playerState.timer = null; }
+}
+
+function playerAdvance() {
+  if (!playerState.playing) return;
+  if (playerState.current >= WALKTHROUGH_DATA.steps.length - 1) {
+    playerPause();
+    return;
+  }
+  playerGoTo(playerState.current + 1);
+  if (playerState.playing) {
+    playerState.timer = setTimeout(playerAdvance, playerState.speed);
+  }
+}
+
+function playerSetSpeed(val) {
+  playerState.speed = parseInt(val);
+  if (playerState.playing) {
+    playerPause();
+    playerPlay();
+  }
+}
+
+// Keyboard shortcuts
+document.addEventListener("keydown", function(e) {
+  var modal = document.getElementById("playbackModal");
+  if (!modal.classList.contains("open")) return;
+  if (e.key === "Escape") { closePlayback(); return; }
+  if (e.key === "ArrowRight") { e.preventDefault(); playerNext(); return; }
+  if (e.key === "ArrowLeft") { e.preventDefault(); playerPrev(); return; }
+  if (e.key === " ") { e.preventDefault(); playerTogglePlay(); return; }
+});
+
+// Close on overlay click
+document.getElementById("playbackModal").addEventListener("click", function(e) {
+  if (e.target === this) closePlayback();
+});
 </script>
 </body>
 </html>

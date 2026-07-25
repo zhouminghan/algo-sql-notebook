@@ -12,6 +12,7 @@ render.py — Markdown → HTML 渲染器
 
 import csv
 import io
+import json
 import re
 import sys
 from pathlib import Path
@@ -232,6 +233,140 @@ def _generate_walkthrough(examples_input: str, title: str) -> str:
     return ""
 
 
+# ═══════════════════════════════════════════════════════════
+#  Walkthrough 步骤播放器（通用框架）
+# ═══════════════════════════════════════════════════════════
+
+def _find_code_line(code: str, keyword: str) -> int:
+    """在代码中查找包含关键词的行号（0-based）"""
+    if not code:
+        return 0
+    for i, line in enumerate(code.split("\n")):
+        if keyword in line:
+            return i
+    return 0
+
+
+def _core_java_code(java_full: str) -> str:
+    """提取 Java 核心代码（去掉 import 和测试部分）"""
+    if not java_full:
+        return ""
+    lines = java_full.split("\n")
+    core = []
+    for line in lines:
+        s = line.strip()
+        if s.startswith("//") and ("测试" in s or "test" in s.lower() or "main" in s):
+            break
+        if s.startswith("public static void main"):
+            break
+        core.append(line)
+    return "\n".join(core)
+
+
+def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> str:
+    """两数之和 walkthrough 步骤 JSON"""
+    nums_match = re.search(r'nums\s*=\s*\[([^\]]+)\]', example_input)
+    target_match = re.search(r'target\s*=\s*(\d+)', example_input)
+    if not nums_match or not target_match:
+        return ""
+    nums = [int(x.strip()) for x in nums_match.group(1).split(",")]
+    target = int(target_match.group(1))
+
+    # 答案代码（仅核心部分用于显示）
+    py_core = python_full if python_full else ""
+    ja_core = _core_java_code(java_full)
+
+    # 查找关键行号
+    py_lines = py_core.split("\n") if py_core else []
+    line_def = _find_code_line(py_core, "def twoSum")
+    line_seen_init = _find_code_line(py_core, "seen =")
+    line_for = _find_code_line(py_core, "for ")
+    line_comp = _find_code_line(py_core, "complement")
+    line_if = _find_code_line(py_core, "if complement")
+    line_return = _find_code_line(py_core, "return [")
+    line_store = max(_find_code_line(py_core, "seen[num]"), _find_code_line(py_core, "seen["), 0)
+
+    seen = {}
+    steps = []
+
+    # Step 0: 函数入口
+    steps.append({
+        "line": max(line_def, line_seen_init),
+        "hint": "初始化：创建空哈希表 seen = {}，准备遍历数组",
+        "idx": "-", "num": "-", "comp": "-", "seen": "{}", "status": "init"
+    })
+
+    for i, n in enumerate(nums):
+        comp = target - n
+        found = comp in seen
+        seen_before = dict(seen)
+        seen_str = "{" + ", ".join(f"{k}:{v}" for k, v in seen_before.items()) + "}" if seen_before else "{}"
+
+        # 进入循环
+        steps.append({
+            "line": line_for,
+            "hint": f"遍历：i={i}，nums[{i}]={n}，进入循环体",
+            "idx": str(i), "num": str(n), "comp": "-", "seen": seen_str, "status": "loop"
+        })
+
+        # 计算补数
+        steps.append({
+            "line": line_comp,
+            "hint": f"计算补数：target − nums[{i}] = {target} − {n} = {comp}",
+            "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "compute"
+        })
+
+        if found:
+            # 命中
+            match_idx = seen_before[comp]
+            steps.append({
+                "line": line_if,
+                "hint": f"检查：{comp} 在 seen 表的索引 {match_idx}！条件成立",
+                "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "check"
+            })
+            steps.append({
+                "line": line_return,
+                "hint": f"✅ 返回结果：[seen[{comp}], {i}] = [{match_idx}, {i}]",
+                "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "found"
+            })
+            break
+        else:
+            # 未命中 → 存入
+            steps.append({
+                "line": line_if,
+                "hint": f"检查：{comp} 不在 seen 表中，跳过",
+                "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "check"
+            })
+            seen[n] = i
+            new_seen = "{" + ", ".join(f"{k}:{v}" for k, v in seen.items()) + "}"
+            steps.append({
+                "line": line_store,
+                "hint": f"存入：seen[{n}] = {i}，哈希表更新为 {new_seen}",
+                "idx": str(i), "num": str(n), "comp": str(comp), "seen": new_seen, "status": "store"
+            })
+
+    return json.dumps({
+        "code_python": py_core,
+        "code_java": ja_core,
+        "steps": steps
+    }, ensure_ascii=False)
+
+
+# 类型调度表：title 关键词 → 生成函数
+_WALKTHROUGH_GENERATORS = {
+    "两数之和": _gen_two_sum_steps,
+    "Two Sum": _gen_two_sum_steps,
+}
+
+
+def generate_walkthrough_steps(title: str, example_input: str, python_full: str, java_full: str) -> str:
+    """通用 walkthrough 步骤生成入口。返回 JSON 字符串，不支持的题型返回空字符串。"""
+    for keyword, gen_fn in _WALKTHROUGH_GENERATORS.items():
+        if keyword in title:
+            return gen_fn(example_input, python_full, java_full)
+    return ""
+
+
 def parse_examples(text: str) -> str:
     """从题目描述中解析示例，生成 HTML 卡片"""
     # 匹配 **示例 N：** 后面的代码块
@@ -403,11 +538,17 @@ def parse_algo_md(md_path: Path) -> dict:
 
     # Walkthrough（步骤执行过程可视化）
     walkthrough_html = ""
+    walkthrough_steps_json = ""
     if examples_html:
         # 提取第一个示例的输入
         first_ex_input_match = re.search(r'\*\*示例\s*1\s*[：:]\s*\*\*\s*\n```\n(.*?)```', raw_desc, re.DOTALL)
         if first_ex_input_match:
-            walkthrough_html = _generate_walkthrough(first_ex_input_match.group(1).strip(), title)
+            ex_input = first_ex_input_match.group(1).strip()
+            walkthrough_html = _generate_walkthrough(ex_input, title)
+            # 生成播放器步骤 JSON（使用未转义的原始代码，用于嵌入 JS）
+            walkthrough_steps_json = generate_walkthrough_steps(
+                title, ex_input, python_full_clean, java_full_clean
+            )
 
     # Approach cards（解题思路对比卡片）
     approach_cards_html = _generate_approach_cards(keypoints, complexity_html, python_full)
@@ -419,6 +560,7 @@ def parse_algo_md(md_path: Path) -> dict:
         "description": description,
         "examples": examples_html,
         "walkthrough": walkthrough_html,
+        "walkthrough_steps_json": walkthrough_steps_json,
         "python_full": escape_html(python_full_clean),
         "java_full": escape_html(java_full_clean),
         "python_template": escape_html(python_template),
@@ -770,6 +912,7 @@ def render_algo(problem_id: str, data: dict) -> None:
     html = html.replace("{{DIFFICULTY_CLASS}}", data["difficulty_class"])
     html = html.replace("{{APPROACH_CARDS}}", data.get("approach_cards", ""))
     html = html.replace("{{WALKTHROUGH}}", data.get("walkthrough", ""))
+    html = html.replace("{{WALKTHROUGH_STEPS_JSON}}", data.get("walkthrough_steps_json", ""))
     html = html.replace("{{ANSWER_PYTHON}}", data["python_full"])
     html = html.replace("{{ANSWER_JAVA}}", data["java_full"])
     html = html.replace("{{CODE_PYTHON}}", data["python_template"])
