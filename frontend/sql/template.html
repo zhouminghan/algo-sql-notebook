@@ -108,6 +108,53 @@
   .collapsible-toggle .arrow { transition: transform 0.2s; font-size: 0.7rem; }
   .collapsible-toggle.open .arrow { transform: rotate(90deg); }
   .collapsible-body {
+
+  /* SQL playback button */
+  .playback-btn-sql {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    padding: 10px 14px; margin: 10px 0; border-radius: 8px;
+    background: linear-gradient(135deg, #2d1f5e, #1a3a4a);
+    border: 1px solid var(--accent); color: #fff;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  }
+  .playback-btn-sql:hover { filter: brightness(1.2); }
+
+  /* SQL modal */
+  .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:1000; justify-content:center; align-items:center; }
+  .modal-overlay.open { display:flex; }
+  .modal-dialog { background:var(--bg); border:1px solid var(--border); border-radius:12px; width:min(96vw,1100px); height:min(88vh,700px); display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.5); animation:modalIn 0.25s ease; }
+  @keyframes modalIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+  .modal-titlebar { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:#12121a; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .modal-titlebar h3 { font-size:0.95rem; }
+  .close-modal { background:none; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer; }
+  .close-modal:hover { color:var(--red); }
+  .modal-body { flex:1; display:flex; overflow:hidden; min-height:0; }
+  .modal-controls { display:flex; align-items:center; justify-content:center; gap:10px; padding:12px 20px; border-top:1px solid var(--border); background:#1a1a28; flex-shrink:0; }
+  .modal-controls button { padding:6px 14px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text); font-size:0.82rem; cursor:pointer; }
+  .modal-controls button:hover { border-color:var(--accent); background:#2a2a40; }
+  .modal-controls button:disabled { opacity:0.3; cursor:default; }
+  .modal-controls .btn-play { background:var(--accent); border-color:var(--accent); color:#fff; min-width:80px; justify-content:center; }
+  .speed-label { font-size:0.7rem; color:var(--text-muted); margin:0 4px; }
+  .modal-controls input[type=range] { width:80px; accent-color:var(--accent); }
+
+  .sql-modal-body { display:flex; }
+  .sql-modal-left { width:280px; padding:18px; background:#12121a; border-right:1px solid var(--border); overflow-y:auto; flex-shrink:0; }
+  .sql-modal-right { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .sql-modal-code { background:var(--code-bg); padding:14px 16px; border-bottom:1px solid var(--border); flex-shrink:0; max-height:40%; overflow-y:auto; }
+  .sql-modal-code .sql-code-label { font-size:0.7rem; color:var(--text-muted); margin-bottom:4px; }
+  .sql-modal-code pre { font-family:"SF Mono","Monaco","Menlo",monospace; font-size:12px; color:var(--text); white-space:pre-wrap; margin:0; }
+  .sql-modal-table-wrap { flex:1; overflow:auto; padding:12px 16px; }
+  .sql-modal-table-wrap table { width:100%; border-collapse:collapse; font-size:0.78rem; }
+  .sql-modal-table-wrap th { padding:6px 10px; background:#1a1a28; color:var(--text-muted); text-align:left; white-space:nowrap; position:sticky; top:0; }
+  .sql-modal-table-wrap td { padding:5px 10px; border-top:1px solid var(--border); }
+  .sql-modal-table-wrap .hl-col { background:rgba(108,92,231,0.15); color:var(--accent); font-weight:600; }
+  .sql-step-label { font-size:0.7rem; color:var(--accent); margin-bottom:4px; }
+  .sql-step-title { font-size:0.95rem; font-weight:700; color:var(--text); margin-bottom:6px; }
+  .sql-step-desc { font-size:0.82rem; color:var(--text-muted); line-height:1.5; }
+  .step-indicator { display:flex; gap:6px; justify-content:flex-start; flex-wrap:wrap; margin-bottom:12px; }
+  .step-dot { width:10px; height:10px; border-radius:50%; background:#2a2a3a; cursor:pointer; transition:all 0.2s; }
+  .step-dot.done { background:var(--accent); }
+  .step-dot.current { background:#fff; transform:scale(1.3); }
     display: none; padding: 12px 14px; border-top: 1px solid var(--border);
     background: var(--code-bg); font-size: 0.82rem;
   }
@@ -233,6 +280,10 @@
       </button>
       <div class="collapsible-body">{{HINTS}}</div>
     </div>
+
+    <button class="playback-btn-sql" id="sqlPlaybackBtn" onclick="openSqlPlayback()">
+      🎮 解题过程回放（逐步查看每一步的数据变化）
+    </button>
 
     <div class="collapsible" id="answerSection">
       <button class="collapsible-toggle" onclick="toggleSection(this)">
@@ -489,6 +540,146 @@ async function markStatus(status) {
     });
   }
 }
+</script>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  SQL Walkthrough 步骤回放弹窗                     -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="sqlPlaybackModal">
+  <div class="modal-dialog">
+    <div class="modal-titlebar">
+      <h3>🎮 SQL 执行过程回放</h3>
+      <button class="close-modal" onclick="closeSqlPlayback()">&times;</button>
+    </div>
+    <div class="modal-body sql-modal-body">
+      <div class="sql-modal-left">
+        <div class="sql-modal-steps" id="sqlStepDots"></div>
+        <div class="sql-modal-info" id="sqlStepInfo"></div>
+      </div>
+      <div class="sql-modal-right">
+        <div class="sql-modal-code" id="sqlStepSql"></div>
+        <div class="sql-modal-table-wrap" id="sqlStepTable"></div>
+      </div>
+    </div>
+    <div class="modal-controls">
+      <button onclick="sqlPlayerPrev()" id="sqlBtnPrev">⏮ 上一步</button>
+      <button onclick="sqlPlayerReset()" id="sqlBtnReset">↻ 重置</button>
+      <button class="btn-play" onclick="sqlPlayerTogglePlay()" id="sqlBtnPlay">▶ 播放</button>
+      <button onclick="sqlPlayerNext()" id="sqlBtnNext">下一步 ⏭</button>
+      <span class="speed-label">慢</span>
+      <input type="range" min="500" max="3000" value="1200" step="100" id="sqlSpeedSlider" oninput="sqlPlayerSetSpeed(this.value)">
+      <span class="speed-label">快</span>
+      <span style="font-size:0.72rem;color:var(--text-muted);margin-left:8px" id="sqlStepCounter">0/0</span>
+    </div>
+  </div>
+</div>
+
+<script>
+var SQL_WALKTHROUGH_DATA = null;
+try {
+  var _sqlRaw = {{SQL_WALKTHROUGH_JSON}};
+  if (_sqlRaw && typeof _sqlRaw === "object") SQL_WALKTHROUGH_DATA = _sqlRaw;
+} catch(e) { SQL_WALKTHROUGH_DATA = null; }
+console.log("[algo-practice] SQL walkthrough loaded, steps:", SQL_WALKTHROUGH_DATA ? SQL_WALKTHROUGH_DATA.steps.length : 0, "| page build: {{BUILD_TIME}}");
+
+var sqlPlayer = { current: 0, playing: false, timer: null, speed: 1200 };
+
+function openSqlPlayback() {
+  if (!SQL_WALKTHROUGH_DATA || !SQL_WALKTHROUGH_DATA.steps || !SQL_WALKTHROUGH_DATA.steps.length) {
+    alert("⚠️ 该题目暂不支持解题过程回放。后续会逐步覆盖更多题型。");
+    return;
+  }
+  document.getElementById("sqlPlaybackModal").classList.add("open");
+  document.body.style.overflow = "hidden";
+  sqlPlayer.current = 0;
+  renderSqlStep();
+}
+function closeSqlPlayback() {
+  sqlPause();
+  document.getElementById("sqlPlaybackModal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function renderSqlStep() {
+  var steps = SQL_WALKTHROUGH_DATA.steps;
+  var idx = sqlPlayer.current;
+  var s = steps[idx];
+  if (!s) return;
+
+  // Step dots
+  var dotsHtml = '<div class="step-indicator">';
+  for (var i = 0; i < steps.length; i++) {
+    var cls = "step-dot";
+    if (i < idx) cls += " done";
+    else if (i === idx) cls += " current";
+    dotsHtml += '<span class="' + cls + '" onclick="sqlPlayerGoTo(' + i + ')"></span>';
+  }
+  dotsHtml += '</div>';
+  document.getElementById("sqlStepDots").innerHTML = dotsHtml;
+
+  // Info
+  document.getElementById("sqlStepInfo").innerHTML =
+    '<div class="sql-step-label">步骤 ' + (idx + 1) + ' / ' + steps.length + '</div>' +
+    '<div class="sql-step-title">' + s.label + '</div>' +
+    '<div class="sql-step-desc">' + s.desc + '</div>';
+
+  // SQL code
+  document.getElementById("sqlStepSql").innerHTML =
+    '<div class="sql-code-label">执行 SQL</div><pre>' + escHtml(s.sql) + '</pre>';
+
+  // Table
+  var cols = s.columns, rows = s.rows;
+  var tableHtml = '<table><thead><tr>';
+  for (var c = 0; c < cols.length; c++) {
+    var isHl = s.hl && s.hl === cols[c];
+    tableHtml += '<th' + (isHl ? ' class="hl-col"' : '') + '>' + cols[c] + '</th>';
+  }
+  tableHtml += '</tr></thead><tbody>';
+  for (var r = 0; r < rows.length; r++) {
+    tableHtml += '<tr>';
+    for (var c = 0; c < rows[r].length; c++) {
+      var isHl = s.hl && s.hl === cols[c];
+      tableHtml += '<td' + (isHl ? ' class="hl-col"' : '') + '>' + rows[r][c] + '</td>';
+    }
+    tableHtml += '</tr>';
+  }
+  tableHtml += '</tbody></table>';
+  document.getElementById("sqlStepTable").innerHTML = tableHtml;
+
+  // Counter + buttons
+  document.getElementById("sqlStepCounter").textContent = (idx + 1) + "/" + steps.length;
+  document.getElementById("sqlBtnPrev").disabled = idx === 0;
+  document.getElementById("sqlBtnNext").disabled = idx >= steps.length - 1;
+}
+
+function sqlPlayerGoTo(i) { sqlPause(); sqlPlayer.current = Math.max(0, Math.min(SQL_WALKTHROUGH_DATA.steps.length - 1, i)); renderSqlStep(); }
+function sqlPlayerNext() { if (sqlPlayer.current < SQL_WALKTHROUGH_DATA.steps.length - 1) sqlPlayerGoTo(sqlPlayer.current + 1); else sqlPause(); }
+function sqlPlayerPrev() { sqlPlayerGoTo(sqlPlayer.current - 1); }
+function sqlPlayerReset() { sqlPlayerGoTo(0); }
+function sqlPlayerTogglePlay() { sqlPlayer.playing ? sqlPause() : sqlPlay(); }
+function sqlPlay() {
+  if (sqlPlayer.current >= SQL_WALKTHROUGH_DATA.steps.length - 1) { sqlPlayer.current = 0; renderSqlStep(); }
+  sqlPlayer.playing = true; document.getElementById("sqlBtnPlay").innerHTML = "⏸ 暂停"; sqlAdvance();
+}
+function sqlPause() { sqlPlayer.playing = false; document.getElementById("sqlBtnPlay").innerHTML = "▶ 播放"; if (sqlPlayer.timer) { clearTimeout(sqlPlayer.timer); sqlPlayer.timer = null; } }
+function sqlAdvance() {
+  if (!sqlPlayer.playing) return;
+  if (sqlPlayer.current >= SQL_WALKTHROUGH_DATA.steps.length - 1) { sqlPause(); return; }
+  sqlPlayerGoTo(sqlPlayer.current + 1);
+  if (sqlPlayer.playing) sqlPlayer.timer = setTimeout(sqlAdvance, sqlPlayer.speed);
+}
+function sqlPlayerSetSpeed(v) { sqlPlayer.speed = parseInt(v); if (sqlPlayer.playing) { sqlPause(); sqlPlay(); } }
+
+// Keyboard
+document.addEventListener("keydown", function(e) {
+  var m = document.getElementById("sqlPlaybackModal");
+  if (!m.classList.contains("open")) return;
+  if (e.key === "Escape") { closeSqlPlayback(); return; }
+  if (e.key === "ArrowRight") { e.preventDefault(); sqlPlayerNext(); return; }
+  if (e.key === "ArrowLeft") { e.preventDefault(); sqlPlayerPrev(); return; }
+  if (e.key === " ") { e.preventDefault(); sqlPlayerTogglePlay(); return; }
+});
+document.getElementById("sqlPlaybackModal").addEventListener("click", function(e) { if (e.target === this) closeSqlPlayback(); });
 </script>
 </body>
 </html>

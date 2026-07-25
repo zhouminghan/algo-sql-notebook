@@ -804,6 +804,60 @@ def _parse_domain_knowledge(text: str) -> str:
     return html
 
 
+# ═══════════════════════════════════════════════════════════
+#  SQL Walkthrough 步骤生成（连接 PostgreSQL 获取真实数据）
+# ═══════════════════════════════════════════════════════════
+
+import psycopg2 as _pg
+
+_SQL_STEP_DEFS = {
+    "连续登录天数": {
+        "steps": [
+            {"label": "原始数据", "desc": "按用户和日期排序。4个用户共17条记录。",
+             "sql": "SELECT user_id, login_date FROM t1_login_log ORDER BY user_id, login_date", "hl": None},
+            {"label": "ROW_NUMBER 编号", "desc": "PARTITION BY user_id 确保各用户独立编号。",
+             "sql": "SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log ORDER BY user_id, login_date", "hl": "rn"},
+            {"label": "DATE_SUB 分组标记", "desc": "login_date − rn = grp_date。连续日期的grp_date相同。",
+             "sql": "WITH ranked AS (SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log) SELECT user_id, login_date, rn, (login_date - rn * INTERVAL '1 day')::date AS grp_date FROM ranked ORDER BY user_id, login_date", "hl": "grp_date"},
+            {"label": "GROUP BY 聚合", "desc": "按(user_id, grp_date)分组 COUNT 得连续天数。",
+             "sql": "WITH ranked AS (SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log), grouped AS (SELECT user_id, login_date, rn, (login_date - rn * INTERVAL '1 day')::date AS grp_date FROM ranked) SELECT user_id, grp_date, COUNT(*) AS consecutive_days FROM grouped GROUP BY user_id, grp_date ORDER BY user_id, grp_date", "hl": "consecutive_days"},
+            {"label": "MAX 最终结果", "desc": "取每个用户最大连续天数。u03连续6天最佳。",
+             "sql": "WITH ranked AS (SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log), grouped AS (SELECT user_id, login_date, rn, (login_date - rn * INTERVAL '1 day')::date AS grp_date FROM ranked), counts AS (SELECT user_id, grp_date, COUNT(*) AS consecutive_days FROM grouped GROUP BY user_id, grp_date) SELECT user_id, MAX(consecutive_days) AS max_consecutive_days FROM counts GROUP BY user_id ORDER BY user_id", "hl": "max_consecutive_days"},
+        ]
+    }
+}
+
+
+def _get_db_conn():
+    try:
+        return _pg.connect(host="localhost", port=5432, user="algo", password="algo123", dbname="algo_practice")
+    except Exception:
+        return None
+
+
+def _gen_sql_walkthrough_steps(title: str) -> str:
+    for kw, sd in _SQL_STEP_DEFS.items():
+        if kw in title:
+            break
+    else:
+        return ""
+    conn = _get_db_conn()
+    if not conn:
+        return ""
+    try:
+        all_steps = []
+        for s in sd["steps"]:
+            cur = conn.cursor()
+            cur.execute(s["sql"])
+            cols = [d[0] for d in cur.description]
+            rows = [[str(v) if v is not None else "NULL" for v in r] for r in cur.fetchall()]
+            cur.close()
+            all_steps.append({"label": s["label"], "desc": s["desc"], "sql": s["sql"], "columns": cols, "rows": rows, "hl": s["hl"]})
+        return json.dumps({"steps": all_steps}, ensure_ascii=False)
+    finally:
+        conn.close()
+
+
 def parse_sql_md(md_path: Path) -> dict:
     text = md_path.read_text(encoding="utf-8")
     title = md_path.stem
@@ -885,6 +939,9 @@ def parse_sql_md(md_path: Path) -> dict:
     # 领域知识
     domain_knowledge_html = _parse_domain_knowledge(text)
 
+    # SQL Walkthrough 步骤
+    walkthrough_steps_json = _gen_sql_walkthrough_steps(title)
+
     return {
         "title": title,
         "description": description_html,
@@ -896,6 +953,7 @@ def parse_sql_md(md_path: Path) -> dict:
         "answer_sql": escape_html(answer_sql),
         "expected": expected_html,
         "gotchas": gotchas_html,
+        "walkthrough_steps_json": walkthrough_steps_json,
     }
 
 
@@ -941,8 +999,10 @@ def render_sql(problem_id: str, data: dict) -> None:
     html = html.replace("{{HINTS}}", data["hints"])
     html = html.replace("{{ANSWER_SQL}}", data["answer_sql"])
     html = html.replace("{{EXPECTED}}", data.get("expected", ""))
+    html = html.replace("{{SQL_WALKTHROUGH_JSON}}", data.get("walkthrough_steps_json", ""))
     html = html.replace("{{GOTCHAS}}", data["gotchas"])
     html = html.replace("{{PROBLEM_ID}}", problem_id)
+    html = html.replace("{{BUILD_TIME}}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     out_path = OUTPUT_DIR / "sql" / f"{problem_id}.html"
     out_path.parent.mkdir(parents=True, exist_ok=True)
