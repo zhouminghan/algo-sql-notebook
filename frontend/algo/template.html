@@ -267,7 +267,13 @@ function switchLang(lang) {
   document.getElementById("editor-java").style.display = lang === "java" ? "block" : "none";
   document.getElementById("answer-python-view").style.display = lang === "python" ? "block" : "none";
   document.getElementById("answer-java-view").style.display = lang === "java" ? "block" : "none";
-  setTimeout(function() { (lang === "python" ? pyEditor : jaEditor).refresh(); }, 10);
+  setTimeout(function() {
+    (lang === "python" ? pyEditor : jaEditor).refresh();
+    // 如果答案面板开着，刷新新 Tab 的答案编辑器
+    if (document.getElementById("answerBody").classList.contains("visible")) {
+      (lang === "python" ? pyAnswer : jaAnswer).refresh();
+    }
+  }, 10);
 }
 
 // ── Answer toggle ──
