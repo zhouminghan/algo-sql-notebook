@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{TITLE}} - 每日一题 SQL</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="/lib/codemirror.min.css">
+<link rel="stylesheet" href="/lib/dracula.css">
 <style>
   :root {
     --bg: #0f0f14; --code-bg: #1e1e2e; --border: #2a2a3a;
@@ -404,18 +404,14 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script src="/lib/codemirror.min.js"></script>
+<script src="/lib/mode/sql.min.js"></script>
 <script>
 var PROBLEM_ID = "{{PROBLEM_ID}}";
 var PROBLEM_TYPE = "sql";
 
-var hasCM = typeof CodeMirror !== "undefined";
-
-// ── CodeMirror SQL editor (with fallback) ──
-var sqlEditor, answerEditor;
-if (hasCM) {
-  sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlEditorTA"), {
+// ── CodeMirror SQL editor ──
+var sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlEditorTA"), {
   mode: "text/x-sql",
   theme: "dracula",
   lineNumbers: true,
@@ -431,25 +427,13 @@ if (hasCM) {
   }
 });
 var answerTA = document.getElementById("answerCodeTA");
-answerEditor = CodeMirror.fromTextArea(answerTA, {
+var answerEditor = CodeMirror.fromTextArea(answerTA, {
   mode: "text/x-sql",
   theme: "dracula",
   lineNumbers: true,
   readOnly: true,
   indentUnit: 2,
 });
-} else {
-  // Fallback: plain textarea
-  var sqlTA = document.getElementById("sqlEditorTA");
-  sqlTA.style.display = "block";
-  sqlEditor = sqlTA;
-  sqlEditor.getValue = function() { return sqlTA.value; };
-  sqlEditor.refresh = function() {};
-  var aTA = document.getElementById("answerCodeTA");
-  aTA.style.display = "block";
-  aTA.readOnly = true;
-  answerEditor = { refresh: function() {}, getValue: function() { return ""; } };
-}
 
 // ═════════════════════════════════════════════
 //  Draggable Splitter

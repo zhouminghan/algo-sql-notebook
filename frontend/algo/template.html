@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{TITLE}} - 每日一题</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="/lib/codemirror.min.css">
+<link rel="stylesheet" href="/lib/dracula.css">
 <style>
   :root {
     --bg: #0f0f14; --code-bg: #1e1e2e; --border: #2a2a3a;
@@ -458,17 +458,16 @@ try {
 console.log("[algo-practice] walkthrough player loaded, steps:", WALKTHROUGH_DATA ? WALKTHROUGH_DATA.steps.length : 0, "| page build: {{BUILD_TIME}}");
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="/lib/codemirror.min.js"></script>
+<script src="/lib/mode/python.min.js"></script>
+<script src="/lib/mode/clike.min.js"></script>
 <script>
 var PROBLEM_ID = "{{PROBLEM_ID}}";
 var PROBLEM_TYPE = "algo";
 var STORAGE_KEY_PY = "algo_code_" + PROBLEM_ID + "_python";
 var STORAGE_KEY_JA = "algo_code_" + PROBLEM_ID + "_java";
-var hasCM = typeof CodeMirror !== "undefined";
 
-// ── Create editors ──
+// ── Create CodeMirror editors ──
 function makeEditor(id, mode) {
   var ta = document.getElementById(id);
   var saved = null;
@@ -478,17 +477,6 @@ function makeEditor(id, mode) {
     try { saved = localStorage.getItem(STORAGE_KEY_JA); } catch(e) {}
   }
   if (saved) ta.value = saved;
-
-  if (!hasCM) {
-    // Fallback: plain textarea (content already set in HTML)
-    return {
-      getValue: function() { return ta.value; },
-      setValue: function(v) { ta.value = v; },
-      refresh: function() {},
-      setOption: function() {},
-      on: function() {}
-    };
-  }
   return CodeMirror.fromTextArea(ta, {
     mode: mode, theme: "dracula", lineNumbers: true,
     matchBrackets: true, autoCloseBrackets: true,
