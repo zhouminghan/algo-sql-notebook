@@ -659,6 +659,7 @@ try {
 console.log("[algo-practice] SQL walkthrough loaded, steps:", SQL_WALKTHROUGH_DATA ? SQL_WALKTHROUGH_DATA.steps.length : 0, "| page build: {{BUILD_TIME}}");
 
 var sqlPlayer = { current: 0, playing: false, timer: null, speed: 1200 };
+function escHtml(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
 function openSqlPlayback() {
   if (!SQL_WALKTHROUGH_DATA || !SQL_WALKTHROUGH_DATA.steps || !SQL_WALKTHROUGH_DATA.steps.length) {
