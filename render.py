@@ -242,13 +242,14 @@ def parse_algo_md(md_path: Path) -> dict:
         for line in keypoints.split("\n"):
             stripped = line.strip()
             if stripped.startswith(("- ", "1. ", "2. ", "3. ", "4. ")):
-                overview_lines.append(f'<li>{stripped.lstrip("- 1234567890. ")}</li>')
+                content = _inline_md(stripped.lstrip("- 1234567890. "))
+                overview_lines.append(f'<li>{content}</li>')
             elif stripped:
-                overview_lines.append(f'<p>{stripped}</p>')
+                overview_lines.append(f'<p>{_inline_md(stripped)}</p>')
         if overview_lines:
             approach_overview = "<ul>" + "".join(overview_lines) + "</ul>"
         elif keypoints.strip():
-            approach_overview = f"<p>{keypoints.strip()}</p>"
+            approach_overview = f"<p>{_inline_md(keypoints.strip())}</p>"
 
     # Gotchas
     gotcha_match = re.search(r"## 🔄 易错点\n(.*?)(?:\n---|\n##|$)", text, re.DOTALL)
