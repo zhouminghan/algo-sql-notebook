@@ -67,6 +67,19 @@
   }
   .approach-body.visible { display: block; }
   .approach-body p { margin-bottom: 6px; }
+  .approach-body ol {
+    padding-left: 24px; counter-reset: step-counter; list-style: none;
+  }
+  .approach-body ol li {
+    counter-increment: step-counter; margin-bottom: 6px;
+    padding-left: 6px; position: relative;
+  }
+  .approach-body ol li::before {
+    content: "步骤" counter(step-counter);
+    display: inline-block; padding: 1px 8px; margin-right: 8px;
+    border-radius: 4px; background: #2d1f5e; color: var(--accent);
+    font-size: 0.72rem; font-weight: 600;
+  }
   .approach-body .complexity {
     display: inline-block; padding: 2px 10px; border-radius: 4px;
     background: #2d1f5e; color: var(--accent); font-size: 0.75rem;

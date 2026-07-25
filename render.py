@@ -247,7 +247,7 @@ def parse_algo_md(md_path: Path) -> dict:
             elif stripped:
                 overview_lines.append(f'<p>{_inline_md(stripped)}</p>')
         if overview_lines:
-            approach_overview = "<ul>" + "".join(overview_lines) + "</ul>"
+            approach_overview = "<ol>" + "".join(overview_lines) + "</ol>"
         elif keypoints.strip():
             approach_overview = f"<p>{_inline_md(keypoints.strip())}</p>"
 
