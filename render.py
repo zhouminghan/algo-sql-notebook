@@ -316,9 +316,86 @@ def _md_table_to_html(md_table_text: str) -> str:
     return html
 
 
+def _inline_md(text: str) -> str:
+    """内联 markdown 转 HTML：**粗体**，`代码`，保留普通文本"""
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+    return text
+
+
+def _parse_md_description(raw_desc: str) -> str:
+    """将题目描述 markdown 转为 HTML，支持：列表、表格、引用、粗体、代码"""
+    lines = raw_desc.split("\n")
+    html_parts = []
+    in_list = False
+    in_quote = False
+    in_table = False
+    table_lines = []
+
+    def flush_list():
+        nonlocal in_list
+        if in_list:
+            html_parts.append("</ul>")
+            in_list = False
+
+    def flush_table():
+        nonlocal in_table, table_lines
+        if in_table and len(table_lines) >= 2:
+            html_parts.append(_md_table_to_html("\n".join(table_lines)))
+        table_lines = []
+        in_table = False
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            flush_list()
+            flush_table()
+            in_quote = False
+            continue
+
+        # 表格
+        if stripped.startswith("|") and stripped.endswith("|"):
+            if not in_table:
+                flush_list()
+                in_quote = False
+                in_table = True
+            table_lines.append(line)
+            continue
+        else:
+            flush_table()
+
+        # 引用
+        if stripped.startswith(">"):
+            flush_list()
+            in_quote = True
+            content = stripped.lstrip("> ").strip()
+            html_parts.append(f'<p class="note">{_inline_md(escape_html(content))}</p>')
+            continue
+        elif in_quote and not stripped.startswith(">"):
+            in_quote = False
+
+        # 列表项
+        if stripped.startswith(("- ", "* ")):
+            if not in_list:
+                flush_table()
+                in_list = True
+                html_parts.append('<ul>')
+            content = stripped[2:].strip()
+            html_parts.append(f'<li>{_inline_md(escape_html(content))}</li>')
+            continue
+        else:
+            flush_list()
+
+        # 普通段落（处理内联粗体/代码）
+        html_parts.append(f'<p>{_inline_md(escape_html(stripped))}</p>')
+
+    flush_list()
+    flush_table()
+    return "\n".join(html_parts)
+
+
 def _wrap_code_blocks(text: str) -> str:
     """检测 markdown 代码块并包裹为 SQL 高亮区"""
-    # 将 ```sql ... ``` 或 ``` ... ``` 包裹为可高亮的区块
     def repl(m):
         code = m.group(1).strip()
         return f'<pre class="sql-hl" data-sql="{escape_html(code)}"></pre>'
@@ -360,17 +437,7 @@ def parse_sql_md(md_path: Path) -> dict:
     # 题目描述（从「题目描述」节提取）
     desc_match = re.search(r"## 二、题目描述\n(.*?)(?:\n##|\n---|\Z)", text, re.DOTALL)
     raw_desc = desc_match.group(1).strip() if desc_match else ""
-    # 把 markdown 转简单 HTML
-    description_html = ""
-    for line in raw_desc.split("\n"):
-        stripped = line.strip()
-        if stripped.startswith("**") and "**" in stripped[2:]:
-            content = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', stripped)
-            description_html += f'<p>{content}</p>'
-        elif stripped.startswith(">"):
-            description_html += f'<p class="note">{escape_html(stripped.lstrip("> "))}</p>'
-        elif stripped:
-            description_html += f'<p>{escape_html(stripped)}</p>'
+    description_html = _parse_md_description(raw_desc)
 
     # 从 init SQL 提取表结构和数据
     num_match = re.match(r"SQL(\d+)", title)
