@@ -432,13 +432,13 @@
 
 <!-- Walkthrough data (injected by render.py) -->
 <script>
-var WALKTHROUGH_DATA = {{WALKTHROUGH_STEPS_JSON}} || null;
-if (typeof WALKTHROUGH_DATA === "string" && WALKTHROUGH_DATA === "") WALKTHROUGH_DATA = null;
-// Hide playback button if no walkthrough data
-if (!WALKTHROUGH_DATA) {
-  var btn = document.getElementById("playbackTrigger");
-  if (btn) btn.style.display = "none";
-}
+var WALKTHROUGH_DATA = null;
+try {
+  var _rawData = {{WALKTHROUGH_STEPS_JSON}};
+  if (_rawData && typeof _rawData === "object") WALKTHROUGH_DATA = _rawData;
+} catch(e) { WALKTHROUGH_DATA = null; }
+// Always show the button — openPlayback handles missing data gracefully
+console.log("[algo-practice] walkthrough player loaded, steps:", WALKTHROUGH_DATA ? WALKTHROUGH_DATA.steps.length : 0, "| page build: {{BUILD_TIME}}");
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -570,7 +570,10 @@ setTimeout(function() { pyEditor.refresh(); }, 50);
 var playerState = { current: 0, playing: false, timer: null, speed: 800 };
 
 function openPlayback() {
-  if (!WALKTHROUGH_DATA || !WALKTHROUGH_DATA.steps) return;
+  if (!WALKTHROUGH_DATA || !WALKTHROUGH_DATA.steps || !WALKTHROUGH_DATA.steps.length) {
+    alert("⚠️ 该题目暂不支持执行过程回放。\n\n后续批量生成题目时会逐步覆盖更多题型。");
+    return;
+  }
   document.getElementById("playbackModal").classList.add("open");
   document.body.style.overflow = "hidden";
   playerState.current = 0;

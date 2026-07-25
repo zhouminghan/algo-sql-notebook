@@ -15,6 +15,7 @@ import io
 import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
@@ -920,6 +921,7 @@ def render_algo(problem_id: str, data: dict) -> None:
     html = html.replace("{{KEYPOINTS}}", data["keypoints"])
     html = html.replace("{{GOTCHAS}}", data["gotchas"])
     html = html.replace("{{PROBLEM_ID}}", problem_id)
+    html = html.replace("{{BUILD_TIME}}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     out_path = OUTPUT_DIR / "algo" / f"{problem_id}.html"
     out_path.parent.mkdir(parents=True, exist_ok=True)
