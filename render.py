@@ -165,6 +165,67 @@ def parse_algo_md(md_path: Path) -> dict:
     java_full = java_match.group(1).strip() if java_match else ""
     java_template = extract_code_template(java_full, "java") if java_full else ""
 
+    # Approach (解题思路) — extract from code comments/docstrings
+    approach_name = "解法"
+    complexity_html = ""
+
+    for code in [python_full, java_full]:
+        if not code:
+            continue
+        lines = code.strip().split("\n")
+        in_docstring = False
+        for line in lines:
+            stripped = line.strip()
+            # Enter/exit docstring
+            if '"""' in stripped or "'''" in stripped:
+                in_docstring = not in_docstring
+                # Remove the quote marks from the line for matching
+                s = stripped.replace('"""', "").replace("'''", "").strip()
+            elif in_docstring:
+                s = stripped
+            elif stripped.startswith(("#", "//")):
+                s = stripped.lstrip("#/ ").strip()
+            else:
+                continue  # skip actual code lines
+
+            if not s:
+                continue
+
+            # Match complexity
+            cm = re.match(r'时间\s*[：:]\s*(O\([^)]*\)).*空间\s*[：:]\s*(O\([^)]*\))', s)
+            if cm:
+                complexity_html += f'<span class="complexity">⏱ {cm.group(1)}</span>'
+                complexity_html += f'<span class="complexity">💾 {cm.group(2)}</span>'
+
+            # Match approach name
+            elif s and not s.startswith(("示例", "时间", "空间", "=", "if", "//", "*/", "*", "import", "from")):
+                if approach_name == "解法" and len(s) < 50 and not re.match(r'^(class |def |public |private |protected |@|return|\})', s):
+                    approach_name = s
+            if complexity_html:
+                break
+        if complexity_html:
+            break
+
+    if not complexity_html:
+        complexity_html = '<span class="complexity">复杂度见题解</span>'
+
+    # Strip approach comments from answer code
+    def _strip_approach_comment(code: str) -> str:
+        """Remove complexity/time comment from answer display"""
+        lines = code.strip().split("\n")
+        result = []
+        skipped = False
+        for line in lines:
+            s = line.strip().lstrip("#/ ")
+            if re.match(r'时间\s*[：:]', s) or re.match(r'空间\s*[：:]', s):
+                skipped = True
+                continue
+            result.append(line)
+        return "\n".join(result)
+
+    python_full_clean = _strip_approach_comment(python_full)
+    java_full_clean = _strip_approach_comment(java_full)
+
     # Keypoints
     kp_match = re.search(r"## 🧠 关键点\n(.*?)(?:\n---|\n##|$)", text, re.DOTALL)
     keypoints = kp_match.group(1).strip() if kp_match else ""
@@ -173,6 +234,21 @@ def parse_algo_md(md_path: Path) -> dict:
         stripped = line.strip()
         if stripped.startswith(("- ", "1. ", "2. ", "3. ", "4. ")):
             keypoints_html += f"<li>{stripped.lstrip('- 1234567890. ')}</li>"
+
+    # Approach overview (from keypoints, for left panel)
+    approach_overview = ""
+    if keypoints.strip():
+        overview_lines = []
+        for line in keypoints.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith(("- ", "1. ", "2. ", "3. ", "4. ")):
+                overview_lines.append(f'<li>{stripped.lstrip("- 1234567890. ")}</li>')
+            elif stripped:
+                overview_lines.append(f'<p>{stripped}</p>')
+        if overview_lines:
+            approach_overview = "<ul>" + "".join(overview_lines) + "</ul>"
+        elif keypoints.strip():
+            approach_overview = f"<p>{keypoints.strip()}</p>"
 
     # Gotchas
     gotcha_match = re.search(r"## 🔄 易错点\n(.*?)(?:\n---|\n##|$)", text, re.DOTALL)
@@ -189,12 +265,15 @@ def parse_algo_md(md_path: Path) -> dict:
         "difficulty": diff_label,
         "description": description,
         "examples": examples_html,
-        "python_full": escape_html(python_full),
-        "java_full": escape_html(java_full),
+        "python_full": escape_html(python_full_clean),
+        "java_full": escape_html(java_full_clean),
         "python_template": escape_html(python_template),
         "java_template": escape_html(java_template),
         "keypoints": keypoints_html,
         "gotchas": gotchas_html,
+        "approach_name": approach_name,
+        "approach_overview": approach_overview,
+        "complexity_tags": complexity_html,
     }
 
 
@@ -537,6 +616,9 @@ def render_algo(problem_id: str, data: dict) -> None:
     html = html.replace("{{EXAMPLES}}", data["examples"])
     html = html.replace("{{DIFFICULTY}}", data["difficulty"])
     html = html.replace("{{DIFFICULTY_CLASS}}", data["difficulty_class"])
+    html = html.replace("{{APPROACH_NAME}}", data["approach_name"])
+    html = html.replace("{{APPROACH_OVERVIEW}}", data["approach_overview"])
+    html = html.replace("{{COMPLEXITY_TAGS}}", data["complexity_tags"])
     html = html.replace("{{ANSWER_PYTHON}}", data["python_full"])
     html = html.replace("{{ANSWER_JAVA}}", data["java_full"])
     html = html.replace("{{CODE_PYTHON}}", data["python_template"])

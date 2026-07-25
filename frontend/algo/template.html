@@ -20,12 +20,12 @@
   }
   /* ── left panel ── */
   .left-panel {
-    padding: 28px; overflow-y: auto; background: #12121a; flex: none;
+    padding: 24px; overflow-y: auto; background: #12121a; flex: none;
   }
-  .left-panel h2 { font-size: 1.2rem; margin-bottom: 6px; }
+  .left-panel h2 { font-size: 1.2rem; margin-bottom: 4px; }
   .difficulty-tag {
     display: inline-block; font-size: 0.72rem; padding: 2px 10px;
-    border-radius: 4px; margin-bottom: 18px;
+    border-radius: 4px; margin-bottom: 16px;
   }
   .difficulty-tag.easy{background:#1a3a2a;color:var(--green)}
   .difficulty-tag.medium{background:#3a2a1a;color:var(--yellow)}
@@ -33,57 +33,74 @@
 
   .desc-block {
     background: #1a1a28; border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 18px; margin-bottom: 20px;
+    border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px;
     font-size: 0.88rem; line-height: 1.65; white-space: pre-wrap;
   }
-  .examples-section{margin-bottom:20px}
-  .examples-section h3{font-size:0.82rem;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+  .examples-section{margin-bottom:16px}
+  .examples-section h3{font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
   .example-card{
     background:#1a1a28;border:1px solid var(--border);border-radius:8px;
-    padding:14px 16px;margin-bottom:10px;
+    padding:12px 14px;margin-bottom:8px;
   }
-  .example-num{font-size:0.75rem;color:var(--accent);margin-bottom:8px;font-weight:600}
-  .example-row{display:flex;gap:10px;margin-bottom:4px;font-size:0.84rem;line-height:1.5}
-  .example-row .ex-label{color:var(--text-muted);min-width:32px;font-size:0.75rem;flex-shrink:0}
-  .example-row code{color:var(--green);font-family:"SF Mono","Monaco","Menlo",monospace;font-size:0.84rem}
+  .example-num{font-size:0.72rem;color:var(--accent);margin-bottom:6px;font-weight:600}
+  .example-row{display:flex;gap:8px;margin-bottom:3px;font-size:0.82rem;line-height:1.5}
+  .example-row .ex-label{color:var(--text-muted);min-width:30px;font-size:0.72rem;flex-shrink:0}
+  .example-row code{color:var(--green);font-family:"SF Mono","Monaco","Menlo",monospace;font-size:0.82rem}
   .example-row .ex-text{color:var(--text-muted)}
+
+  /* approach section */
+  .approach-section {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 12px;
+  }
+  .approach-toggle {
+    width: 100%; padding: 9px 14px; background: #1a1a28;
+    border: none; color: var(--text); text-align: left; cursor: pointer;
+    font-size: 0.85rem; display: flex; justify-content: space-between;
+  }
+  .approach-toggle:hover { background: #222238; }
+  .approach-toggle .arrow-c { transition: transform 0.2s; font-size: 0.7rem; }
+  .approach-toggle.expanded .arrow-c { transform: rotate(90deg); }
+  .approach-body {
+    display: none; padding: 12px 14px; border-top: 1px solid var(--border);
+    background: var(--code-bg); font-size: 0.82rem; line-height: 1.6;
+  }
+  .approach-body.visible { display: block; }
+  .approach-body p { margin-bottom: 6px; }
+  .approach-body .complexity {
+    display: inline-block; padding: 2px 10px; border-radius: 4px;
+    background: #2d1f5e; color: var(--accent); font-size: 0.75rem;
+    margin: 2px 4px 2px 0;
+  }
 
   /* ── right panel ── */
   .right-panel {
-    flex: 1; min-width: 300px; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg);
+    flex: 1; min-width: 300px; display: flex; flex-direction: column;
+    overflow-y: auto; background: var(--bg);
   }
   .v-splitter {
     width: 6px; cursor: col-resize; background: #1a1a28;
     border-left: 1px solid var(--border); border-right: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .v-splitter:hover { background: #2a2a40; }
   .v-splitter:active { background: var(--accent); }
   .v-splitter .grip-v {
     width: 2px; height: 28px; background: var(--text-muted); border-radius: 1px;
   }
+
   .topbar {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 20px; border-bottom: 1px solid var(--border);
     background: #12121a; position: sticky; top: 0; z-index: 10;
   }
-  .topbar .back-btn{
-    padding:5px 10px;border:1px solid var(--border);border-radius:6px;
-    color:var(--text-muted);text-decoration:none;font-size:0.8rem;
-  }
+  .topbar .back-btn{ padding:5px 10px;border:1px solid var(--border);border-radius:6px; color:var(--text-muted);text-decoration:none;font-size:0.8rem; }
   .topbar .back-btn:hover{border-color:var(--accent);color:var(--text)}
   .lang-tabs{display:flex;gap:4px}
-  .lang-tab{
-    padding:4px 12px;border:1px solid var(--border);border-radius:5px;
-    background:transparent;color:var(--text-muted);font-size:0.78rem;cursor:pointer;
-  }
+  .lang-tab{ padding:4px 12px;border:1px solid var(--border);border-radius:5px; background:transparent;color:var(--text-muted);font-size:0.78rem;cursor:pointer; }
   .lang-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
   .progress-toggle{display:flex;gap:5px;margin-left:auto}
-  .progress-toggle button{
-    padding:4px 10px;border:1px solid var(--border);border-radius:5px;
-    background:transparent;color:var(--text-muted);font-size:0.72rem;cursor:pointer;
-  }
+  .progress-toggle button{ padding:4px 10px;border:1px solid var(--border);border-radius:5px; background:transparent;color:var(--text-muted);font-size:0.72rem;cursor:pointer; }
   .progress-toggle button.done{border-color:var(--green);color:var(--green)}
   .progress-toggle button.done:hover{background:var(--green);color:#fff}
   .progress-toggle button.review{border-color:var(--yellow);color:var(--yellow)}
@@ -91,45 +108,26 @@
 
   .code-body{flex:1;padding:16px 20px;overflow-y:auto}
 
-  /* CodeMirror overrides */
   .CodeMirror {
     height: auto !important; min-height: 260px;
-    font-family: "SF Mono","Monaco","Menlo",monospace;
-    font-size: 14px; border-radius: 8px;
+    font-family: "SF Mono","Monaco","Menlo",monospace; font-size: 14px; border-radius: 8px;
   }
-  .editor-hint{
-    padding:6px 14px;font-size:0.72rem;color:var(--text-muted);
-    display:flex;justify-content:space-between;
-  }
+  .editor-hint{ padding:6px 14px;font-size:0.72rem;color:var(--text-muted);display:flex;justify-content:space-between; }
 
-  .answer-section{
-    border:1px solid var(--border);border-radius:var(--radius);
-    overflow:hidden;margin:14px 0;
-  }
-  .answer-toggle{
-    width:100%;padding:10px 16px;background:#1a1a28;border:none;
-    color:var(--text);text-align:left;cursor:pointer;font-size:0.85rem;
-    display:flex;justify-content:space-between;
-  }
+  .answer-section{ border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:14px 0; }
+  .answer-toggle{ width:100%;padding:10px 16px;background:#1a1a28;border:none;color:var(--text);text-align:left;cursor:pointer;font-size:0.85rem;display:flex;justify-content:space-between; }
   .answer-toggle:hover{background:#222238}
-  .answer-toggle .arrow-c{transition:transform 0.2s;font-size:0.7rem}
-  .answer-toggle.expanded .arrow-c{transform:rotate(90deg)}
-  .answer-body{display:none;border-top:1px solid var(--border)}
+  .answer-toggle .arrow-a{transition:transform 0.2s;font-size:0.7rem}
+  .answer-toggle.expanded .arrow-a{transform:rotate(90deg)}
+  .answer-body{display:none;border-top:1px solid var(--border);}
   .answer-body.visible{display:block}
 
-  .section-box{
-    background:#1a1a28;border:1px solid var(--border);
-    border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;
-  }
-  .section-box h4{font-size:0.8rem;color:var(--yellow);margin-bottom:6px}
-  .section-box ul{padding-left:18px;font-size:0.82rem;color:var(--text-muted)}
-  .section-box li{margin-bottom:3px}
+  .section-box{ background:#1a1a28;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px; }
+  .section-box h4{font-size:0.8rem;color:var(--yellow);margin-bottom:4px}
+  .section-box ul{padding-left:16px;font-size:0.8rem;color:var(--text-muted)}
+  .section-box li{margin-bottom:2px}
 
-  @media(max-width:768px){
-    body{flex-direction:column}
-    .left-panel,.right-panel{width:100%}
-    .left-panel{border-right:none;border-bottom:1px solid var(--border)}
-  }
+  @media(max-width:768px){ body{flex-direction:column} .left-panel,.right-panel{width:100%!important} }
 </style>
 </head>
 <body>
@@ -139,11 +137,22 @@
   <span class="difficulty-tag {{DIFFICULTY_CLASS}}">{{DIFFICULTY}}</span>
   <div class="desc-block">{{DESCRIPTION}}</div>
   {{EXAMPLES}}
+
+  <div class="approach-section" id="approachSection">
+    <button class="approach-toggle expanded" id="approachToggle">
+      <span>💡 解题思路</span><span class="arrow-c">▶</span>
+    </button>
+    <div class="approach-body visible" id="approachBody">
+      <p><strong>{{APPROACH_NAME}}</strong></p>
+      {{APPROACH_OVERVIEW}}
+      <p style="margin-top:8px;">
+        {{COMPLEXITY_TAGS}}
+      </p>
+    </div>
+  </div>
 </div>
 
-<div class="v-splitter" id="vSplitter">
-  <div class="grip-v"></div>
-</div>
+<div class="v-splitter" id="vSplitter"><div class="grip-v"></div></div>
 
 <div class="right-panel">
   <div class="topbar">
@@ -159,30 +168,26 @@
   </div>
 
   <div class="code-body">
-    <!-- Template code stored to avoid JS escaping -->
-    <script type="text/plain" id="tmpl-python">{{CODE_PYTHON}}</script>
-    <script type="text/plain" id="tmpl-java">{{CODE_JAVA}}</script>
-    <!-- Answer code -->
-    <script type="text/plain" id="answer-python">{{ANSWER_PYTHON}}</script>
-    <script type="text/plain" id="answer-java">{{ANSWER_JAVA}}</script>
-
     <div id="editor-python">
-      <textarea id="codePython"></textarea>
+      <textarea id="codePython">{{CODE_PYTHON}}</textarea>
       <div class="editor-hint"><span>在此编写 Python 代码</span><span>自动保存到本地</span></div>
     </div>
     <div id="editor-java" style="display:none">
-      <textarea id="codeJava"></textarea>
+      <textarea id="codeJava">{{CODE_JAVA}}</textarea>
       <div class="editor-hint"><span>在此编写 Java 代码</span><span>自动保存到本地</span></div>
     </div>
 
     <div class="answer-section">
       <button class="answer-toggle" id="answerToggle">
-        <span>📖 查看题解</span>
-        <span class="arrow-c">▶</span>
+        <span>📖 查看题解</span><span class="arrow-a">▶</span>
       </button>
       <div class="answer-body" id="answerBody">
-        <div id="answer-python-view" style="display:block"><textarea id="answerCodePython" readonly></textarea></div>
-        <div id="answer-java-view" style="display:none"><textarea id="answerCodeJava" readonly></textarea></div>
+        <div id="answer-python-view" style="display:block">
+          <textarea id="answerCodePython" readonly>{{ANSWER_PYTHON}}</textarea>
+        </div>
+        <div id="answer-java-view" style="display:none">
+          <textarea id="answerCodeJava" readonly>{{ANSWER_JAVA}}</textarea>
+        </div>
       </div>
     </div>
 
@@ -207,20 +212,19 @@ var STORAGE_KEY_PY = "algo_code_" + PROBLEM_ID + "_python";
 var STORAGE_KEY_JA = "algo_code_" + PROBLEM_ID + "_java";
 var hasCM = typeof CodeMirror !== "undefined";
 
-function loadBlock(id) {
-  var el = document.getElementById(id);
-  return el ? el.textContent : "";
-}
+// ── Create editors ──
+function makeEditor(id, mode) {
+  var ta = document.getElementById(id);
+  var saved = null;
+  if (id === "codePython") {
+    try { saved = localStorage.getItem(STORAGE_KEY_PY); } catch(e) {}
+  } else if (id === "codeJava") {
+    try { saved = localStorage.getItem(STORAGE_KEY_JA); } catch(e) {}
+  }
+  if (saved) ta.value = saved;
 
-var tplPy = loadBlock("tmpl-python");
-var tplJa = loadBlock("tmpl-java");
-
-// ── Create editors (CodeMirror or fallback) ──
-function makeEditor(id, mode, value) {
   if (!hasCM) {
-    var ta = document.getElementById(id);
-    ta.style.display = "block";
-    ta.value = value;
+    // Fallback: plain textarea (content already set in HTML)
     return {
       getValue: function() { return ta.value; },
       setValue: function(v) { ta.value = v; },
@@ -229,46 +233,31 @@ function makeEditor(id, mode, value) {
       on: function() {}
     };
   }
-  return CodeMirror.fromTextArea(document.getElementById(id), {
-    mode: mode,
-    theme: "dracula",
-    lineNumbers: true,
-    matchBrackets: true,
-    autoCloseBrackets: true,
-    indentUnit: 4,
-    tabSize: 4,
-    indentWithTabs: false,
-    smartIndent: true,
-    electricChars: true,
-    lineWrapping: false,
+  return CodeMirror.fromTextArea(ta, {
+    mode: mode, theme: "dracula", lineNumbers: true,
+    matchBrackets: true, autoCloseBrackets: true,
+    indentUnit: 4, tabSize: 4, indentWithTabs: false,
+    smartIndent: true, electricChars: true, lineWrapping: false,
   });
 }
 
-var pyValue = (function() {
-  try { return localStorage.getItem(STORAGE_KEY_PY) || tplPy; }
-  catch(e) { return tplPy; }
-})();
-var jaValue = (function() {
-  try { return localStorage.getItem(STORAGE_KEY_JA) || tplJa; }
-  catch(e) { return tplJa; }
-})();
-
-var pyEditor = makeEditor("codePython", "python", pyValue);
-var jaEditor = makeEditor("codeJava", "text/x-java", jaValue);
-
-// Read-only answer editors
-var pyAnswer = makeEditor("answerCodePython", "python", loadBlock("answer-python"));
+var pyEditor = makeEditor("codePython", "python");
+var jaEditor = makeEditor("codeJava", "text/x-java");
+var pyAnswer = makeEditor("answerCodePython", "python");
 pyAnswer.setOption("readOnly", true);
-var jaAnswer = makeEditor("answerCodeJava", "text/x-java", loadBlock("answer-java"));
+var jaAnswer = makeEditor("answerCodeJava", "text/x-java");
 jaAnswer.setOption("readOnly", true);
 
 // ── Auto-save ──
-pyEditor.on("change", function() {
-  try { localStorage.setItem(STORAGE_KEY_PY, pyEditor.getValue()); } catch(e) {}
-});
-jaEditor.on("change", function() {
-  try { localStorage.setItem(STORAGE_KEY_JA, jaEditor.getValue()); } catch(e) {}
-});
+(function() {
+  var ac = hasCM ? "change" : "input";
+  pyEditor.on(ac, function() {
+    try { localStorage.setItem(STORAGE_KEY_PY, pyEditor.getValue()); } catch(e) {}
+  });
+  jaEditor.on(ac, function() {
+    try { localStorage.setItem(STORAGE_KEY_JA, jaEditor.getValue()); } catch(e) {}
+  });
+})();
 
 // ── Tab switch ──
 function switchLang(lang) {
@@ -278,21 +267,20 @@ function switchLang(lang) {
   document.getElementById("editor-java").style.display = lang === "java" ? "block" : "none";
   document.getElementById("answer-python-view").style.display = lang === "python" ? "block" : "none";
   document.getElementById("answer-java-view").style.display = lang === "java" ? "block" : "none";
-
-  // Refresh the visible editor
-  setTimeout(function() {
-    (lang === "python" ? pyEditor : jaEditor).refresh();
-  }, 10);
+  setTimeout(function() { (lang === "python" ? pyEditor : jaEditor).refresh(); }, 10);
 }
 
 // ── Answer toggle ──
 document.getElementById("answerToggle").addEventListener("click", function() {
   this.classList.toggle("expanded");
   document.getElementById("answerBody").classList.toggle("visible");
-  setTimeout(function() {
-    pyAnswer.refresh();
-    jaAnswer.refresh();
-  }, 50);
+  setTimeout(function() { pyAnswer.refresh(); jaAnswer.refresh(); }, 50);
+});
+
+// ── Approach toggle ──
+document.getElementById("approachToggle").addEventListener("click", function() {
+  this.classList.toggle("expanded");
+  document.getElementById("approachBody").classList.toggle("visible");
 });
 
 // ── Progress ──
@@ -309,48 +297,27 @@ async function markStatus(status) {
   }
 }
 
+// ── Vertical splitter ──
+var vs = document.getElementById("vSplitter");
+var lp = document.querySelector(".left-panel");
+var isDraggingV = false;
+function setVSplit(px) {
+  var maxW = document.body.clientWidth - vs.offsetWidth - 360;
+  px = Math.max(280, Math.min(maxW, px));
+  lp.style.width = px + "px";
+}
+setTimeout(function() { setVSplit(document.body.clientWidth * 0.4); }, 100);
+vs.addEventListener("mousedown", function(e) {
+  isDraggingV = true; document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none"; e.preventDefault();
+});
+document.addEventListener("mousemove", function(e) { if (isDraggingV) setVSplit(e.clientX); });
+document.addEventListener("mouseup", function() {
+  if (isDraggingV) { isDraggingV = false; document.body.style.cursor = ""; document.body.style.userSelect = ""; }
+});
+
 // ── Initial refresh ──
 setTimeout(function() { pyEditor.refresh(); }, 50);
-
-// ── Vertical splitter ──
-var vSplitter = document.getElementById("vSplitter");
-var leftPanel = document.querySelector(".left-panel");
-var isDraggingV = false;
-var bodyWidth = 0;
-
-function setVSplit(leftPx) {
-  var totalW = document.body.clientWidth - vSplitter.offsetWidth;
-  var minW = 280;
-  var maxW = totalW - 360;
-  leftPx = Math.max(minW, Math.min(maxW, leftPx));
-  leftPanel.style.width = leftPx + "px";
-}
-
-setTimeout(function() {
-  bodyWidth = document.body.clientWidth;
-  setVSplit(bodyWidth * 0.4);
-}, 100);
-
-vSplitter.addEventListener("mousedown", function(e) {
-  isDraggingV = true;
-  document.body.style.cursor = "col-resize";
-  document.body.style.userSelect = "none";
-  bodyWidth = document.body.clientWidth;
-  e.preventDefault();
-});
-
-document.addEventListener("mousemove", function(e) {
-  if (!isDraggingV) return;
-  setVSplit(e.clientX);
-});
-
-document.addEventListener("mouseup", function() {
-  if (isDraggingV) {
-    isDraggingV = false;
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-  }
-});
 </script>
 </body>
 </html>
