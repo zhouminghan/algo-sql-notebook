@@ -667,14 +667,25 @@ function openSqlPlayback() {
     alert("⚠️ 该题目暂不支持解题过程回放。后续会逐步覆盖更多题型。");
     return;
   }
-  document.getElementById("sqlPlaybackModal").classList.add("open");
+  var overlay = document.getElementById("sqlPlaybackModal");
+  overlay.style.display = "flex";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.zIndex = "99999";
+  overlay.style.background = "rgba(0,0,0,0.85)";
+  overlay.style.justifyContent = "center";
+  overlay.style.alignItems = "center";
   document.body.style.overflow = "hidden";
   sqlPlayer.current = 0;
   renderSqlStep();
 }
 function closeSqlPlayback() {
   sqlPause();
-  document.getElementById("sqlPlaybackModal").classList.remove("open");
+  var overlay = document.getElementById("sqlPlaybackModal");
+  overlay.style.display = "none";
   document.body.style.overflow = "";
 }
 
