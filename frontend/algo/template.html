@@ -89,36 +89,66 @@
     border: 1px solid var(--border); border-radius: var(--radius);
     overflow: hidden; margin-bottom: 12px;
   }
-  .approach-toggle {
-    width: 100%; padding: 9px 14px; background: #1a1a28;
-    border: none; color: var(--text); text-align: left; cursor: pointer;
-    font-size: 0.85rem; display: flex; justify-content: space-between;
+  .approach-header {
+    padding: 10px 14px; background: #1a1a28; display: flex;
+    justify-content: space-between; align-items: center;
   }
-  .approach-toggle:hover { background: #222238; }
-  .approach-toggle .arrow-c { transition: transform 0.2s; font-size: 0.7rem; }
-  .approach-toggle.expanded .arrow-c { transform: rotate(90deg); }
+  .approach-header h4 {
+    font-size: 0.85rem; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .approach-header .toggle-arrow {
+    transition: transform 0.2s; font-size: 0.7rem; color: var(--text-muted);
+  }
+  .approach-header .toggle-arrow.open { transform: rotate(90deg); }
   .approach-body {
-    display: none; padding: 12px 14px; border-top: 1px solid var(--border);
-    background: var(--code-bg); font-size: 0.82rem; line-height: 1.6;
+    display: block; padding: 0; border-top: 1px solid var(--border);
+    font-size: 0.82rem; line-height: 1.6;
   }
-  .approach-body.visible { display: block; }
-  .approach-body p { margin-bottom: 6px; }
-  .approach-body ol {
-    padding-left: 24px; counter-reset: step-counter; list-style: none;
+  .approach-body.collapsed { display: none; }
+
+  .approach-compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
   }
-  .approach-body ol li {
-    counter-increment: step-counter; margin-bottom: 6px;
-    padding-left: 6px; position: relative;
+  .approach-card {
+    padding: 14px; position: relative;
   }
-  .approach-body ol li::before {
-    content: "步骤" counter(step-counter);
-    display: inline-block; padding: 1px 8px; margin-right: 8px;
-    border-radius: 4px; background: #2d1f5e; color: var(--accent);
+  .approach-card.rejected {
+    background: #1a1515; border-right: 1px solid var(--border);
+  }
+  .approach-card.accepted {
+    background: #0a2a1a;
+  }
+  .approach-card .verdict {
+    position: absolute; top: 10px; right: 12px;
+    font-size: 1.2rem;
+  }
+  .approach-card .card-title {
+    font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;
+    padding-right: 24px;
+  }
+  .approach-card.rejected .card-title { color: var(--red); }
+  .approach-card.accepted .card-title { color: var(--green); }
+  .approach-card .card-idea {
+    font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;
+  }
+  .approach-card .complexity-tag {
+    display: inline-block; padding: 2px 10px; border-radius: 4px;
     font-size: 0.72rem; font-weight: 600;
   }
-  .approach-body .complexity {
-    display: inline-block; padding: 2px 10px; border-radius: 4px;
-    background: #2d1f5e; color: var(--accent); font-size: 0.75rem;
+  .approach-card.rejected .complexity-tag {
+    background: #3a1a1a; color: var(--red);
+  }
+  .approach-card.accepted .complexity-tag {
+    background: #1a3a2a; color: var(--green);
+  }
+  .approach-card .flow {
+    margin-top: 8px; font-size: 0.76rem; color: var(--text);
+    font-family: "SF Mono","Monaco","Menlo",monospace;
+    background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 4px;
+  }
+
+  /* walkthrough table */
     margin: 2px 4px 2px 0;
   }
 
@@ -190,15 +220,14 @@
   {{WALKTHROUGH}}
 
   <div class="approach-section" id="approachSection">
-    <button class="approach-toggle expanded" id="approachToggle">
-      <span>💡 解题思路</span><span class="arrow-c">▶</span>
-    </button>
-    <div class="approach-body visible" id="approachBody">
-      <p><strong>{{APPROACH_NAME}}</strong></p>
-      {{APPROACH_OVERVIEW}}
-      <p style="margin-top:8px;">
-        {{COMPLEXITY_TAGS}}
-      </p>
+    <div class="approach-header" id="approachHeader">
+      <h4>🧠 解题思路对比</h4>
+      <span class="toggle-arrow" id="approachArrow">▶</span>
+    </div>
+    <div class="approach-body" id="approachBody">
+      <div class="approach-compare">
+        {{APPROACH_CARDS}}
+      </div>
     </div>
   </div>
 </div>
@@ -335,9 +364,9 @@ document.getElementById("answerToggle").addEventListener("click", function() {
 });
 
 // ── Approach toggle ──
-document.getElementById("approachToggle").addEventListener("click", function() {
-  this.classList.toggle("expanded");
-  document.getElementById("approachBody").classList.toggle("visible");
+document.getElementById("approachHeader").addEventListener("click", function() {
+  document.getElementById("approachArrow").classList.toggle("open");
+  document.getElementById("approachBody").classList.toggle("collapsed");
 });
 
 // ── Progress ──

@@ -154,6 +154,77 @@ def _generate_two_sum_walkthrough(example_input: str) -> str:
     </div>"""
 
 
+def _generate_approach_cards(keypoints: str, complexity_html: str, python_full: str) -> str:
+    """生成算法思路对比卡片（暴力 vs 优化）"""
+    # 从关键点中提取暴力解法和优化的描述
+    rejected_idea = ""
+    accepted_idea = ""
+    rejected_complexity = ""
+    accepted_complexity = ""
+
+    for line in keypoints.split("\n"):
+        stripped = line.strip().lstrip("- 1234567890. ")
+        if "暴力" in stripped:
+            rejected_idea = stripped
+            cm = re.search(r'O\([^)]+\)', stripped)
+            if cm:
+                rejected_complexity = cm.group(0)
+        elif "哈希" in stripped or "HashMap" in stripped or "空间换时间" in stripped:
+            accepted_idea = stripped
+            cm = re.search(r'O\([^)]+\)', stripped)
+            if cm:
+                accepted_complexity = cm.group(0)
+
+    # Extract from complexity_html
+    if not accepted_complexity:
+        cm = re.search(r'O\([^)]+\)', complexity_html)
+        if cm:
+            accepted_complexity = cm.group(0)
+    if not accepted_complexity:
+        accepted_complexity = "O(n)"
+
+    if not rejected_complexity:
+        # Infer from accepted: usually O(n²) vs O(n)
+        if accepted_complexity == "O(n)":
+            rejected_complexity = "O(n²)"
+        elif accepted_complexity == "O(n log n)":
+            rejected_complexity = "O(n²)"
+        else:
+            rejected_complexity = "更高"
+
+    # Build flow description from walkthrough data
+    accepted_flow = ""
+    # Extract a brief flow from the keypoints
+    for line in keypoints.split("\n"):
+        stripped = line.strip().lstrip("- 1234567890. ")
+        if "遍历" in stripped:
+            accepted_flow = stripped
+            break
+    if not accepted_flow:
+        accepted_flow = accepted_idea if accepted_idea else "一次遍历，边存边查"
+
+    if not rejected_idea:
+        rejected_idea = "暴力双循环遍历所有数对"
+    if not accepted_idea:
+        accepted_idea = keypoints.split("\n")[0].strip().lstrip("- 1234567890. ") if keypoints else "优化解法"
+
+    return f"""
+    <div class="approach-card rejected">
+      <div class="verdict">❌</div>
+      <div class="card-title">暴力解法</div>
+      <div class="card-idea">{_inline_md(rejected_idea)}</div>
+      <div class="complexity-tag">⏱ {rejected_complexity}</div>
+      <div class="flow">双重循环穷举所有组合</div>
+    </div>
+    <div class="approach-card accepted">
+      <div class="verdict">✅</div>
+      <div class="card-title">哈希表优化</div>
+      <div class="card-idea">{_inline_md(accepted_idea)}</div>
+      <div class="complexity-tag">⏱ {accepted_complexity}</div>
+      <div class="flow">{escape_html(accepted_flow)}</div>
+    </div>"""
+
+
 def _generate_walkthrough(examples_input: str, title: str) -> str:
     """根据题目类型生成算法执行过程可视化"""
     if "两数之和" in title or "Two Sum" in title.lower():
@@ -338,6 +409,9 @@ def parse_algo_md(md_path: Path) -> dict:
         if first_ex_input_match:
             walkthrough_html = _generate_walkthrough(first_ex_input_match.group(1).strip(), title)
 
+    # Approach cards（解题思路对比卡片）
+    approach_cards_html = _generate_approach_cards(keypoints, complexity_html, python_full)
+
     return {
         "title": title,
         "difficulty_class": diff_class,
@@ -351,9 +425,7 @@ def parse_algo_md(md_path: Path) -> dict:
         "java_template": escape_html(java_template),
         "keypoints": keypoints_html,
         "gotchas": gotchas_html,
-        "approach_name": approach_name,
-        "approach_overview": approach_overview,
-        "complexity_tags": complexity_html,
+        "approach_cards": approach_cards_html,
     }
 
 
@@ -696,9 +768,7 @@ def render_algo(problem_id: str, data: dict) -> None:
     html = html.replace("{{EXAMPLES}}", data["examples"])
     html = html.replace("{{DIFFICULTY}}", data["difficulty"])
     html = html.replace("{{DIFFICULTY_CLASS}}", data["difficulty_class"])
-    html = html.replace("{{APPROACH_NAME}}", data["approach_name"])
-    html = html.replace("{{APPROACH_OVERVIEW}}", data["approach_overview"])
-    html = html.replace("{{COMPLEXITY_TAGS}}", data["complexity_tags"])
+    html = html.replace("{{APPROACH_CARDS}}", data.get("approach_cards", ""))
     html = html.replace("{{WALKTHROUGH}}", data.get("walkthrough", ""))
     html = html.replace("{{ANSWER_PYTHON}}", data["python_full"])
     html = html.replace("{{ANSWER_JAVA}}", data["java_full"])
