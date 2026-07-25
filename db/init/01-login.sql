@@ -3,9 +3,12 @@
 -- ==========================================
 DROP TABLE IF EXISTS t1_login_log;
 CREATE TABLE t1_login_log (
-    user_id    VARCHAR(64) COMMENT '用户ID',
-    login_date DATE        COMMENT '登录日期'
-) COMMENT '用户登录日志表';
+    user_id    VARCHAR(64),
+    login_date DATE
+);
+COMMENT ON TABLE t1_login_log IS '用户登录日志表';
+COMMENT ON COLUMN t1_login_log.user_id IS '用户ID';
+COMMENT ON COLUMN t1_login_log.login_date IS '登录日期';
 
 INSERT INTO t1_login_log VALUES
 ('u01', '2026-07-01'),

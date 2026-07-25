@@ -16,7 +16,6 @@
     --green: #00b894;
     --yellow: #fdcb6e;
     --red: #e17055;
-    --blue: #74b9ff;
     --radius: 10px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,39 +26,38 @@
     line-height: 1.6;
     min-height: 100vh;
   }
-  .container { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+  .container { max-width: 880px; margin: 0 auto; padding: 24px 20px; }
 
-  /* header */
   header {
     text-align: center;
-    padding: 40px 0 20px;
+    padding: 36px 0 20px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 30px;
+    margin-bottom: 24px;
   }
-  header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
-  header .date { color: var(--text-muted); font-size: 0.9rem; margin-top: 6px; }
+  header h1 { font-size: 1.7rem; font-weight: 700; }
+  header .date { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
 
-  /* progress bar */
+  /* progress */
   .progress-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 30px;
+    gap: 14px;
+    margin-bottom: 24px;
   }
   .progress-card {
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 18px 20px;
+    padding: 16px 18px;
   }
-  .progress-card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .progress-card .count { font-size: 1.6rem; font-weight: 700; }
-  .progress-card .count span { font-size: 0.85rem; color: var(--text-muted); font-weight: 400; }
+  .progress-card h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .progress-card .count { font-size: 1.5rem; font-weight: 700; }
+  .progress-card .count span { font-size: 0.8rem; color: var(--text-muted); font-weight: 400; }
   .progress-bar-bg {
-    height: 6px;
+    height: 5px;
     background: var(--border);
     border-radius: 3px;
-    margin-top: 10px;
+    margin-top: 8px;
     overflow: hidden;
   }
   .progress-bar-fill {
@@ -68,85 +66,88 @@
     transition: width 0.3s;
   }
   .progress-bar-fill.algo { background: var(--accent); }
-  .progress-bar-fill.sql { background: var(--green); }
+  .progress-bar-fill.sql  { background: var(--green); }
 
   /* filters */
   .filters {
     display: flex;
-    gap: 10px;
-    margin-bottom: 24px;
+    gap: 8px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
   }
   .filters button {
-    padding: 6px 14px;
+    padding: 5px 12px;
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 16px;
     background: transparent;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     transition: all 0.15s;
   }
   .filters button:hover { border-color: var(--accent); color: var(--text); }
   .filters button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-  /* today pointer */
+  /* today */
   .today-banner {
     background: linear-gradient(135deg, #2d1f5e, #1a1a24);
     border: 1px solid var(--accent);
     border-radius: var(--radius);
-    padding: 14px 18px;
-    margin-bottom: 24px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
-  .today-banner .icon { font-size: 1.4rem; }
+  .today-banner .icon { font-size: 1.3rem; }
   .today-banner a { color: var(--accent-hover); font-weight: 600; text-decoration: none; }
   .today-banner a:hover { text-decoration: underline; }
 
-  /* problem list */
+  /* list */
   .section-title {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-muted);
-    margin-bottom: 12px;
-    margin-top: 24px;
+    margin: 18px 0 8px;
   }
   .section-title:first-of-type { margin-top: 0; }
 
   .problem-item {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
-    border-radius: 8px;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 7px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.12s;
     text-decoration: none;
     color: var(--text);
   }
   .problem-item:hover { background: var(--card-bg); }
 
+  .problem-item .num {
+    width: 36px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
   .status-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
   }
   .status-dot.pending { background: var(--border); }
-  .status-dot.doing { background: var(--yellow); }
-  .status-dot.done { background: var(--green); }
+  .status-dot.doing  { background: var(--yellow); }
+  .status-dot.done   { background: var(--green); }
   .status-dot.review { background: var(--red); }
 
-  .problem-item .title { flex: 1; }
+  .problem-item .title { flex: 1; font-size: 0.9rem; }
   .problem-item .tag {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     padding: 2px 8px;
     border-radius: 4px;
-    background: var(--border);
-    color: var(--text-muted);
   }
   .problem-item .tag.algo { background: #2d1f5e; color: var(--accent-hover); }
   .problem-item .tag.sql  { background: #1a3a2a; color: var(--green); }
@@ -156,90 +157,76 @@
 
 <div class="container">
   <header>
-    <h1>每日一题</h1>
-    <p class="date">本地刷题平台 · PostgreSQL + FastAPI</p>
+    <h1>每日一题 · Algo Practice</h1>
+    <p class="date">力扣 Hot 100 + SQL 高级场景 · Docker 本地部署</p>
   </header>
 
-  <!-- Progress overview -->
   <div class="progress-section">
-    <div class="progress-card" id="algo-card">
-      <h3>算法 (力扣 Hot 100)</h3>
+    <div class="progress-card">
+      <h3>算法 Hot 100</h3>
       <div class="count" id="algo-count">0 <span>/ 100</span></div>
       <div class="progress-bar-bg"><div class="progress-bar-fill algo" id="algo-bar" style="width:0%"></div></div>
     </div>
-    <div class="progress-card" id="sql-card">
+    <div class="progress-card">
       <h3>SQL 高级场景</h3>
-      <div class="count" id="sql-count">0 <span>/ 30</span></div>
+      <div class="count" id="sql-count">0 <span>/ ∞</span></div>
       <div class="progress-bar-bg"><div class="progress-bar-fill sql" id="sql-bar" style="width:0%"></div></div>
     </div>
   </div>
 
-  <!-- Today's problem -->
   <div class="today-banner" id="today-banner" style="display:none">
     <span class="icon">📌</span>
     <span>今日题目：<a href="#" id="today-link"></a></span>
   </div>
 
-  <!-- Filters -->
   <div class="filters">
     <button class="active" data-filter="all">全部</button>
     <button data-filter="algo">算法</button>
     <button data-filter="sql">SQL</button>
     <button data-filter="pending">待做</button>
     <button data-filter="done">已完成</button>
-    <button data-filter="review">需复习</button>
   </div>
 
-  <!-- Problem list -->
   <div id="problem-list"></div>
 </div>
 
 <script>
-// ── State ──
 let problems = { algo: [], sql: [] };
 let progress = {};
 
-// ── Load data ──
 async function load() {
   const resp = await fetch('/api/problems');
   const data = await resp.json();
   problems = { algo: data.algo, sql: data.sql };
-
-  // deduce progress from status field in each problem
   progress = { algo: {}, sql: {} };
   data.algo.forEach(p => progress.algo[p.id] = p.status);
   data.sql.forEach(p => progress.sql[p.id] = p.status);
-
   renderProgress();
   renderList('all');
 }
 
-// ── Progress ──
 function renderProgress() {
   const algoDone = Object.values(progress.algo).filter(s => s === 'done').length;
   const sqlDone = Object.values(progress.sql).filter(s => s === 'done').length;
   const algoTotal = problems.algo.length || 100;
-  const sqlTotal = problems.sql.length || 30;
+  const sqlTotal = problems.sql.length;
 
   document.getElementById('algo-count').innerHTML = `${algoDone} <span>/ ${algoTotal}</span>`;
   document.getElementById('sql-count').innerHTML = `${sqlDone} <span>/ ${sqlTotal}</span>`;
   document.getElementById('algo-bar').style.width = algoTotal ? (algoDone / algoTotal * 100) + '%' : '0%';
   document.getElementById('sql-bar').style.width = sqlTotal ? (sqlDone / sqlTotal * 100) + '%' : '0%';
 
-  // Today: first pending algo, or first pending sql
   const firstPendingAlgo = problems.algo.find(p => progress.algo[p.id] === 'pending');
   const firstPendingSql = problems.sql.find(p => progress.sql[p.id] === 'pending');
   const today = firstPendingAlgo || firstPendingSql;
   const banner = document.getElementById('today-banner');
-  const link = document.getElementById('today-link');
   if (today) {
     banner.style.display = 'flex';
-    link.textContent = today.title;
-    link.href = `/${today.type}/${today.id}`;
+    document.getElementById('today-link').textContent = today.title;
+    document.getElementById('today-link').href = `/${today.type}/${today.id}`;
   }
 }
 
-// ── Render list ──
 function renderList(filter) {
   const container = document.getElementById('problem-list');
   container.innerHTML = '';
@@ -252,19 +239,29 @@ function renderList(filter) {
   }
 }
 
+function extractNum(id, type) {
+  if (type === 'algo') {
+    const m = id.match(/^(\d+)/);
+    return m ? parseInt(m[1]) : '';
+  }
+  const m = id.match(/^SQL(\d+)/);
+  return m ? parseInt(m[1]) : '';
+}
+
 function sectionHTML(label, type, items, filter) {
   const div = document.createElement('div');
   div.innerHTML = `<div class="section-title">${label}</div>`;
 
   const fragments = [];
-  items.forEach(p => {
+  items.forEach((p, idx) => {
     const s = progress[type]?.[p.id] || 'pending';
-    if (filter === 'pending' && (s === 'done')) return;
+    if (filter === 'pending' && s === 'done') return;
     if (filter === 'done' && s !== 'done') return;
-    if (filter === 'review' && s !== 'review') return;
 
+    const num = extractNum(p.id, type);
     fragments.push(`
       <a class="problem-item" href="/${type}/${p.id}">
+        <span class="num">${num ? '#' + num : ''}</span>
         <span class="status-dot ${s}"></span>
         <span class="title">${p.title}</span>
         <span class="tag ${type}">${type === 'algo' ? '算法' : 'SQL'}</span>
@@ -276,7 +273,6 @@ function sectionHTML(label, type, items, filter) {
   return div;
 }
 
-// ── Filter click ──
 document.querySelector('.filters').addEventListener('click', e => {
   if (e.target.tagName !== 'BUTTON') return;
   document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
@@ -284,7 +280,6 @@ document.querySelector('.filters').addEventListener('click', e => {
   renderList(e.target.dataset.filter);
 });
 
-// ── Init ──
 load();
 </script>
 </body>

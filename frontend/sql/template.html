@@ -4,280 +4,186 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{TITLE}} - 每日一题 SQL</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 <style>
   :root {
-    --bg: #0f0f14;
-    --code-bg: #1e1e2e;
-    --border: #2a2a3a;
-    --text: #e0e0e0;
-    --text-muted: #777;
-    --accent: #6c5ce7;
-    --green: #00b894;
-    --yellow: #fdcb6e;
-    --red: #e17055;
+    --bg: #0f0f14; --code-bg: #1e1e2e; --border: #2a2a3a;
+    --text: #e0e0e0; --text-muted: #777; --accent: #6c5ce7;
+    --green: #00b894; --yellow: #fdcb6e; --red: #e17055;
+    --keyword: #c792ea; --func: #82aaff; --string: #c3e88d;
     --radius: 10px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
   }
-
   .topbar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--border);
-    background: #12121a;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    background: #12121a; position: sticky; top: 0; z-index: 10;
   }
-  .topbar h1 { font-size: 1.2rem; }
+  .topbar h1 { font-size: 1.15rem; }
   .topbar .back-btn {
-    padding: 6px 12px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.85rem;
+    padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-muted); text-decoration: none; font-size: 0.8rem;
   }
   .topbar .back-btn:hover { border-color: var(--accent); color: var(--text); }
-
-  .progress-toggle {
-    display: flex;
-    gap: 6px;
-    margin-left: auto;
-  }
+  .progress-toggle { display: flex; gap: 5px; margin-left: auto; }
   .progress-toggle button {
-    padding: 5px 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    cursor: pointer;
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 5px;
+    background: transparent; color: var(--text-muted); font-size: 0.72rem; cursor: pointer;
   }
   .progress-toggle button.done { border-color: var(--green); color: var(--green); }
-  .progress-toggle button.done.active { background: var(--green); color: #fff; }
-  .progress-toggle button.review { border-color: var(--red); color: var(--red); }
-  .progress-toggle button.review.active { background: var(--red); color: #fff; }
+  .progress-toggle button.done:hover { background: var(--green); color: #fff; }
+  .progress-toggle button.review { border-color: var(--yellow); color: var(--yellow); }
+  .progress-toggle button.review:hover { background: var(--yellow); color: #111; }
 
-  .layout {
-    display: flex;
-    min-height: calc(100vh - 57px);
+  .layout { display: flex; height: calc(100vh - 53px); }
+
+  /* ── left panel ── */
+  .left-panel {
+    width: 38%; padding: 20px; border-right: 1px solid var(--border);
+    overflow-y: auto; background: #12121a;
+  }
+  .left-panel h3 { color: var(--accent); font-size: 0.95rem; margin-bottom: 10px; }
+  .scenario {
+    background: #1a1a28; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 14px; font-size: 0.85rem; line-height: 1.6;
+  }
+  .scenario .note { color: var(--text-muted); font-style: italic; font-size: 0.8rem; }
+
+  .table-info { margin-bottom: 14px; }
+  .table-info h4 { color: var(--yellow); font-size: 0.82rem; margin-bottom: 6px; }
+  .table-info table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .table-info th,.table-info td { padding: 5px 10px; border: 1px solid var(--border); text-align: left; }
+  .table-info th { background: #1a1a28; color: var(--text-muted); font-weight: 500; }
+  .table-info td code { color: var(--green); font-size: 0.78rem; }
+  .table-info.sample td { color: var(--text); }
+
+  .expected-table {
+    border: 1px solid var(--border); border-radius: 6px; margin-bottom: 14px;
+  }
+  .expected-table h4 {
+    padding: 8px 14px; background: #1a1a28; font-size: 0.82rem;
+    color: var(--yellow); border-bottom: 1px solid var(--border);
+  }
+  .expected-table table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .expected-table th,.expected-table td { padding: 5px 12px; border: 1px solid var(--border); text-align: left; }
+  .expected-table th { background: #1a1a28; color: var(--text-muted); }
+  .expected-note { padding: 8px 14px; font-size: 0.78rem; color: var(--text-muted); }
+
+  .collapsible {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 12px;
+  }
+  .collapsible-toggle {
+    width: 100%; padding: 9px 14px; background: #1a1a28;
+    border: none; color: var(--text); text-align: left; cursor: pointer;
+    font-size: 0.85rem; display: flex; justify-content: space-between;
+  }
+  .collapsible-toggle:hover { background: #222238; }
+  .collapsible-toggle .arrow { transition: transform 0.2s; font-size: 0.7rem; }
+  .collapsible-toggle.open .arrow { transform: rotate(90deg); }
+  .collapsible-body {
+    display: none; padding: 12px 14px; border-top: 1px solid var(--border);
+    background: var(--code-bg); font-size: 0.82rem;
+  }
+  .collapsible-body.visible { display: block; }
+
+  .domain-k-body { padding: 0; }
+  .domain-k-body .dk-note { padding: 8px 12px; color: var(--text-muted); font-size: 0.78rem; border-bottom: 1px solid var(--border); }
+  .domain-k-body table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .domain-k-body th,.domain-k-body td { padding: 6px 10px; border: 1px solid var(--border); text-align: left; }
+  .domain-k-body th { background: #1a1a28; color: var(--accent); font-weight: 500; font-size: 0.75rem; }
+  .domain-k-body td:first-child { color: var(--yellow); font-weight: 600; white-space: nowrap; }
+  .domain-k-body td:nth-child(2) { color: var(--text-muted); font-style: italic; }
+  .domain-k-body td:last-child { color: var(--text); line-height: 1.5; }
+
+  .hint-step { margin-bottom: 8px; padding: 8px 10px; background: #1a1a28; border-radius: 6px; font-size: 0.82rem; }
+  .hint-item { margin: 4px 0 4px 10px; color: var(--text-muted); font-size: 0.8rem; }
+
+  .section-box {
+    background: #1a1515; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px;
+  }
+  .section-box h4 { color: var(--red); font-size: 0.8rem; margin-bottom: 4px; }
+  .section-box ul { padding-left: 16px; font-size: 0.8rem; color: var(--text-muted); }
+  .section-box li { margin-bottom: 2px; }
+
+  /* ── right panel with splitter ── */
+  .right-panel {
+    width: 62%; display: flex; flex-direction: column; background: var(--bg);
+    position: relative; overflow: hidden;
   }
 
-  /* left: description */
-  .desc-panel {
-    width: 40%;
-    padding: 24px;
-    border-right: 1px solid var(--border);
-    overflow-y: auto;
-    background: #12121a;
-  }
-  .desc-panel h3 { color: var(--accent); margin-bottom: 12px; }
-  .desc-panel .scenario {
-    background: #1a1a28;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-    line-height: 1.6;
-  }
-
-  /* tables display */
-  .table-info {
-    margin-top: 16px;
-  }
-  .table-info h4 { color: var(--yellow); font-size: 0.85rem; margin-bottom: 8px; }
-  .table-info table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-  }
-  .table-info th, .table-info td {
-    padding: 6px 10px;
-    border: 1px solid var(--border);
-    text-align: left;
-  }
-  .table-info th { background: #1a1a28; color: var(--text-muted); }
-
-  .sample-data {
-    margin-top: 12px;
-  }
-  .sample-data pre {
-    white-space: pre-wrap;
-    font-family: "SF Mono", monospace;
-    font-size: 0.8rem;
-    line-height: 1.4;
-    padding: 10px;
-    background: var(--code-bg);
-    border-radius: 6px;
-  }
-
-  /* right: sql editor */
-  .sql-panel {
-    width: 60%;
-    display: flex;
-    flex-direction: column;
-  }
-  .sql-editor-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-bottom: 1px solid var(--border);
-  }
+  .editor-area { min-height: 120px; overflow: hidden; }
   .sql-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    background: #1a1a28;
-    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: #1a1a28; border-bottom: 1px solid var(--border);
   }
-  .sql-toolbar .hint {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-  }
+  .sql-toolbar .hint { color: var(--text-muted); font-size: 0.72rem; }
   .sql-toolbar .run-btn {
-    padding: 6px 16px;
-    background: var(--green);
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 600;
+    padding: 5px 14px; background: var(--green); border: none;
+    border-radius: 6px; color: #fff; cursor: pointer; font-size: 0.82rem; font-weight: 600;
   }
-  .sql-toolbar .run-btn:hover { opacity: 0.9; }
+  .sql-toolbar .run-btn:hover { opacity: 0.85; }
   .sql-toolbar .run-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
 
-  .sql-textarea {
-    flex: 1;
-    padding: 16px;
-    background: var(--code-bg);
-    border: none;
-    color: var(--text);
-    font-family: "SF Mono", "Monaco", "Menlo", monospace;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    resize: none;
-    outline: none;
-    tab-size: 4;
+  /* CodeMirror override */
+  .CodeMirror {
+    height: 100% !important;
+    font-family: "SF Mono","Monaco","Menlo",monospace;
+    font-size: 14px;
   }
 
-  /* result panel */
-  .result-panel {
-    max-height: 350px;
-    overflow-y: auto;
+  /* ── draggable splitter ── */
+  .splitter {
+    height: 6px; cursor: row-resize; background: #1a1a28;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
   }
+  .splitter:hover { background: #2a2a40; }
+  .splitter:active { background: var(--accent); }
+  .splitter .grip {
+    width: 28px; height: 2px; background: var(--text-muted);
+    border-radius: 1px;
+  }
+
+  .result-area { flex: 1; overflow-y: auto; min-height: 60px; }
   .result-header {
-    padding: 10px 16px;
-    background: #1a1a28;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 8px 14px; background: #1a1a28; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; font-size: 0.82rem;
+    position: sticky; top: 0; z-index: 5;
   }
-  .result-header .row-count { color: var(--text-muted); font-size: 0.85rem; }
+  .result-header .row-count { color: var(--text-muted); }
   .result-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
+    width: 100%; border-collapse: collapse; font-size: 0.78rem;
   }
-  .result-table th, .result-table td {
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    text-align: left;
+  .result-table th,.result-table td {
+    padding: 6px 12px; border: 1px solid var(--border); text-align: left;
   }
-  .result-table th { background: #1a1a28; color: var(--accent); position: sticky; top: 0; }
-  .result-error {
-    padding: 16px;
-    color: var(--red);
-    font-size: 0.85rem;
-  }
+  .result-table th { background: #1a1a28; color: var(--accent); position: sticky; top: 33px; }
+  .result-error { padding: 14px; color: var(--red); font-size: 0.82rem; }
 
-  /* hints (collapsible) */
-  .hints-section {
-    margin-top: 20px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
+  .result-placeholder {
+    padding: 40px 14px; text-align: center; color: var(--text-muted);
+    font-size: 0.82rem;
   }
-  .hints-toggle {
-    width: 100%;
-    padding: 10px 16px;
-    background: #1a1a28;
-    border: none;
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: flex;
-    justify-content: space-between;
-  }
-  .hints-toggle:hover { background: #222238; }
-  .hints-toggle .arrow { transition: transform 0.2s; }
-  .hints-toggle.open .arrow { transform: rotate(90deg); }
-  .hints-body {
-    display: none;
-    padding: 16px;
-    border-top: 1px solid var(--border);
-    background: var(--code-bg);
-  }
-  .hints-body.show { display: block; }
-  .hints-body pre {
-    white-space: pre-wrap;
-    font-family: "SF Mono", monospace;
-    font-size: 0.85rem;
-  }
-  .hints-body .hint-step {
-    margin-bottom: 12px;
-    padding: 10px;
-    background: #1a1a28;
-    border-radius: 6px;
-    font-size: 0.85rem;
-  }
-  .hints-body .hint-step .step-num {
-    display: inline-block;
-    width: 22px;
-    height: 22px;
-    background: var(--accent);
-    border-radius: 50%;
-    text-align: center;
-    line-height: 22px;
-    font-size: 0.7rem;
-    margin-right: 8px;
-  }
-
-  /* keypoints */
-  .keypoints {
-    margin-top: 16px;
-    background: #1a1a28;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-  }
-  .keypoints h4 { color: var(--yellow); font-size: 0.85rem; margin-bottom: 8px; }
-  .keypoints ul { padding-left: 20px; font-size: 0.85rem; color: var(--text-muted); }
-  .keypoints li { margin-bottom: 4px; }
 
   @media (max-width: 768px) {
     .layout { flex-direction: column; }
-    .desc-panel, .sql-panel { width: 100%; }
-    .desc-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    .left-panel,.right-panel { width: 100%; }
+    .left-panel { border-right: none; border-bottom: 1px solid var(--border); }
   }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <a href="/" class="back-btn">← 返回列表</a>
+  <a href="/" class="back-btn">← 返回</a>
   <h1>{{TITLE}}</h1>
   <div class="progress-toggle">
     <button class="done" onclick="markStatus('done')">✓ 掌握</button>
@@ -286,139 +192,236 @@
 </div>
 
 <div class="layout">
-  <div class="desc-panel">
+  <div class="left-panel">
     <h3>场景描述</h3>
     <div class="scenario">{{DESCRIPTION}}</div>
 
-    {{TABLE_SCHEMAS}}
+    {{DOMAIN_KNOWLEDGE}}
 
+    {{TABLE_SCHEMA}}
     {{SAMPLE_DATA}}
 
-    <div class="hints-section">
-      <button class="hints-toggle" onclick="toggleHints(this)">
-        <span>💡 分步提示</span>
-        <span class="arrow">▶</span>
+    <div class="expected-table" id="expectedBlock">
+      <h4>📊 期望结果</h4>
+      {{EXPECTED}}
+    </div>
+
+    <div class="collapsible" id="hintsSection">
+      <button class="collapsible-toggle" onclick="toggleSection(this)">
+        <span>💡 解题思路</span><span class="arrow">▶</span>
       </button>
-      <div class="hints-body">
-        {{HINTS}}
-      </div>
+      <div class="collapsible-body">{{HINTS}}</div>
     </div>
 
-    <div class="hints-section" style="margin-top:12px;">
-      <button class="hints-toggle" onclick="toggleAnswer(this)">
-        <span>📖 参考答案</span>
-        <span class="arrow">▶</span>
+    <div class="collapsible" id="answerSection">
+      <button class="collapsible-toggle" onclick="toggleSection(this)">
+        <span>📖 参考答案</span><span class="arrow">▶</span>
       </button>
-      <div class="hints-body">
-        <pre>{{ANSWER_SQL}}</pre>
-      </div>
+      <div class="collapsible-body"><textarea id="answerCodeTA" readonly style="display:none">{{ANSWER_SQL}}</textarea></div>
     </div>
 
-    <div class="keypoints">
-      <h4>🧠 关键点</h4>
-      <ul>{{KEYPOINTS}}</ul>
-    </div>
-
-    <div class="keypoints" style="margin-top:12px; background:#1a1515;">
-      <h4 style="color: var(--red);">⚠️ 易错点</h4>
+    <div class="section-box" id="gotchasBlock">
+      <h4>⚠️ 易错点</h4>
       <ul>{{GOTCHAS}}</ul>
     </div>
   </div>
 
-  <div class="sql-panel">
-    <div class="sql-editor-wrap">
+  <div class="right-panel">
+    <div class="editor-area" id="editorArea">
       <div class="sql-toolbar">
         <span class="hint">Ctrl+Enter 执行</span>
-        <button class="run-btn" id="runBtn" onclick="executeSQL()">▶ 运行 SQL</button>
+        <button class="run-btn" id="runBtn" onclick="executeSQL()">▶ 运行</button>
       </div>
-      <textarea class="sql-textarea" id="sqlEditor" placeholder="在此编写你的 SQL 查询..." spellcheck="false"></textarea>
+      <textarea id="sqlEditorTA"></textarea>
     </div>
-    <div class="result-panel" id="resultPanel">
+
+    <div class="splitter" id="splitter">
+      <div class="grip"></div>
+    </div>
+
+    <div class="result-area" id="resultArea">
       <div class="result-header">
         <span>📊 查询结果</span>
         <span class="row-count" id="rowCount"></span>
       </div>
-      <div id="resultBody"></div>
+      <div id="resultBody">
+        <div class="result-placeholder">↑ 输入 SQL 并按 Ctrl+Enter 执行</div>
+      </div>
     </div>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
 <script>
-const PROBLEM_ID = "{{PROBLEM_ID}}";
-const PROBLEM_TYPE = "sql";
+var PROBLEM_ID = "{{PROBLEM_ID}}";
+var PROBLEM_TYPE = "sql";
 
-// ── SQL execution ──
-document.getElementById('sqlEditor').addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') executeSQL();
+var hasCM = typeof CodeMirror !== "undefined";
+
+// ── CodeMirror SQL editor (with fallback) ──
+var sqlEditor, answerEditor;
+if (hasCM) {
+  sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlEditorTA"), {
+  mode: "text/x-sql",
+  theme: "dracula",
+  lineNumbers: true,
+  matchBrackets: true,
+  autoCloseBrackets: true,
+  indentUnit: 2,
+  tabSize: 2,
+  smartIndent: true,
+  lineWrapping: false,
+  extraKeys: {
+    "Ctrl-Enter": executeSQL,
+    "Cmd-Enter": executeSQL
+  }
+});
+var answerTA = document.getElementById("answerCodeTA");
+answerEditor = CodeMirror.fromTextArea(answerTA, {
+  mode: "text/x-sql",
+  theme: "dracula",
+  lineNumbers: true,
+  readOnly: true,
+  indentUnit: 2,
+});
+} else {
+  // Fallback: plain textarea
+  var sqlTA = document.getElementById("sqlEditorTA");
+  sqlTA.style.display = "block";
+  sqlEditor = sqlTA;
+  sqlEditor.getValue = function() { return sqlTA.value; };
+  sqlEditor.refresh = function() {};
+  var aTA = document.getElementById("answerCodeTA");
+  aTA.style.display = "block";
+  aTA.readOnly = true;
+  answerEditor = { refresh: function() {}, getValue: function() { return ""; } };
+}
+
+// ═════════════════════════════════════════════
+//  Draggable Splitter
+// ═════════════════════════════════════════════
+var splitter = document.getElementById("splitter");
+var editorArea = document.getElementById("editorArea");
+var resultArea = document.getElementById("resultArea");
+var rightPanel = document.querySelector(".right-panel");
+var isDragging = false;
+var rightPanelHeight = 0;
+
+function setSplit(fraction) {
+  var totalH = rightPanel.clientHeight - splitter.offsetHeight;
+  fraction = Math.max(0.15, Math.min(0.85, fraction));
+  editorArea.style.height = (totalH * fraction) + "px";
+  editorArea.style.flex = "none";
+  resultArea.style.flex = "none";
+  resultArea.style.height = (totalH * (1 - fraction)) + "px";
+  sqlEditor.refresh();
+}
+
+// Default 50/50 split, but only after CodeMirror is rendered
+setTimeout(function() {
+  rightPanelHeight = rightPanel.clientHeight;
+  setSplit(0.5);
+}, 200);
+
+splitter.addEventListener("mousedown", function(e) {
+  isDragging = true;
+  document.body.style.cursor = "row-resize";
+  document.body.style.userSelect = "none";
+  rightPanelHeight = rightPanel.clientHeight;
+  e.preventDefault();
 });
 
+document.addEventListener("mousemove", function(e) {
+  if (!isDragging) return;
+  var rect = rightPanel.getBoundingClientRect();
+  var offsetY = e.clientY - rect.top - splitter.offsetHeight / 2;
+  var totalH = rightPanelHeight - splitter.offsetHeight;
+  var fraction = offsetY / totalH;
+  setSplit(fraction);
+});
+
+document.addEventListener("mouseup", function() {
+  if (isDragging) {
+    isDragging = false;
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    sqlEditor.refresh();
+  }
+});
+
+// Handle window resize
+window.addEventListener("resize", function() {
+  sqlEditor.refresh();
+});
+
+// ═════════════════════════════════════════════
+//  Execute SQL
+// ═════════════════════════════════════════════
 async function executeSQL() {
-  const sql = document.getElementById('sqlEditor').value.trim();
+  var sql = sqlEditor.getValue().trim();
   if (!sql) return;
-
-  const btn = document.getElementById('runBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ 执行中...';
-
+  var btn = document.getElementById("runBtn");
+  btn.disabled = true; btn.textContent = "⏳ ...";
   try {
-    const resp = await fetch(`/api/sql/execute?sql=${encodeURIComponent(sql)}`, { method: 'POST' });
-
-    if (!resp.ok) {
-      const err = await resp.json();
-      showError(err.detail || '执行失败');
-      return;
-    }
-
-    const data = await resp.json();
-    document.getElementById('rowCount').textContent = `${data.row_count} 行`;
+    var resp = await fetch("/api/sql/execute?sql=" + encodeURIComponent(sql), { method: "POST" });
+    if (!resp.ok) { var err = await resp.json(); showError(err.detail || "执行失败"); return; }
+    var data = await resp.json();
+    document.getElementById("rowCount").textContent = data.row_count + " 行";
     renderTable(data.columns, data.rows);
   } catch (e) {
-    showError('网络错误: ' + e.message);
+    showError("网络错误: " + e.message);
   } finally {
-    btn.disabled = false;
-    btn.textContent = '▶ 运行 SQL';
+    btn.disabled = false; btn.textContent = "▶ 运行";
   }
 }
 
 function renderTable(columns, rows) {
-  const body = document.getElementById('resultBody');
+  var body = document.getElementById("resultBody");
   if (!columns.length && !rows.length) {
-    body.innerHTML = '<div style="padding:16px;color:#777;">无返回结果</div>';
+    body.innerHTML = '<div class="result-placeholder">查询执行成功，无返回数据</div>';
     return;
   }
-
-  let html = '<table class="result-table"><thead><tr>';
-  columns.forEach(c => html += `<th>${c}</th>`);
-  html += '</tr></thead><tbody>';
-  rows.forEach(row => {
-    html += '<tr>';
-    row.forEach(val => html += `<td>${val === null ? '<i style="color:#666">NULL</i>' : val}</td>`);
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  body.innerHTML = html;
+  var h = '<table class="result-table"><thead><tr>';
+  for (var i = 0; i < columns.length; i++) h += "<th>" + columns[i] + "</th>";
+  h += "</tr></thead><tbody>";
+  for (var r = 0; r < rows.length; r++) {
+    h += "<tr>";
+    for (var c = 0; c < rows[r].length; c++) {
+      h += "<td>" + (rows[r][c] === null ? '<i style="color:#555">NULL</i>' : String(rows[r][c])) + "</td>";
+    }
+    h += "</tr>";
+  }
+  h += "</tbody></table>";
+  body.innerHTML = h;
 }
 
 function showError(msg) {
-  document.getElementById('rowCount').textContent = '';
-  document.getElementById('resultBody').innerHTML = `<div class="result-error">${msg}</div>`;
+  document.getElementById("rowCount").textContent = "";
+  document.getElementById("resultBody").innerHTML = '<div class="result-error">' + msg + "</div>";
 }
 
-// ── Hints toggle ──
-function toggleHints(btn) {
-  btn.classList.toggle('open');
-  btn.nextElementSibling.classList.toggle('show');
-}
-function toggleAnswer(btn) {
-  btn.classList.toggle('open');
-  btn.nextElementSibling.classList.toggle('show');
+// ── Toggle sections ──
+function toggleSection(btn) {
+  btn.classList.toggle("open");
+  btn.nextElementSibling.classList.toggle("visible");
+  if (btn.closest("#answerSection")) {
+    setTimeout(function() { answerEditor.refresh(); }, 50);
+  }
 }
 
 // ── Progress ──
 async function markStatus(status) {
-  await fetch(`/api/progress/${PROBLEM_TYPE}/${PROBLEM_ID}?status=${status}`, { method: 'POST' });
-  document.querySelectorAll('.progress-toggle button').forEach(b => b.classList.remove('active'));
-  document.querySelector(`.progress-toggle button.${status}`).classList.add('active');
+  var resp = await fetch("/api/progress/" + PROBLEM_TYPE + "/" + PROBLEM_ID + "?status=" + status, { method: "POST" });
+  if (resp.ok) {
+    document.querySelectorAll(".progress-toggle button").forEach(function(b) {
+      if (b.classList.contains(status)) {
+        b.style.background = "var(--green)"; b.style.color = "#fff";
+      } else {
+        b.style.background = "transparent"; b.style.color = "";
+      }
+    });
+  }
 }
 </script>
 </body>

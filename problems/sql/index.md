@@ -29,7 +29,7 @@ SQL高级场景/
 ├── docker-compose.yml                    # MySQL 8.0，端口 3306
 ├── init/                                 # 每题一个建表文件
 │   ├── 01-login.sql                      # SQL01 建表 + 数据
-│   └── 02-xxx.sql                        # SQL02（新增时创建）
+│   └── 02-shein.sql                       # SQL02 建表 + 数据
 ├── index.md                              # 题目索引
 └── SQL01-连续登录天数/
     ├── README.md                         # 微信风格文章
@@ -46,7 +46,7 @@ SQL高级场景/
 | # | 场景 | 核心考点 | 状态 |
 |---|------|---------|------|
 | SQL01 | 连续登录天数 | `ROW_NUMBER` + `DATE_SUB` 分组技巧 | ⏳ |
-| SQL02 | 用户最大连续下单天数 | 同上 + 分组聚合 | ⏳ |
+| SQL02 | SHEIN新客回访复购分析 | 多表JOIN + 条件聚合 + GROUP_CONCAT + 首单分类 | ⏳ |
 | SQL03 | 行转列 / 列转行 | `CASE WHEN` + `UNION ALL` / `LATERAL VIEW EXPLODE` | ⏳ |
 | SQL04 | TopN 问题（每个分组取前N） | `ROW_NUMBER() OVER(PARTITION BY ... ORDER BY ...)` | ⏳ |
 | SQL05 | 累计求和（截止每天的总量） | `SUM() OVER(ORDER BY ...)` | ⏳ |
