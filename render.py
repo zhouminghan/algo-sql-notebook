@@ -202,17 +202,20 @@ def parse_algo_md(md_path: Path) -> dict:
 #  SQL 题解析
 # ═══════════════════════════════════════════════════════════
 
-def parse_init_sql_tables(sql_path: Path) -> str:
-    """从 init SQL 文件提取所有表结构，渲染为 HTML（支持多表）"""
+def parse_init_sql_schema_and_data(sql_path: Path):
+    """从 init SQL 提取所有表结构 + 示例数据，使用真实列名作为表头
+
+    Returns: (schema_html, sample_html, first_table_name)
+    其中 schema_html 包含所有表结构，sample_html 包含所有示例数据
+    """
     content = sql_path.read_text(encoding="utf-8")
 
-    # 提取所有 CREATE TABLE
+    # ── 提取 CREATE TABLE → {table_name: [col_names]}
     tables = re.findall(r'CREATE TABLE\s+(\w+)\s*\((.*?)\);', content, re.DOTALL | re.IGNORECASE)
     if not tables:
-        return "", ""
+        return "", "", ""
 
-    html_parts = []
-    all_names = []
+    table_columns = {}  # table_name → [(col_name, col_type), ...]
     for table_name, cols_text in tables:
         columns = []
         for line in cols_text.split("\n"):
@@ -224,32 +227,29 @@ def parse_init_sql_tables(sql_path: Path) -> str:
                 col_name = parts[0].strip('"`')
                 col_type = parts[1].strip() if len(parts) > 1 else ""
                 columns.append((col_name, col_type))
+        table_columns[table_name] = columns
 
+    # ── 生成结构 HTML
+    schema_parts = []
+    for table_name, columns in table_columns.items():
         html = '<div class="table-info">'
         html += f'<h4>表：{table_name}</h4>'
         html += '<table><thead><tr><th>列名</th><th>类型</th></tr></thead><tbody>'
         for name, dtype in columns:
             html += f'<tr><td><code>{name}</code></td><td>{dtype}</td></tr>'
         html += '</tbody></table></div>'
-        html_parts.append(html)
-        all_names.append(table_name)
+        schema_parts.append(html)
+    schema_html = "\n".join(schema_parts)
 
-    return "\n".join(html_parts), ", ".join(all_names)
-
-
-def parse_init_sql_data(sql_path: Path) -> str:
-    """从 init SQL 提取所有 INSERT 数据，按表分组渲染为独立 HTML 表格"""
-    content = sql_path.read_text(encoding="utf-8")
-
-    # 匹配 INSERT INTO table_name VALUES ...;
+    # ── 提取 INSERT → {table_name: [(val1, val2, ...)]}
     pattern = r'INSERT INTO\s+(\w+)\s+VALUES\s*(.*?);'
     inserts = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
-    if not inserts:
-        return ""
 
-    html_parts = []
+    sample_parts = []
     for table_name, values_text in inserts:
-        # 先过滤掉 SQL 注释行，避免注释里的括号被误匹配
+        columns = table_columns.get(table_name, [])
+        col_names = [c[0] for c in columns]  # 提取列名列表
+
         clean_text = "\n".join(
             line for line in values_text.split("\n")
             if not line.strip().startswith("--")
@@ -265,8 +265,11 @@ def parse_init_sql_data(sql_path: Path) -> str:
 
         html = f'<div class="table-info sample"><h4>示例数据：{table_name}</h4>'
         html += '<table><thead><tr>'
-        for i in range(len(rows[0])):
-            html += f'<th>列 {i+1}</th>'
+        # 使用真实列名作为表头
+        ncols = len(rows[0])
+        for i in range(ncols):
+            header = col_names[i] if i < len(col_names) else f'列 {i+1}'
+            html += f'<th>{header}</th>'
         html += '</tr></thead><tbody>'
         for row in rows:
             html += '<tr>'
@@ -274,9 +277,11 @@ def parse_init_sql_data(sql_path: Path) -> str:
                 html += f'<td>{cell}</td>'
             html += '</tr>'
         html += '</tbody></table></div>'
-        html_parts.append(html)
+        sample_parts.append(html)
+    sample_html = "\n".join(sample_parts)
 
-    return "\n".join(html_parts)
+    first_name = tables[0][0] if tables else ""
+    return schema_html, sample_html, first_name
 
 
 def _md_table_to_html(md_table_text: str) -> str:
@@ -377,8 +382,7 @@ def parse_sql_md(md_path: Path) -> dict:
         init_dir = BASE_DIR / "db" / "init"
         for f in sorted(init_dir.glob("*.sql")):
             if f.stem.startswith(f"{num:02d}"):
-                schema_html, table_name = parse_init_sql_tables(f)
-                sample_html = parse_init_sql_data(f)
+                schema_html, sample_html, table_name = parse_init_sql_schema_and_data(f)
                 break
 
     # Answer SQL — 优先读 answer 文件，否则用 MD 第四节
