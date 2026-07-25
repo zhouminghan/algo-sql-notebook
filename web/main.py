@@ -27,6 +27,7 @@ app = FastAPI(title="每日一题", version="1.0.0")
 
 # ── Static files ────────────────────────────────────────
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
+app.mount("/lib", StaticFiles(directory=str(FRONTEND_DIR / "lib")), name="lib")
 
 
 # ── Progress helpers ────────────────────────────────────
