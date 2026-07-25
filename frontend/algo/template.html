@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}} - 每日一题</title>
+<style>
+  :root {
+    --bg: #0f0f14;
+    --code-bg: #1e1e2e;
+    --border: #2a2a3a;
+    --text: #e0e0e0;
+    --text-muted: #777;
+    --accent: #6c5ce7;
+    --green: #00b894;
+    --yellow: #fdcb6e;
+    --red: #e17055;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── left panel: visualization ── */
+  .viz-panel {
+    width: 48%;
+    padding: 30px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    background: #12121a;
+  }
+  .viz-panel h2 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+  .viz-step {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--code-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .viz-step .step-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .viz-step pre {
+    font-family: "SF Mono", "Monaco", "Menlo", monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* ── right panel: code ── */
+  .code-panel {
+    width: 52%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #12121a;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .code-header .lang-tabs {
+    display: flex;
+    gap: 6px;
+  }
+  .lang-tab {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .lang-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .code-body {
+    flex: 1;
+    padding: 20px 24px;
+    overflow-y: auto;
+  }
+
+  /* problem description */
+  .problem-desc {
+    background: #1a1a28;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .problem-desc h3 { font-size: 1rem; margin-bottom: 10px; color: var(--accent); }
+  .problem-desc .difficulty {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .problem-desc .difficulty.easy { background: #1a3a2a; color: var(--green); }
+  .problem-desc .difficulty.medium { background: #3a2a1a; color: var(--yellow); }
+  .problem-desc .difficulty.hard { background: #3a1a1a; color: var(--red); }
+
+  /* code area */
+  .code-editor {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+  }
+  .code-editor textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 16px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: "SF Mono", "Monaco", "Menlo", monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    tab-size: 4;
+  }
+
+  /* answer section (collapsible) */
+  .answer-section {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .answer-toggle {
+    width: 100%;
+    padding: 12px 20px;
+    background: #1a1a28;
+    border: none;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .answer-toggle:hover { background: #222238; }
+  .answer-toggle .arrow { transition: transform 0.2s; }
+  .answer-toggle.open .arrow { transform: rotate(90deg); }
+  .answer-body {
+    display: none;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    background: var(--code-bg);
+  }
+  .answer-body.show { display: block; }
+  .answer-body pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: "SF Mono", "Monaco", "Menlo", monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  /* keypoints */
+  .keypoints {
+    background: #1a1a28;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-top: 20px;
+  }
+  .keypoints h4 { font-size: 0.85rem; color: var(--yellow); margin-bottom: 8px; }
+  .keypoints ul { padding-left: 20px; font-size: 0.85rem; color: var(--text-muted); }
+  .keypoints li { margin-bottom: 4px; }
+
+  /* back button */
+  .back-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  /* progress toggle */
+  .progress-toggle {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .progress-toggle button {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .progress-toggle button.done { border-color: var(--green); color: var(--green); }
+  .progress-toggle button.done.active { background: var(--green); color: #fff; }
+  .progress-toggle button.review { border-color: var(--red); color: var(--red); }
+  .progress-toggle button.review.active { background: var(--red); color: #fff; }
+
+  @media (max-width: 768px) {
+    body { flex-direction: column; }
+    .viz-panel, .code-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="viz-panel">
+  <h2>{{TITLE}}</h2>
+  <div class="viz-step">
+    <div class="step-label">题目描述</div>
+    <pre>{{DESCRIPTION}}</pre>
+  </div>
+  {{VIZ_STEPS}}
+</div>
+
+<div class="code-panel">
+  <div class="code-header">
+    <a href="/" class="back-btn">← 返回列表</a>
+    <div class="lang-tabs">
+      <button class="lang-tab active" data-lang="python">Python</button>
+      <button class="lang-tab" data-lang="java">Java</button>
+    </div>
+    <div class="progress-toggle">
+      <button class="done" onclick="markStatus('done')">✓ 掌握</button>
+      <button class="review" onclick="markStatus('review')">⚠ 复习</button>
+    </div>
+  </div>
+
+  <div class="code-body">
+    <div class="problem-desc">
+      <h3>{{TITLE}}</h3>
+      <span class="difficulty {{DIFFICULTY_CLASS}}">{{DIFFICULTY}}</span>
+      <p style="color: var(--text-muted);"></p>
+    </div>
+
+    <div class="code-editor">
+      <textarea id="codeArea" placeholder="在此编写你的代码..."></textarea>
+    </div>
+
+    <div class="answer-section">
+      <button class="answer-toggle" onclick="toggleAnswer(this)">
+        <span>📖 查看题解</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="answer-body">
+        <div id="answer-python">{{ANSWER_PYTHON}}</div>
+        <div id="answer-java" style="display:none">{{ANSWER_JAVA}}</div>
+      </div>
+    </div>
+
+    <div class="keypoints">
+      <h4>🧠 关键点</h4>
+      <ul>{{KEYPOINTS}}</ul>
+    </div>
+
+    <div class="keypoints" style="margin-top:12px; background:#1a1515;">
+      <h4 style="color: var(--red);">⚠️ 易错点</h4>
+      <ul>{{GOTCHAS}}</ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROBLEM_ID = "{{PROBLEM_ID}}";
+const PROBLEM_TYPE = "algo";
+
+// ── Language tabs ──
+document.querySelectorAll('.lang-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const lang = tab.dataset.lang;
+    document.getElementById('answer-python').style.display = lang === 'python' ? 'block' : 'none';
+    document.getElementById('answer-java').style.display = lang === 'java' ? 'block' : 'none';
+  });
+});
+
+// ── Answer toggle ──
+function toggleAnswer(btn) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('show');
+}
+
+// ── Progress ──
+async function markStatus(status) {
+  await fetch(`/api/progress/${PROBLEM_TYPE}/${PROBLEM_ID}?status=${status}`, { method: 'POST' });
+  document.querySelectorAll('.progress-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.progress-toggle button.${status}`).classList.add('active');
+}
+</script>
+</body>
+</html>

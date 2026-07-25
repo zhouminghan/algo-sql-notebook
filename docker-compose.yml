@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: algo-db
+    environment:
+      POSTGRES_USER: algo
+      POSTGRES_PASSWORD: algo123
+      POSTGRES_DB: algo_practice
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U algo -d algo_practice"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build: ./web
+    container_name: algo-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://algo:algo123@db:5432/algo_practice
+    volumes:
+      - ./frontend:/app/frontend
+      - ./problems:/app/problems
+      - ./output:/app/output
+
+volumes:
+  pgdata:

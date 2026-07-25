@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}} - 每日一题 SQL</title>
+<style>
+  :root {
+    --bg: #0f0f14;
+    --code-bg: #1e1e2e;
+    --border: #2a2a3a;
+    --text: #e0e0e0;
+    --text-muted: #777;
+    --accent: #6c5ce7;
+    --green: #00b894;
+    --yellow: #fdcb6e;
+    --red: #e17055;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #12121a;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar h1 { font-size: 1.2rem; }
+  .topbar .back-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .topbar .back-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  .progress-toggle {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .progress-toggle button {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .progress-toggle button.done { border-color: var(--green); color: var(--green); }
+  .progress-toggle button.done.active { background: var(--green); color: #fff; }
+  .progress-toggle button.review { border-color: var(--red); color: var(--red); }
+  .progress-toggle button.review.active { background: var(--red); color: #fff; }
+
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 57px);
+  }
+
+  /* left: description */
+  .desc-panel {
+    width: 40%;
+    padding: 24px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    background: #12121a;
+  }
+  .desc-panel h3 { color: var(--accent); margin-bottom: 12px; }
+  .desc-panel .scenario {
+    background: #1a1a28;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  /* tables display */
+  .table-info {
+    margin-top: 16px;
+  }
+  .table-info h4 { color: var(--yellow); font-size: 0.85rem; margin-bottom: 8px; }
+  .table-info table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .table-info th, .table-info td {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  .table-info th { background: #1a1a28; color: var(--text-muted); }
+
+  .sample-data {
+    margin-top: 12px;
+  }
+  .sample-data pre {
+    white-space: pre-wrap;
+    font-family: "SF Mono", monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    padding: 10px;
+    background: var(--code-bg);
+    border-radius: 6px;
+  }
+
+  /* right: sql editor */
+  .sql-panel {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+  }
+  .sql-editor-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border);
+  }
+  .sql-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #1a1a28;
+    border-bottom: 1px solid var(--border);
+  }
+  .sql-toolbar .hint {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+  .sql-toolbar .run-btn {
+    padding: 6px 16px;
+    background: var(--green);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .sql-toolbar .run-btn:hover { opacity: 0.9; }
+  .sql-toolbar .run-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+  .sql-textarea {
+    flex: 1;
+    padding: 16px;
+    background: var(--code-bg);
+    border: none;
+    color: var(--text);
+    font-family: "SF Mono", "Monaco", "Menlo", monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    tab-size: 4;
+  }
+
+  /* result panel */
+  .result-panel {
+    max-height: 350px;
+    overflow-y: auto;
+  }
+  .result-header {
+    padding: 10px 16px;
+    background: #1a1a28;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .result-header .row-count { color: var(--text-muted); font-size: 0.85rem; }
+  .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .result-table th, .result-table td {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  .result-table th { background: #1a1a28; color: var(--accent); position: sticky; top: 0; }
+  .result-error {
+    padding: 16px;
+    color: var(--red);
+    font-size: 0.85rem;
+  }
+
+  /* hints (collapsible) */
+  .hints-section {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .hints-toggle {
+    width: 100%;
+    padding: 10px 16px;
+    background: #1a1a28;
+    border: none;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .hints-toggle:hover { background: #222238; }
+  .hints-toggle .arrow { transition: transform 0.2s; }
+  .hints-toggle.open .arrow { transform: rotate(90deg); }
+  .hints-body {
+    display: none;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    background: var(--code-bg);
+  }
+  .hints-body.show { display: block; }
+  .hints-body pre {
+    white-space: pre-wrap;
+    font-family: "SF Mono", monospace;
+    font-size: 0.85rem;
+  }
+  .hints-body .hint-step {
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #1a1a28;
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+  .hints-body .hint-step .step-num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 0.7rem;
+    margin-right: 8px;
+  }
+
+  /* keypoints */
+  .keypoints {
+    margin-top: 16px;
+    background: #1a1a28;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .keypoints h4 { color: var(--yellow); font-size: 0.85rem; margin-bottom: 8px; }
+  .keypoints ul { padding-left: 20px; font-size: 0.85rem; color: var(--text-muted); }
+  .keypoints li { margin-bottom: 4px; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .desc-panel, .sql-panel { width: 100%; }
+    .desc-panel { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="back-btn">← 返回列表</a>
+  <h1>{{TITLE}}</h1>
+  <div class="progress-toggle">
+    <button class="done" onclick="markStatus('done')">✓ 掌握</button>
+    <button class="review" onclick="markStatus('review')">⚠ 复习</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="desc-panel">
+    <h3>场景描述</h3>
+    <div class="scenario">{{DESCRIPTION}}</div>
+
+    {{TABLE_SCHEMAS}}
+
+    {{SAMPLE_DATA}}
+
+    <div class="hints-section">
+      <button class="hints-toggle" onclick="toggleHints(this)">
+        <span>💡 分步提示</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="hints-body">
+        {{HINTS}}
+      </div>
+    </div>
+
+    <div class="hints-section" style="margin-top:12px;">
+      <button class="hints-toggle" onclick="toggleAnswer(this)">
+        <span>📖 参考答案</span>
+        <span class="arrow">▶</span>
+      </button>
+      <div class="hints-body">
+        <pre>{{ANSWER_SQL}}</pre>
+      </div>
+    </div>
+
+    <div class="keypoints">
+      <h4>🧠 关键点</h4>
+      <ul>{{KEYPOINTS}}</ul>
+    </div>
+
+    <div class="keypoints" style="margin-top:12px; background:#1a1515;">
+      <h4 style="color: var(--red);">⚠️ 易错点</h4>
+      <ul>{{GOTCHAS}}</ul>
+    </div>
+  </div>
+
+  <div class="sql-panel">
+    <div class="sql-editor-wrap">
+      <div class="sql-toolbar">
+        <span class="hint">Ctrl+Enter 执行</span>
+        <button class="run-btn" id="runBtn" onclick="executeSQL()">▶ 运行 SQL</button>
+      </div>
+      <textarea class="sql-textarea" id="sqlEditor" placeholder="在此编写你的 SQL 查询..." spellcheck="false"></textarea>
+    </div>
+    <div class="result-panel" id="resultPanel">
+      <div class="result-header">
+        <span>📊 查询结果</span>
+        <span class="row-count" id="rowCount"></span>
+      </div>
+      <div id="resultBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROBLEM_ID = "{{PROBLEM_ID}}";
+const PROBLEM_TYPE = "sql";
+
+// ── SQL execution ──
+document.getElementById('sqlEditor').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') executeSQL();
+});
+
+async function executeSQL() {
+  const sql = document.getElementById('sqlEditor').value.trim();
+  if (!sql) return;
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 执行中...';
+
+  try {
+    const resp = await fetch(`/api/sql/execute?sql=${encodeURIComponent(sql)}`, { method: 'POST' });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      showError(err.detail || '执行失败');
+      return;
+    }
+
+    const data = await resp.json();
+    document.getElementById('rowCount').textContent = `${data.row_count} 行`;
+    renderTable(data.columns, data.rows);
+  } catch (e) {
+    showError('网络错误: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ 运行 SQL';
+  }
+}
+
+function renderTable(columns, rows) {
+  const body = document.getElementById('resultBody');
+  if (!columns.length && !rows.length) {
+    body.innerHTML = '<div style="padding:16px;color:#777;">无返回结果</div>';
+    return;
+  }
+
+  let html = '<table class="result-table"><thead><tr>';
+  columns.forEach(c => html += `<th>${c}</th>`);
+  html += '</tr></thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr>';
+    row.forEach(val => html += `<td>${val === null ? '<i style="color:#666">NULL</i>' : val}</td>`);
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function showError(msg) {
+  document.getElementById('rowCount').textContent = '';
+  document.getElementById('resultBody').innerHTML = `<div class="result-error">${msg}</div>`;
+}
+
+// ── Hints toggle ──
+function toggleHints(btn) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('show');
+}
+function toggleAnswer(btn) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('show');
+}
+
+// ── Progress ──
+async function markStatus(status) {
+  await fetch(`/api/progress/${PROBLEM_TYPE}/${PROBLEM_ID}?status=${status}`, { method: 'POST' });
+  document.querySelectorAll('.progress-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.progress-toggle button.${status}`).classList.add('active');
+}
+</script>
+</body>
+</html>
