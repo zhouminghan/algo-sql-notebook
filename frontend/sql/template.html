@@ -56,15 +56,16 @@
   .scenario ul { padding-left: 18px; margin: 6px 0; }
   .scenario li { font-size: 0.85rem; margin-bottom: 3px; color: var(--text); }
   .scenario li b { color: var(--accent); }
-  .scenario table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 8px 0; }
+  .scenario table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 8px 0; white-space: nowrap; }
   .scenario th, .scenario td { padding: 4px 8px; border: 1px solid var(--border); text-align: left; }
   .scenario th { background: #1a1a28; color: var(--text-muted); font-weight: 500; }
   .scenario code { color: var(--green); font-family: "SF Mono","Monaco","Menlo",monospace; font-size: 0.84rem; }
   .scenario p { margin-bottom: 4px; }
 
   .table-info { margin-bottom: 14px; }
+  .table-info { overflow-x: auto; margin-bottom: 14px; }
   .table-info h4 { color: var(--yellow); font-size: 0.82rem; margin-bottom: 6px; }
-  .table-info table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .table-info table { min-width: 100%; border-collapse: collapse; font-size: 0.78rem; white-space: nowrap; }
   .table-info th,.table-info td { padding: 5px 10px; border: 1px solid var(--border); text-align: left; }
   .table-info th { background: #1a1a28; color: var(--text-muted); font-weight: 500; }
   .table-info td code { color: var(--green); font-size: 0.78rem; }
@@ -72,12 +73,13 @@
 
   .expected-table {
     border: 1px solid var(--border); border-radius: 6px; margin-bottom: 14px;
+    overflow-x: auto;
   }
   .expected-table h4 {
     padding: 8px 14px; background: #1a1a28; font-size: 0.82rem;
     color: var(--yellow); border-bottom: 1px solid var(--border);
   }
-  .expected-table table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .expected-table table { min-width: 100%; border-collapse: collapse; font-size: 0.78rem; white-space: nowrap; }
   .expected-table th,.expected-table td { padding: 5px 12px; border: 1px solid var(--border); text-align: left; }
   .expected-table th { background: #1a1a28; color: var(--text-muted); }
   .expected-note { padding: 8px 14px; font-size: 0.78rem; color: var(--text-muted); }
