@@ -162,11 +162,12 @@
 
   /* ── modal overlay ── */
   .modal-overlay {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    width: 100vw !important; height: 100vh !important;
     background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 9999;
+    z-index: 9999 !important;
     justify-content: center; align-items: center;
   }
   .modal-overlay.open { display: flex !important; }
