@@ -1,1 +1,1 @@
-/Users/minghan/Documents/knowledge/workspace/algo-practice/.claude/CLAUDE.md
+/Users/minghan/Documents/knowledge/workspace/algo-practice/.codebuddy/CODEBUDDY.md

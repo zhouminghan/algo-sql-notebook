@@ -249,8 +249,13 @@ def parse_init_sql_data(sql_path: Path) -> str:
 
     html_parts = []
     for table_name, values_text in inserts:
+        # 先过滤掉 SQL 注释行，避免注释里的括号被误匹配
+        clean_text = "\n".join(
+            line for line in values_text.split("\n")
+            if not line.strip().startswith("--")
+        )
         rows = []
-        vals = re.findall(r"\(([^)]+)\)", values_text)
+        vals = re.findall(r"\(([^)]+)\)", clean_text)
         for v in vals:
             row = [c.strip().strip("'\"") for c in v.split(",")]
             rows.append(row)

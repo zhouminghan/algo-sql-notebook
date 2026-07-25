@@ -14,7 +14,7 @@ description: |
 
 ### 输入
 
-- `problems/algo/{problem_id}.md`（格式见 `.claude/CLAUDE.md` 中的「算法题 Markdown」规范）
+- `problems/algo/{problem_id}.md`（格式见 `.codebuddy/CODEBUDDY.md` 中的「算法题 Markdown」规范）
 
 ### 输出
 
@@ -33,7 +33,7 @@ description: |
 
 ## 题目规范
 
-见 `.claude/CLAUDE.md` 中的「题目格式规范」。
+见 `.codebuddy/CODEBUDDY.md`（计划文件）中的「题目格式规范」。
 
 ## 用例
 
