@@ -20,8 +20,7 @@
   }
   /* ── left panel ── */
   .left-panel {
-    width: 40%; padding: 28px; border-right: 1px solid var(--border);
-    overflow-y: auto; background: #12121a;
+    padding: 28px; overflow-y: auto; background: #12121a; flex: none;
   }
   .left-panel h2 { font-size: 1.2rem; margin-bottom: 6px; }
   .difficulty-tag {
@@ -51,7 +50,18 @@
 
   /* ── right panel ── */
   .right-panel {
-    width: 60%; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg);
+    flex: 1; min-width: 300px; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg);
+  }
+  .v-splitter {
+    width: 6px; cursor: col-resize; background: #1a1a28;
+    border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .v-splitter:hover { background: #2a2a40; }
+  .v-splitter:active { background: var(--accent); }
+  .v-splitter .grip-v {
+    width: 2px; height: 28px; background: var(--text-muted); border-radius: 1px;
   }
   .topbar {
     display: flex; align-items: center; gap: 12px;
@@ -129,6 +139,10 @@
   <span class="difficulty-tag {{DIFFICULTY_CLASS}}">{{DIFFICULTY}}</span>
   <div class="desc-block">{{DESCRIPTION}}</div>
   {{EXAMPLES}}
+</div>
+
+<div class="v-splitter" id="vSplitter">
+  <div class="grip-v"></div>
 </div>
 
 <div class="right-panel">
@@ -297,6 +311,46 @@ async function markStatus(status) {
 
 // ── Initial refresh ──
 setTimeout(function() { pyEditor.refresh(); }, 50);
+
+// ── Vertical splitter ──
+var vSplitter = document.getElementById("vSplitter");
+var leftPanel = document.querySelector(".left-panel");
+var isDraggingV = false;
+var bodyWidth = 0;
+
+function setVSplit(leftPx) {
+  var totalW = document.body.clientWidth - vSplitter.offsetWidth;
+  var minW = 280;
+  var maxW = totalW - 360;
+  leftPx = Math.max(minW, Math.min(maxW, leftPx));
+  leftPanel.style.width = leftPx + "px";
+}
+
+setTimeout(function() {
+  bodyWidth = document.body.clientWidth;
+  setVSplit(bodyWidth * 0.4);
+}, 100);
+
+vSplitter.addEventListener("mousedown", function(e) {
+  isDraggingV = true;
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+  bodyWidth = document.body.clientWidth;
+  e.preventDefault();
+});
+
+document.addEventListener("mousemove", function(e) {
+  if (!isDraggingV) return;
+  setVSplit(e.clientX);
+});
+
+document.addEventListener("mouseup", function() {
+  if (isDraggingV) {
+    isDraggingV = false;
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  }
+});
 </script>
 </body>
 </html>

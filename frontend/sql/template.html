@@ -44,8 +44,19 @@
 
   /* ── left panel ── */
   .left-panel {
-    width: 38%; padding: 20px; border-right: 1px solid var(--border);
-    overflow-y: auto; background: #12121a;
+    overflow-y: auto; background: #12121a; padding: 20px;
+    flex: none;
+  }
+  .v-splitter {
+    width: 6px; cursor: col-resize; background: #1a1a28;
+    border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .v-splitter:hover { background: #2a2a40; }
+  .v-splitter:active { background: var(--accent); }
+  .v-splitter .grip-v {
+    width: 2px; height: 28px; background: var(--text-muted); border-radius: 1px;
   }
   .left-panel h3 { color: var(--accent); font-size: 0.95rem; margin-bottom: 10px; }
   .scenario {
@@ -124,8 +135,8 @@
 
   /* ── right panel with splitter ── */
   .right-panel {
-    width: 62%; display: flex; flex-direction: column; background: var(--bg);
-    position: relative; overflow: hidden;
+    flex: 1; min-width: 200px; display: flex; flex-direction: column;
+    background: var(--bg); position: relative; overflow: hidden;
   }
 
   .editor-area { min-height: 120px; overflow: hidden; }
@@ -234,6 +245,10 @@
       <h4>⚠️ 易错点</h4>
       <ul>{{GOTCHAS}}</ul>
     </div>
+  </div>
+
+  <div class="v-splitter" id="vSplitter">
+    <div class="grip-v"></div>
   </div>
 
   <div class="right-panel">
@@ -352,8 +367,9 @@ document.addEventListener("mousemove", function(e) {
 });
 
 document.addEventListener("mouseup", function() {
-  if (isDragging) {
+  if (isDragging || isDraggingV) {
     isDragging = false;
+    isDraggingV = false;
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
     sqlEditor.refresh();
@@ -363,6 +379,46 @@ document.addEventListener("mouseup", function() {
 // Handle window resize
 window.addEventListener("resize", function() {
   sqlEditor.refresh();
+});
+
+// ═════════════════════════════════════════════
+//  Vertical Splitter (left ↔ right panels)
+// ═════════════════════════════════════════════
+var vSplitter = document.getElementById("vSplitter");
+var leftPanel = document.querySelector(".left-panel");
+var layoutDiv = document.querySelector(".layout");
+var isDraggingV = false;
+var layoutWidth = 0;
+
+function setVSplit(leftPx) {
+  var totalW = layoutDiv.clientWidth - vSplitter.offsetWidth;
+  var minW = 280;
+  var maxW = totalW - 300;
+  leftPx = Math.max(minW, Math.min(maxW, leftPx));
+  leftPanel.style.width = leftPx + "px";
+  sqlEditor.refresh();
+}
+
+setTimeout(function() {
+  layoutWidth = layoutDiv.clientWidth;
+  setVSplit(layoutWidth * 0.38);
+}, 100);
+
+vSplitter.addEventListener("mousedown", function(e) {
+  isDraggingV = true;
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+  layoutWidth = layoutDiv.clientWidth;
+  e.preventDefault();
+});
+
+document.addEventListener("mousemove", function(e) {
+  if (isDraggingV) {
+    var rect = layoutDiv.getBoundingClientRect();
+    var offsetX = e.clientX - rect.left;
+    setVSplit(offsetX);
+  }
+  // (horizontal splitter handled below in its own check)
 });
 
 // ═════════════════════════════════════════════
