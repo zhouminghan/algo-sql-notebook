@@ -91,6 +91,76 @@ def extract_code_template(full_code: str, lang: str) -> str:
     return "\n".join(template_lines)
 
 
+def _generate_two_sum_walkthrough(example_input: str) -> str:
+    """模拟执行两数之和算法，生成每一步的状态变化 HTML"""
+    # 解析 nums=[...], target=N
+    nums_match = re.search(r'nums\s*=\s*\[([^\]]+)\]', example_input)
+    target_match = re.search(r'target\s*=\s*(\d+)', example_input)
+    if not nums_match or not target_match:
+        return ""
+
+    nums = [int(x.strip()) for x in nums_match.group(1).split(",")]
+    target = int(target_match.group(1))
+
+    seen = {}
+    steps_html = []
+    found_step = -1
+
+    for i, n in enumerate(nums):
+        complement = target - n
+        found = complement in seen
+        if found:
+            found_step = i
+
+    for i, n in enumerate(nums):
+        complement = target - n
+        found = complement in seen
+        seen_before = dict(seen)  # snapshot before storing
+        seen_str = "{" + ", ".join(f"{k}:{v}" for k, v in seen_before.items()) + "}"
+        if not seen_before:
+            seen_str = "{}"
+
+        if found and i == found_step:
+            match_from = seen_before[complement]
+            result_text = f'✅ <b>找到匹配！</b> {complement} 在 seen[{match_from}]<br><span style="color:var(--green)">→ 返回 [{match_from}, {i}]</span>'
+            row_class = "walk-found"
+        else:
+            result_text = f'{complement} 不在表中 → 存入 {{{n}:{i}}}'
+            row_class = ""
+
+        steps_html.append(
+            f'<tr class="{row_class}">'
+            f'<td><span class="step-tag">步骤 {i+1}</span></td>'
+            f'<td>i={i}</td>'
+            f'<td><code>{n}</code></td>'
+            f'<td>{target} − {n} = <code>{complement}</code></td>'
+            f'<td><code class="hash-state">{seen_str}</code></td>'
+            f'<td>{result_text}</td>'
+            f'</tr>'
+        )
+
+        seen[n] = i
+
+    return f"""
+    <div class="walkthrough-block">
+      <table class="walk-table">
+        <thead><tr>
+          <th>#</th><th>索引</th><th>nums[i]</th><th>补数(target−nums[i])</th><th>seen 表</th><th>结果</th>
+        </tr></thead>
+        <tbody>
+        {"".join(steps_html)}
+        </tbody>
+      </table>
+    </div>"""
+
+
+def _generate_walkthrough(examples_input: str, title: str) -> str:
+    """根据题目类型生成算法执行过程可视化"""
+    if "两数之和" in title or "Two Sum" in title.lower():
+        return _generate_two_sum_walkthrough(examples_input)
+    return ""
+
+
 def parse_examples(text: str) -> str:
     """从题目描述中解析示例，生成 HTML 卡片"""
     # 匹配 **示例 N：** 后面的代码块
@@ -260,12 +330,21 @@ def parse_algo_md(md_path: Path) -> dict:
         if stripped.startswith(("- ", "1. ", "2. ", "3. ", "4. ")):
             gotchas_html += f"<li>{stripped.lstrip('- 1234567890. ')}</li>"
 
+    # Walkthrough（步骤执行过程可视化）
+    walkthrough_html = ""
+    if examples_html:
+        # 提取第一个示例的输入
+        first_ex_input_match = re.search(r'\*\*示例\s*1\s*[：:]\s*\*\*\s*\n```\n(.*?)```', raw_desc, re.DOTALL)
+        if first_ex_input_match:
+            walkthrough_html = _generate_walkthrough(first_ex_input_match.group(1).strip(), title)
+
     return {
         "title": title,
         "difficulty_class": diff_class,
         "difficulty": diff_label,
         "description": description,
         "examples": examples_html,
+        "walkthrough": walkthrough_html,
         "python_full": escape_html(python_full_clean),
         "java_full": escape_html(java_full_clean),
         "python_template": escape_html(python_template),
@@ -620,6 +699,7 @@ def render_algo(problem_id: str, data: dict) -> None:
     html = html.replace("{{APPROACH_NAME}}", data["approach_name"])
     html = html.replace("{{APPROACH_OVERVIEW}}", data["approach_overview"])
     html = html.replace("{{COMPLEXITY_TAGS}}", data["complexity_tags"])
+    html = html.replace("{{WALKTHROUGH}}", data.get("walkthrough", ""))
     html = html.replace("{{ANSWER_PYTHON}}", data["python_full"])
     html = html.replace("{{ANSWER_JAVA}}", data["java_full"])
     html = html.replace("{{CODE_PYTHON}}", data["python_template"])
