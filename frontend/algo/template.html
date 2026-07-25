@@ -337,10 +337,6 @@
 
   {{WALKTHROUGH}}
 
-  <button class="playback-trigger" id="playbackTrigger" onclick="openPlayback()">
-    <span class="pb-icon">🎮</span> 执行过程回放（逐步查看每一步的数据变化）
-  </button>
-
   <div class="approach-section" id="approachSection">
     <div class="approach-header" id="approachHeader">
       <h4>🧠 解题思路对比</h4>
@@ -350,6 +346,9 @@
       <div class="approach-compare">
         {{APPROACH_CARDS}}
       </div>
+      <button class="playback-trigger" id="playbackTrigger" onclick="openPlayback()" style="margin-top:10px;width:100%">
+        <span class="pb-icon">🎮</span> 步骤演示（逐步查看每一步的代码执行与数据变化）
+      </button>
     </div>
   </div>
 </div>
@@ -523,7 +522,8 @@ document.getElementById("answerToggle").addEventListener("click", function() {
 });
 
 // ── Approach toggle ──
-document.getElementById("approachHeader").addEventListener("click", function() {
+document.getElementById("approachHeader").addEventListener("click", function(e) {
+  if (e.target.closest && e.target.closest("#playbackTrigger")) return;
   document.getElementById("approachArrow").classList.toggle("open");
   document.getElementById("approachBody").classList.toggle("collapsed");
 });

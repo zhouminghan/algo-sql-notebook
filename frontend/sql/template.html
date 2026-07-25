@@ -275,15 +275,11 @@
     </div>
 
     <div class="collapsible" id="hintsSection">
-      <button class="collapsible-toggle" onclick="toggleSection(this)">
+      <button class="collapsible-toggle" id="hintsToggle" onclick="openSqlPlayback()">
         <span>💡 解题思路</span><span class="arrow">▶</span>
       </button>
       <div class="collapsible-body">{{HINTS}}</div>
     </div>
-
-    <button class="playback-btn-sql" id="sqlPlaybackBtn" onclick="openSqlPlayback()">
-      🎮 解题过程回放（逐步查看每一步的数据变化）
-    </button>
 
     <div class="collapsible" id="answerSection">
       <button class="collapsible-toggle" onclick="toggleSection(this)">
