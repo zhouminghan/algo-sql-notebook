@@ -32,6 +32,11 @@ def load_template(name: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _escape_js_template(s: str) -> str:
+    """转义 JS 模板字面量中的特殊字符（反引号和 ${）"""
+    return s.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+
+
 def escape_html(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
@@ -108,11 +113,15 @@ def _generate_two_sum_walkthrough(example_input: str) -> str:
     steps_html = []
     found_step = -1
 
+    # First pass: find which step has the match
     for i, n in enumerate(nums):
         complement = target - n
-        found = complement in seen
-        if found:
+        if complement in seen:
             found_step = i
+        seen[n] = i
+
+    # Reset for second pass (actual rendering)
+    seen = {}
 
     for i, n in enumerate(nums):
         complement = target - n
@@ -132,10 +141,9 @@ def _generate_two_sum_walkthrough(example_input: str) -> str:
 
         steps_html.append(
             f'<tr class="{row_class}">'
-            f'<td><span class="step-tag">步骤 {i+1}</span></td>'
-            f'<td>i={i}</td>'
-            f'<td><code>{n}</code></td>'
-            f'<td>{target} − {n} = <code>{complement}</code></td>'
+            f'<td><span class="step-tag">#{i+1}</span></td>'
+            f'<td>i={i} · <code>{n}</code></td>'
+            f'<td>{target}−{n}=<code>{complement}</code></td>'
             f'<td><code class="hash-state">{seen_str}</code></td>'
             f'<td>{result_text}</td>'
             f'</tr>'
@@ -147,7 +155,7 @@ def _generate_two_sum_walkthrough(example_input: str) -> str:
     <div class="walkthrough-block">
       <table class="walk-table">
         <thead><tr>
-          <th>#</th><th>索引</th><th>nums[i]</th><th>补数(target−nums[i])</th><th>seen 表</th><th>结果</th>
+          <th>#</th><th>当前值</th><th>补数</th><th>seen</th><th>结果</th>
         </tr></thead>
         <tbody>
         {"".join(steps_html)}
@@ -277,7 +285,7 @@ def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> 
     py_core = python_full if python_full else ""
     ja_core = _core_java_code(java_full)
 
-    # 查找关键行号
+    # 查找关键行号（Python）
     py_lines = py_core.split("\n") if py_core else []
     line_def = _find_code_line(py_core, "def twoSum")
     line_seen_init = _find_code_line(py_core, "seen =")
@@ -287,12 +295,28 @@ def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> 
     line_return = _find_code_line(py_core, "return [")
     line_store = max(_find_code_line(py_core, "seen[num]"), _find_code_line(py_core, "seen["), 0)
 
+    # 查找关键行号（Java）— 只在方法体内搜索，避开 import 干扰
+    ja_lines = ja_core.split("\n") if ja_core else []
+    ja_method_start = _find_code_line(ja_core, "public ")
+    ja_body = "\n".join(ja_lines[ja_method_start:]) if ja_method_start < len(ja_lines) else ja_core
+
+    ja_line_def = _find_code_line(ja_body, "public ") + ja_method_start
+    # 用 new HashMap 找初始化（不用 Map< 避免匹配 import）
+    ja_line_init = _find_code_line(ja_body, "new HashMap") + ja_method_start
+    ja_line_for = _find_code_line(ja_body, "for (") + ja_method_start
+    ja_line_comp = _find_code_line(ja_body, "complement") + ja_method_start
+    # 用 containsKey 找 if 行（不用 if ( 避免匹配任何 if）
+    ja_line_if = _find_code_line(ja_body, "containsKey") + ja_method_start
+    ja_line_return = _find_code_line(ja_body, "return new int[]") + ja_method_start
+    ja_line_store = _find_code_line(ja_body, ".put(") + ja_method_start
+
     seen = {}
     steps = []
 
     # Step 0: 函数入口
     steps.append({
         "line": max(line_def, line_seen_init),
+        "ja_line": max(ja_line_def, ja_line_init),
         "hint": "初始化：创建空哈希表 seen = {}，准备遍历数组",
         "idx": "-", "num": "-", "comp": "-", "seen": "{}", "status": "init"
     })
@@ -306,6 +330,7 @@ def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> 
         # 进入循环
         steps.append({
             "line": line_for,
+            "ja_line": ja_line_for,
             "hint": f"遍历：i={i}，nums[{i}]={n}，进入循环体",
             "idx": str(i), "num": str(n), "comp": "-", "seen": seen_str, "status": "loop"
         })
@@ -313,6 +338,7 @@ def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> 
         # 计算补数
         steps.append({
             "line": line_comp,
+            "ja_line": ja_line_comp,
             "hint": f"计算补数：target − nums[{i}] = {target} − {n} = {comp}",
             "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "compute"
         })
@@ -322,19 +348,38 @@ def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> 
             match_idx = seen_before[comp]
             steps.append({
                 "line": line_if,
+                "ja_line": ja_line_if,
                 "hint": f"检查：{comp} 在 seen 表的索引 {match_idx}！条件成立",
                 "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "check"
             })
             steps.append({
                 "line": line_return,
+                "ja_line": ja_line_return,
                 "hint": f"✅ 返回结果：[seen[{comp}], {i}] = [{match_idx}, {i}]",
                 "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "found"
+            })
+            # 显示剩余元素（仅可视化，不实际执行）
+            for j in range(i + 1, len(nums)):
+                seen_str_rest = "{" + ", ".join(f"{k}:{v}" for k, v in seen.items()) + "}" if seen else "{}"
+                steps.append({
+                    "line": line_for,
+                    "ja_line": ja_line_for,
+                    "hint": f"遍历：i={j}，nums[{j}]={nums[j]}，算法已返回结果，跳过",
+                    "idx": str(j), "num": str(nums[j]), "comp": "-", "seen": seen_str_rest, "status": "skip"
+                })
+            # 最终收尾
+            steps.append({
+                "line": line_return,
+                "ja_line": ja_line_return,
+                "hint": f"🎉 最终结果：[{match_idx}, {i}]，两数之和 {nums[match_idx]}+{nums[i]}={target}",
+                "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "complete"
             })
             break
         else:
             # 未命中 → 存入
             steps.append({
                 "line": line_if,
+                "ja_line": ja_line_if,
                 "hint": f"检查：{comp} 不在 seen 表中，跳过",
                 "idx": str(i), "num": str(n), "comp": str(comp), "seen": seen_str, "status": "check"
             })
@@ -342,6 +387,7 @@ def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> 
             new_seen = "{" + ", ".join(f"{k}:{v}" for k, v in seen.items()) + "}"
             steps.append({
                 "line": line_store,
+                "ja_line": ja_line_store,
                 "hint": f"存入：seen[{n}] = {i}，哈希表更新为 {new_seen}",
                 "idx": str(i), "num": str(n), "comp": str(comp), "seen": new_seen, "status": "store"
             })
@@ -349,6 +395,8 @@ def _gen_two_sum_steps(example_input: str, python_full: str, java_full: str) -> 
     return json.dumps({
         "code_python": py_core,
         "code_java": ja_core,
+        "example": example_input,
+        "example_out": f"nums={nums}, target={target}, 预期输出={nums_match.group(1)} → 结果会在步骤中展示",
         "steps": steps
     }, ensure_ascii=False)
 
@@ -427,7 +475,7 @@ def parse_algo_md(md_path: Path) -> dict:
     raw_desc = desc_match.group(1).strip() if desc_match else ""
     # Strip example code blocks from description text
     desc_clean = re.sub(r'\*\*示例.*?\*\*\s*\n```.*?```', '', raw_desc, flags=re.DOTALL).strip()
-    description = escape_html(desc_clean)
+    description = _inline_md(escape_html(desc_clean))
 
     # Examples as HTML
     examples_html = parse_examples(raw_desc)
@@ -510,7 +558,7 @@ def parse_algo_md(md_path: Path) -> dict:
     for line in keypoints.split("\n"):
         stripped = line.strip()
         if stripped.startswith(("- ", "1. ", "2. ", "3. ", "4. ")):
-            keypoints_html += f"<li>{stripped.lstrip('- 1234567890. ')}</li>"
+            keypoints_html += f"<li>{_inline_md(stripped.lstrip('- 1234567890. '))}</li>"
 
     # Approach overview (from keypoints, for left panel)
     approach_overview = ""
@@ -535,7 +583,7 @@ def parse_algo_md(md_path: Path) -> dict:
     for line in gotchas.split("\n"):
         stripped = line.strip()
         if stripped.startswith(("- ", "1. ", "2. ", "3. ", "4. ")):
-            gotchas_html += f"<li>{stripped.lstrip('- 1234567890. ')}</li>"
+            gotchas_html += f"<li>{_inline_md(stripped.lstrip('- 1234567890. '))}</li>"
 
     # Walkthrough（步骤执行过程可视化）
     walkthrough_html = ""
@@ -805,57 +853,38 @@ def _parse_domain_knowledge(text: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════
-#  SQL Walkthrough 步骤生成（连接 PostgreSQL 获取真实数据）
+#  SQL Walkthrough 步骤生成（纯静态：从预计算 JSON 读取）
 # ═══════════════════════════════════════════════════════════
-
-import psycopg2 as _pg
 
 _SQL_STEP_DEFS = {
     "连续登录天数": {
-        "steps": [
-            {"label": "原始数据", "desc": "按用户和日期排序。4个用户共17条记录。",
-             "sql": "SELECT user_id, login_date FROM t1_login_log ORDER BY user_id, login_date", "hl": None},
-            {"label": "ROW_NUMBER 编号", "desc": "PARTITION BY user_id 确保各用户独立编号。",
-             "sql": "SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log ORDER BY user_id, login_date", "hl": "rn"},
-            {"label": "DATE_SUB 分组标记", "desc": "login_date − rn = grp_date。连续日期的grp_date相同。",
-             "sql": "WITH ranked AS (SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log) SELECT user_id, login_date, rn, (login_date - rn * INTERVAL '1 day')::date AS grp_date FROM ranked ORDER BY user_id, login_date", "hl": "grp_date"},
-            {"label": "GROUP BY 聚合", "desc": "按(user_id, grp_date)分组 COUNT 得连续天数。",
-             "sql": "WITH ranked AS (SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log), grouped AS (SELECT user_id, login_date, rn, (login_date - rn * INTERVAL '1 day')::date AS grp_date FROM ranked) SELECT user_id, grp_date, COUNT(*) AS consecutive_days FROM grouped GROUP BY user_id, grp_date ORDER BY user_id, grp_date", "hl": "consecutive_days"},
-            {"label": "MAX 最终结果", "desc": "取每个用户最大连续天数。u03连续6天最佳。",
-             "sql": "WITH ranked AS (SELECT user_id, login_date, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn FROM t1_login_log), grouped AS (SELECT user_id, login_date, rn, (login_date - rn * INTERVAL '1 day')::date AS grp_date FROM ranked), counts AS (SELECT user_id, grp_date, COUNT(*) AS consecutive_days FROM grouped GROUP BY user_id, grp_date) SELECT user_id, MAX(consecutive_days) AS max_consecutive_days FROM counts GROUP BY user_id ORDER BY user_id", "hl": "max_consecutive_days"},
+        "steps_meta": [
+            {"label": "原始数据", "desc": "按用户和日期排序。4个用户共17条记录。", "hl": None},
+            {"label": "ROW_NUMBER 编号", "desc": "PARTITION BY user_id 确保各用户独立编号。", "hl": "rn"},
+            {"label": "DATE_SUB 分组标记", "desc": "login_date − rn = grp_date。连续日期的grp_date相同。", "hl": "grp_date"},
+            {"label": "GROUP BY 聚合", "desc": "按(user_id, grp_date)分组 COUNT 得连续天数。", "hl": "consecutive_days"},
+            {"label": "MAX 最终结果", "desc": "取每个用户最大连续天数。u03连续6天最佳。", "hl": "max_consecutive_days"},
         ]
     }
 }
 
 
-def _get_db_conn():
-    try:
-        return _pg.connect(host="localhost", port=5432, user="algo", password="algo123", dbname="algo_practice")
-    except Exception:
-        return None
-
-
 def _gen_sql_walkthrough_steps(title: str) -> str:
-    for kw, sd in _SQL_STEP_DEFS.items():
-        if kw in title:
-            break
-    else:
-        return ""
-    conn = _get_db_conn()
-    if not conn:
+    """从预计算的 walkthrough JSON 文件读取 SQL 步骤数据。
+    
+    查找顺序：
+    1. output/{title}-walkthrough.json
+    2. 如果没有 JSON 文件，返回空字符串（walkthrough 入口隐藏）
+    """
+    json_path = OUTPUT_DIR / f"{title}-walkthrough.json"
+    if not json_path.exists():
         return ""
     try:
-        all_steps = []
-        for s in sd["steps"]:
-            cur = conn.cursor()
-            cur.execute(s["sql"])
-            cols = [d[0] for d in cur.description]
-            rows = [[str(v) if v is not None else "NULL" for v in r] for r in cur.fetchall()]
-            cur.close()
-            all_steps.append({"label": s["label"], "desc": s["desc"], "sql": s["sql"], "columns": cols, "rows": rows, "hl": s["hl"]})
-        return json.dumps({"steps": all_steps}, ensure_ascii=False)
-    finally:
-        conn.close()
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+        return json.dumps({"steps": data.get("steps", [])}, ensure_ascii=False)
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"  ⚠️  walkthrough JSON 解析失败: {json_path} ({e})")
+        return ""
 
 
 def parse_sql_md(md_path: Path) -> dict:
@@ -867,18 +896,45 @@ def parse_sql_md(md_path: Path) -> dict:
     raw_desc = desc_match.group(1).strip() if desc_match else ""
     description_html = _parse_md_description(raw_desc)
 
-    # 从 init SQL 提取表结构和数据
+    # 从 walkthrough JSON 的 db_init_sql 字段提取表结构和数据
     num_match = re.match(r"SQL(\d+)", title)
     schema_html = ""
     sample_html = ""
     table_name = ""
+    init_sql_raw = ""
     if num_match:
-        num = int(num_match.group(1))
-        init_dir = BASE_DIR / "db" / "init"
-        for f in sorted(init_dir.glob("*.sql")):
-            if f.stem.startswith(f"{num:02d}"):
-                schema_html, sample_html, table_name = parse_init_sql_schema_and_data(f)
-                break
+        # 优先从 walkthrough JSON 读取
+        walk_json_path = OUTPUT_DIR / f"{title}-walkthrough.json"
+        if walk_json_path.exists():
+            try:
+                wj = json.loads(walk_json_path.read_text(encoding="utf-8"))
+                init_sql_raw = wj.get("db_init_sql", "")
+            except (json.JSONDecodeError, KeyError):
+                pass
+        # 如果没有 JSON 或没有 db_init_sql，fallback 到 db/init/
+        if not init_sql_raw:
+            num = int(num_match.group(1))
+            init_dir = BASE_DIR / "db" / "init"
+            for f in sorted(init_dir.glob("*.sql")):
+                if f.stem.startswith(f"{num:02d}"):
+                    init_sql_raw = f.read_text(encoding="utf-8")
+                    break
+        # 解析 SQL 获取 schema + sample
+        if init_sql_raw:
+            # 将 COMMENT ON 转换为 -- 行内注释
+            init_sql_clean = re.sub(
+                r'COMMENT\s+ON\s+(TABLE|COLUMN)\s+\S+?\s+IS\s+.*?;',
+                '', init_sql_raw, flags=re.IGNORECASE
+            )
+            # 临时写文件供 parse_init_sql_schema_and_data 读取
+            import tempfile, os as _os
+            tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.sql', delete=False, encoding='utf-8')
+            try:
+                tmp.write(init_sql_clean)
+                tmp.close()
+                schema_html, sample_html, table_name = parse_init_sql_schema_and_data(Path(tmp.name))
+            finally:
+                _os.unlink(tmp.name)
 
     # Answer SQL — 优先读 answer 文件，否则用 MD 第四节
     answer_path = md_path.parent / f"{md_path.stem}-answer.sql"
@@ -954,6 +1010,7 @@ def parse_sql_md(md_path: Path) -> dict:
         "expected": expected_html,
         "gotchas": gotchas_html,
         "walkthrough_steps_json": walkthrough_steps_json,
+        "sql_init_sql": _escape_js_template(init_sql_raw),
     }
 
 
@@ -999,7 +1056,8 @@ def render_sql(problem_id: str, data: dict) -> None:
     html = html.replace("{{HINTS}}", data["hints"])
     html = html.replace("{{ANSWER_SQL}}", data["answer_sql"])
     html = html.replace("{{EXPECTED}}", data.get("expected", ""))
-    html = html.replace("{{SQL_WALKTHROUGH_JSON}}", data.get("walkthrough_steps_json", "") or "null")
+    html =     html = html.replace("{{SQL_WALKTHROUGH_JSON}}", data.get("walkthrough_steps_json", "") or "null")
+    html = html.replace("{{SQL_INIT_SQL}}", data.get("sql_init_sql", ""))
     html = html.replace("{{GOTCHAS}}", data["gotchas"])
     html = html.replace("{{PROBLEM_ID}}", problem_id)
     html = html.replace("{{BUILD_TIME}}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -1015,15 +1073,29 @@ def render_sql(problem_id: str, data: dict) -> None:
 # ═══════════════════════════════════════════════════════════
 
 def main():
-    args = sys.argv[1:]
+    import argparse
 
-    if args:
-        pid = args[0]
+    parser = argparse.ArgumentParser(description="Markdown → HTML 渲染器（纯静态）")
+    parser.add_argument("problem_id", nargs="?", help="题目ID，如 001-两数之和 或 SQL01-连续登录天数")
+    parser.add_argument("-w", "--walkthrough-json", help="walkthrough JSON 文件路径（可选，用于读取预计算步骤数据）")
+    args = parser.parse_args()
+
+    pid = args.problem_id
+
+    if pid:
         if pid.startswith("SQL"):
             md_path = PROBLEMS_DIR / "sql" / f"{pid}.md"
             if not md_path.exists():
                 print(f"❌ 题目不存在: {pid}")
                 sys.exit(1)
+            # 如果指定了 -w，复制到 output/ 供 parse 使用
+            if args.walkthrough_json:
+                import shutil
+                src = Path(args.walkthrough_json)
+                dst = OUTPUT_DIR / f"{pid}-walkthrough.json"
+                if src.exists() and src != dst:
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src, dst)
             data = parse_sql_md(md_path)
             render_sql(pid, data)
         else:
@@ -1031,6 +1103,14 @@ def main():
             if not md_path.exists():
                 print(f"❌ 题目不存在: {pid}")
                 sys.exit(1)
+            # 如果指定了 -w，复制到 output/ 供 parse 使用
+            if args.walkthrough_json:
+                import shutil
+                src = Path(args.walkthrough_json)
+                dst = OUTPUT_DIR / f"{pid}-walkthrough.json"
+                if src.exists() and src != dst:
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src, dst)
             data = parse_algo_md(md_path)
             render_algo(pid, data)
     else:
@@ -1053,7 +1133,56 @@ def main():
                 data = parse_sql_md(md_file)
                 render_sql(pid, data)
 
+        # 全量渲染时自动生成 index.json
+        _generate_index_json()
+
         print("\n✨ 渲染完成")
+
+
+def _generate_index_json():
+    """生成 output/index.json — 首页加载用的题目清单"""
+    problems = {"algo": [], "sql": []}
+
+    algo_dir = PROBLEMS_DIR / "algo"
+    if algo_dir.exists():
+        for md_file in sorted(algo_dir.glob("*.md")):
+            pid = md_file.stem
+            if pid == "index":
+                continue
+            # 读取难度标签
+            text = md_file.read_text(encoding="utf-8")
+            diff_match = re.search(r'难度[：:]\s*(\S+)', text)
+            difficulty = diff_match.group(1) if diff_match else "中等"
+            title_match = re.search(r'#\s*(.+)', text)
+            title = title_match.group(1).strip() if title_match else pid
+            problems["algo"].append({
+                "id": pid,
+                "title": title,
+                "type": "algo",
+                "difficulty": difficulty,
+            })
+
+    sql_dir = PROBLEMS_DIR / "sql"
+    if sql_dir.exists():
+        for md_file in sorted(sql_dir.glob("*.md")):
+            pid = md_file.stem
+            if pid == "index":
+                continue
+            text = md_file.read_text(encoding="utf-8")
+            title_match = re.search(r'#\s*(.+)', text)
+            title = title_match.group(1).strip() if title_match else pid
+            difficulty = "中等"
+            problems["sql"].append({
+                "id": pid,
+                "title": title,
+                "type": "sql",
+                "difficulty": difficulty,
+            })
+
+    (OUTPUT_DIR / "index.json").write_text(
+        json.dumps(problems, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print("  ✅ index.json 已生成")
 
 
 if __name__ == "__main__":

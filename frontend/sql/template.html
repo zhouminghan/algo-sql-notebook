@@ -45,7 +45,7 @@
   /* ── left panel ── */
   .left-panel {
     overflow-y: auto; background: #12121a; padding: 20px;
-    flex: none;
+    flex: 1 1 0; min-width: 280px; max-width: 42%;
   }
   .v-splitter {
     width: 6px; cursor: col-resize; background: #1a1a28;
@@ -108,6 +108,63 @@
   .collapsible-toggle .arrow { transition: transform 0.2s; font-size: 0.7rem; }
   .collapsible-toggle.open .arrow { transform: rotate(90deg); }
   .collapsible-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .collapsible-body.visible { max-height: 2000px; }
+
+  /* ── right-panel extras ── */
+  .approach-section {
+    margin: 8px 12px 0; border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .approach-header {
+    padding: 9px 14px; background: #1a1a28; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.85rem; transition: background 0.15s;
+  }
+  .approach-header:hover { background: rgba(108,92,231,0.1); color: var(--accent); }
+  .answer-section {
+    margin: 8px 12px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .answer-header {
+    padding: 9px 14px; background: #1a1a28; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.85rem; transition: background 0.15s;
+  }
+  .answer-header:hover { background: rgba(108,92,231,0.1); color: var(--accent); }
+  .answer-header .arrow { font-size: 0.7rem; transition: transform 0.2s; display: inline-block; }
+  .answer-header.open .arrow { transform: rotate(90deg); }
+  .answer-body { max-height: 0; overflow: hidden; transition: max-height 0.3s; }
+  .answer-body.open { max-height: 500px; }
+
+  /* DDL copy section */
+  .ddl-section {
+    padding: 10px 14px; margin-top: 10px;
+    background: rgba(108,92,231,0.05); border-radius: 8px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  }
+  .ddl-section .btn-copy {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    background: var(--accent); border: none; border-radius: 6px;
+    color: #fff; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  }
+  .ddl-section .btn-copy:hover { filter: brightness(1.15); }
+  .ddl-section .btn-copy:disabled { background: var(--border); cursor: not-allowed; }
+  .ddl-section .hint-text {
+    font-size: 0.72rem; color: var(--text-muted); flex: 1;
+  }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    padding: 10px 20px; border-radius: 8px; font-size: 0.82rem;
+    background: var(--green); color: #fff; z-index: 9999;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .toast.toast-error { background: var(--red); }
 
   /* SQL playback button */
   .playback-btn-sql {
@@ -180,16 +237,10 @@
   }
   .modal-controls button:hover { border-color: var(--accent); background: rgba(108,92,231,0.1); }
   .modal-controls button:disabled { opacity: 0.2; cursor: default; }
-  .modal-controls .btn-play {
-    background: var(--accent); border-color: var(--accent); color: #fff;
-    min-width: 90px; justify-content: center; font-weight: 600;
-  }
-  .modal-controls .btn-play:hover { filter: brightness(1.15); }
-  .speed-label { font-size: 0.68rem; color: var(--text-muted); margin: 0 2px; }
-  .modal-controls input[type=range] { width: 80px; accent-color: var(--accent); }
+
 
   .sql-modal-left {
-    width: 280px; padding: 18px;
+    width: 220px; padding: 16px;
     background: rgba(0,0,0,0.15); border-right: 1px solid rgba(108, 92, 231, 0.15);
     overflow-y: auto; flex-shrink: 0;
   }
@@ -197,16 +248,16 @@
   .sql-modal-code {
     background: rgba(0,0,0,0.2); padding: 14px 16px;
     border-bottom: 1px solid rgba(108, 92, 231, 0.15);
-    flex-shrink: 0; max-height: 40%; overflow-y: auto;
+    flex-shrink: 0; max-height: 45%; overflow-y: auto;
   }
   .sql-modal-code .sql-code-label {
     font-size: 0.68rem; color: var(--accent); margin-bottom: 6px;
     text-transform: uppercase; letter-spacing: 0.5px;
   }
   .sql-modal-code pre {
-    font-family: "SF Mono","Monaco","Menlo",monospace; font-size: 11.5px;
+    font-family: "SF Mono","Monaco","Menlo",monospace; font-size: 12px;
     color: var(--text); white-space: pre-wrap; margin: 0;
-    line-height: 1.55;
+    line-height: 1.6; tab-size: 2;
   }
   .sql-modal-table-wrap { flex: 1; overflow: auto; padding: 14px 16px; }
   .sql-modal-table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
@@ -236,10 +287,6 @@
   }
   .step-dot.done { background: var(--accent); }
   .step-dot.current { background: #fff; transform: scale(1.4); box-shadow: 0 0 8px rgba(255,255,255,0.3); }
-    display: none; padding: 12px 14px; border-top: 1px solid var(--border);
-    background: var(--code-bg); font-size: 0.82rem;
-  }
-  .collapsible-body.visible { display: block; }
 
   .domain-k-body { padding: 0; }
   .domain-k-body .dk-note { padding: 8px 12px; color: var(--text-muted); font-size: 0.78rem; border-bottom: 1px solid var(--border); }
@@ -261,24 +308,18 @@
   .section-box ul { padding-left: 16px; font-size: 0.8rem; color: var(--text-muted); }
   .section-box li { margin-bottom: 2px; }
 
-  /* ── right panel with splitter ── */
+  /* ── right panel ── */
   .right-panel {
-    flex: 1; min-width: 200px; display: flex; flex-direction: column;
-    background: var(--bg); position: relative; overflow: hidden;
+    flex: 1.5 1 0; min-width: 340px; display: flex; flex-direction: column;
+    background: var(--bg); overflow-y: auto;
   }
 
-  .editor-area { min-height: 120px; overflow: hidden; }
+  .editor-area { flex: 1 0 auto; display: flex; flex-direction: column; min-height: 200px; }
   .sql-toolbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 14px; background: #1a1a28; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 8px 14px;
+    background: #1a1a28; border-bottom: 1px solid var(--border);
   }
   .sql-toolbar .hint { color: var(--text-muted); font-size: 0.72rem; }
-  .sql-toolbar .run-btn {
-    padding: 5px 14px; background: var(--green); border: none;
-    border-radius: 6px; color: #fff; cursor: pointer; font-size: 0.82rem; font-weight: 600;
-  }
-  .sql-toolbar .run-btn:hover { opacity: 0.85; }
-  .sql-toolbar .run-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
 
   /* CodeMirror override */
   .CodeMirror {
@@ -287,45 +328,13 @@
     font-size: 14px;
   }
 
-  /* ── draggable splitter ── */
-  .splitter {
-    height: 6px; cursor: row-resize; background: #1a1a28;
-    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .splitter:hover { background: #2a2a40; }
-  .splitter:active { background: var(--accent); }
-  .splitter .grip {
-    width: 28px; height: 2px; background: var(--text-muted);
-    border-radius: 1px;
-  }
 
-  .result-area { flex: 1; overflow-y: auto; min-height: 60px; }
-  .result-header {
-    padding: 8px 14px; background: #1a1a28; border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; font-size: 0.82rem;
-    position: sticky; top: 0; z-index: 5;
-  }
-  .result-header .row-count { color: var(--text-muted); }
-  .result-table {
-    width: 100%; border-collapse: collapse; font-size: 0.78rem;
-  }
-  .result-table th,.result-table td {
-    padding: 6px 12px; border: 1px solid var(--border); text-align: left;
-  }
-  .result-table th { background: #1a1a28; color: var(--accent); position: sticky; top: 33px; }
-  .result-error { padding: 14px; color: var(--red); font-size: 0.82rem; }
-
-  .result-placeholder {
-    padding: 40px 14px; text-align: center; color: var(--text-muted);
-    font-size: 0.82rem;
-  }
 
   @media (max-width: 768px) {
     .layout { flex-direction: column; }
-    .left-panel,.right-panel { width: 100%; }
+    .left-panel, .right-panel { flex: none; width: 100% !important; min-width: 0; max-width: none; }
     .left-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    .v-splitter { display: none; }
   }
 </style>
 </head>
@@ -355,20 +364,6 @@
       {{EXPECTED}}
     </div>
 
-    <div class="collapsible" id="hintsSection">
-      <button class="collapsible-toggle" id="hintsToggle" onclick="openSqlPlayback()">
-        <span>💡 解题思路</span><span class="arrow">▶</span>
-      </button>
-      <div class="collapsible-body">{{HINTS}}</div>
-    </div>
-
-    <div class="collapsible" id="answerSection">
-      <button class="collapsible-toggle" onclick="toggleSection(this)">
-        <span>📖 参考答案</span><span class="arrow">▶</span>
-      </button>
-      <div class="collapsible-body"><textarea id="answerCodeTA" readonly style="display:none">{{ANSWER_SQL}}</textarea></div>
-    </div>
-
     <div class="section-box" id="gotchasBlock">
       <h4>⚠️ 易错点</h4>
       <ul>{{GOTCHAS}}</ul>
@@ -382,23 +377,33 @@
   <div class="right-panel">
     <div class="editor-area" id="editorArea">
       <div class="sql-toolbar">
-        <span class="hint">Ctrl+Enter 执行</span>
-        <button class="run-btn" id="runBtn" onclick="executeSQL()">▶ 运行</button>
+        <span class="hint">纯静态模式 · 在此编写你的 SQL</span>
       </div>
       <textarea id="sqlEditorTA"></textarea>
-    </div>
-
-    <div class="splitter" id="splitter">
-      <div class="grip"></div>
-    </div>
-
-    <div class="result-area" id="resultArea">
-      <div class="result-header">
-        <span>📊 查询结果</span>
-        <span class="row-count" id="rowCount"></span>
+      <div class="ddl-section">
+        <button class="btn-copy" id="copyDdlBtn" onclick="copyDDL()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+          </svg>
+          复制 DDL + 测试数据
+        </button>
+        <span class="hint-text">复制 DDL 到本地 PG/MySQL 验证你的 SQL，然后回到这里编写</span>
       </div>
-      <div id="resultBody">
-        <div class="result-placeholder">↑ 输入 SQL 并按 Ctrl+Enter 执行</div>
+    </div>
+
+    <div class="approach-section" id="sqlApproachSection" style="display:none">
+      <div class="approach-header" onclick="openSqlPlayback()">
+        <span>🧠 解题思路</span><span style="font-size:0.7rem">点击查看步骤演示 ▶</span>
+      </div>
+    </div>
+
+    <div class="answer-section" id="sqlAnswerSection">
+      <div class="answer-header" onclick="toggleSqlAnswer()">
+        <span>📖 查看参考答案</span><span class="arrow" id="sqlAnswerArrow">▸</span>
+      </div>
+      <div class="answer-body" id="sqlAnswerBody">
+        <textarea id="sqlAnswerTA" readonly></textarea>
       </div>
     </div>
   </div>
@@ -409,6 +414,12 @@
 <script>
 var PROBLEM_ID = "{{PROBLEM_ID}}";
 var PROBLEM_TYPE = "sql";
+</script>
+<script src="/shared/progress.js"></script>
+<script src="/shared/splitter.js"></script>
+<script>
+// ── 恢复进度 (shared/progress.js 中定义 initProgress)
+initProgress();
 
 // ── CodeMirror SQL editor ──
 var sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlEditorTA"), {
@@ -421,71 +432,8 @@ var sqlEditor = CodeMirror.fromTextArea(document.getElementById("sqlEditorTA"), 
   tabSize: 2,
   smartIndent: true,
   lineWrapping: false,
-  extraKeys: {
-    "Ctrl-Enter": executeSQL,
-    "Cmd-Enter": executeSQL
-  }
-});
-var answerTA = document.getElementById("answerCodeTA");
-var answerEditor = CodeMirror.fromTextArea(answerTA, {
-  mode: "text/x-sql",
-  theme: "dracula",
-  lineNumbers: true,
-  readOnly: true,
-  indentUnit: 2,
-});
-
-// ═════════════════════════════════════════════
-//  Draggable Splitter
-// ═════════════════════════════════════════════
-var splitter = document.getElementById("splitter");
-var editorArea = document.getElementById("editorArea");
-var resultArea = document.getElementById("resultArea");
-var rightPanel = document.querySelector(".right-panel");
-var isDragging = false;
-var rightPanelHeight = 0;
-
-function setSplit(fraction) {
-  var totalH = rightPanel.clientHeight - splitter.offsetHeight;
-  fraction = Math.max(0.15, Math.min(0.85, fraction));
-  editorArea.style.height = (totalH * fraction) + "px";
-  editorArea.style.flex = "none";
-  resultArea.style.flex = "none";
-  resultArea.style.height = (totalH * (1 - fraction)) + "px";
-  sqlEditor.refresh();
-}
-
-// Default 50/50 split, but only after CodeMirror is rendered
-setTimeout(function() {
-  rightPanelHeight = rightPanel.clientHeight;
-  setSplit(0.5);
-}, 200);
-
-splitter.addEventListener("mousedown", function(e) {
-  isDragging = true;
-  document.body.style.cursor = "row-resize";
-  document.body.style.userSelect = "none";
-  rightPanelHeight = rightPanel.clientHeight;
-  e.preventDefault();
-});
-
-document.addEventListener("mousemove", function(e) {
-  if (!isDragging) return;
-  var rect = rightPanel.getBoundingClientRect();
-  var offsetY = e.clientY - rect.top - splitter.offsetHeight / 2;
-  var totalH = rightPanelHeight - splitter.offsetHeight;
-  var fraction = offsetY / totalH;
-  setSplit(fraction);
-});
-
-document.addEventListener("mouseup", function() {
-  if (isDragging || isDraggingV) {
-    isDragging = false;
-    isDraggingV = false;
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-    sqlEditor.refresh();
-  }
+  placeholder: "在这里写你的 SQL 查询...",
+  extraKeys: {}
 });
 
 // Handle window resize
@@ -493,90 +441,52 @@ window.addEventListener("resize", function() {
   sqlEditor.refresh();
 });
 
-// ═════════════════════════════════════════════
-//  Vertical Splitter (left ↔ right panels)
-// ═════════════════════════════════════════════
-var vSplitter = document.getElementById("vSplitter");
-var leftPanel = document.querySelector(".left-panel");
-var layoutDiv = document.querySelector(".layout");
-var isDraggingV = false;
-var layoutWidth = 0;
-
-function setVSplit(leftPx) {
-  var totalW = layoutDiv.clientWidth - vSplitter.offsetWidth;
-  var minW = 280;
-  var maxW = totalW - 300;
-  leftPx = Math.max(minW, Math.min(maxW, leftPx));
-  leftPanel.style.width = leftPx + "px";
-  sqlEditor.refresh();
-}
-
-setTimeout(function() {
-  layoutWidth = layoutDiv.clientWidth;
-  setVSplit(layoutWidth * 0.38);
-}, 100);
-
-vSplitter.addEventListener("mousedown", function(e) {
-  isDraggingV = true;
-  document.body.style.cursor = "col-resize";
-  document.body.style.userSelect = "none";
-  layoutWidth = layoutDiv.clientWidth;
-  e.preventDefault();
-});
-
-document.addEventListener("mousemove", function(e) {
-  if (isDraggingV) {
-    var rect = layoutDiv.getBoundingClientRect();
-    var offsetX = e.clientX - rect.left;
-    setVSplit(offsetX);
-  }
-  // (horizontal splitter handled below in its own check)
+// ── Vertical Splitter + editor refresh ──
+// 使用共享模块: shared/splitter.js
+// SQL 专项：拖拽后 refresh CodeMirror
+document.addEventListener("mouseup", function() {
+  if (typeof sqlEditor !== "undefined") sqlEditor.refresh();
 });
 
 // ═════════════════════════════════════════════
-//  Execute SQL
+//  Copy DDL
 // ═════════════════════════════════════════════
-async function executeSQL() {
-  var sql = sqlEditor.getValue().trim();
-  if (!sql) return;
-  var btn = document.getElementById("runBtn");
-  btn.disabled = true; btn.textContent = "⏳ ...";
-  try {
-    var resp = await fetch("/api/sql/execute?sql=" + encodeURIComponent(sql), { method: "POST" });
-    if (!resp.ok) { var err = await resp.json(); showError(err.detail || "执行失败"); return; }
-    var data = await resp.json();
-    document.getElementById("rowCount").textContent = data.row_count + " 行";
-    renderTable(data.columns, data.rows);
-  } catch (e) {
-    showError("网络错误: " + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = "▶ 运行";
-  }
+var DDL_SQL = `{{SQL_INIT_SQL}}`;
+
+function copyDDL() {
+  var sql = DDL_SQL.trim();
+  if (!sql) { showToast("暂无 DDL 数据", true); return; }
+  var btn = document.getElementById("copyDdlBtn");
+  btn.disabled = true;
+  // clipboard API with fallback
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(sql).then(function() {
+      showToast("DDL 已复制到剪贴板", false);
+      btn.disabled = false;
+    }).catch(function() { fallbackCopy(sql); btn.disabled = false; });
+  } else { fallbackCopy(sql); btn.disabled = false; }
 }
 
-function renderTable(columns, rows) {
-  var body = document.getElementById("resultBody");
-  if (!columns.length && !rows.length) {
-    body.innerHTML = '<div class="result-placeholder">查询执行成功，无返回数据</div>';
-    return;
-  }
-  var h = '<table class="result-table"><thead><tr>';
-  for (var i = 0; i < columns.length; i++) h += "<th>" + columns[i] + "</th>";
-  h += "</tr></thead><tbody>";
-  for (var r = 0; r < rows.length; r++) {
-    h += "<tr>";
-    for (var c = 0; c < rows[r].length; c++) {
-      h += "<td>" + (rows[r][c] === null ? '<i style="color:#555">NULL</i>' : String(rows[r][c])) + "</td>";
-    }
-    h += "</tr>";
-  }
-  h += "</tbody></table>";
-  body.innerHTML = h;
+function fallbackCopy(text) {
+  var ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.left = "-9999px";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); showToast("DDL 已复制到剪贴板", false); }
+  catch(e) { showToast("复制失败，请手动复制", true); }
+  document.body.removeChild(ta);
 }
 
-function showError(msg) {
-  document.getElementById("rowCount").textContent = "";
-  document.getElementById("resultBody").innerHTML = '<div class="result-error">' + msg + "</div>";
+var _toastTimer = null;
+function showToast(msg, isError) {
+  var el = document.getElementById("copyToast");
+  if (!el) {
+    el = document.createElement("div"); el.id = "copyToast"; el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.className = "toast" + (isError ? " toast-error" : "") + " show";
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.className = "toast"; }, 2000);
 }
 
 // ── Toggle sections ──
@@ -588,19 +498,30 @@ function toggleSection(btn) {
   }
 }
 
-// ── Progress ──
-async function markStatus(status) {
-  var resp = await fetch("/api/progress/" + PROBLEM_TYPE + "/" + PROBLEM_ID + "?status=" + status, { method: "POST" });
-  if (resp.ok) {
-    document.querySelectorAll(".progress-toggle button").forEach(function(b) {
-      if (b.classList.contains(status)) {
-        b.style.background = "var(--green)"; b.style.color = "#fff";
-      } else {
-        b.style.background = "transparent"; b.style.color = "";
-      }
+// ── Progress (localStorage) ──
+// 使用共享模块: shared/progress.js
+
+// ── Answer section (参考答案) ──
+window.toggleSqlAnswer = function() {
+  var body = document.getElementById("sqlAnswerBody");
+  var header = body.previousElementSibling;
+  var isOpen = body.classList.toggle("open");
+  if (isOpen) header.classList.add("open"); else header.classList.remove("open");
+  if (isOpen && !window._sqlAnswerCM) {
+    window._sqlAnswerCM = CodeMirror.fromTextArea(document.getElementById("sqlAnswerTA"), {
+      mode: "text/x-sql", theme: "dracula", lineNumbers: true,
+      readOnly: true, matchBrackets: true, indentUnit: 2
     });
+    setTimeout(function() { window._sqlAnswerCM.refresh(); }, 50);
   }
-}
+};
+
+// ── Approach section (解题思路) ──
+(function() {
+  var hasWalkthrough = SQL_WALKTHROUGH_DATA && SQL_WALKTHROUGH_DATA.steps && SQL_WALKTHROUGH_DATA.steps.length > 0;
+  var section = document.getElementById("sqlApproachSection");
+  if (hasWalkthrough && section) section.style.display = "block";
+})();
 </script>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -625,11 +546,7 @@ async function markStatus(status) {
     <div class="modal-controls">
       <button onclick="sqlPlayerPrev()" id="sqlBtnPrev">⏮ 上一步</button>
       <button onclick="sqlPlayerReset()" id="sqlBtnReset">↻ 重置</button>
-      <button class="btn-play" onclick="sqlPlayerTogglePlay()" id="sqlBtnPlay">▶ 播放</button>
       <button onclick="sqlPlayerNext()" id="sqlBtnNext">下一步 ⏭</button>
-      <span class="speed-label">慢</span>
-      <input type="range" min="500" max="3000" value="1200" step="100" id="sqlSpeedSlider" oninput="sqlPlayerSetSpeed(this.value)">
-      <span class="speed-label">快</span>
       <span style="font-size:0.72rem;color:var(--text-muted);margin-left:8px" id="sqlStepCounter">0/0</span>
     </div>
   </div>
@@ -667,7 +584,6 @@ function openSqlPlayback() {
   renderSqlStep();
 }
 function closeSqlPlayback() {
-  sqlPause();
   var overlay = document.getElementById("sqlPlaybackModal");
   overlay.style.display = "none";
   document.body.style.overflow = "";
@@ -696,9 +612,26 @@ function renderSqlStep() {
     '<div class="sql-step-title">' + s.label + '</div>' +
     '<div class="sql-step-desc">' + s.desc + '</div>';
 
-  // SQL code
+  // SQL code — basic formatting for readability
+  function fmtSql(sql) {
+    return sql
+      .replace(/\bSELECT\b/gi, 'SELECT\n  ')
+      .replace(/\bFROM\b/gi, '\nFROM\n  ')
+      .replace(/\bWHERE\b/gi, '\nWHERE\n  ')
+      .replace(/\bAND\b/gi, '\n  AND')
+      .replace(/\bJOIN\b/gi, '\nJOIN\n  ')
+      .replace(/\bLEFT JOIN\b/gi, '\nLEFT JOIN\n  ')
+      .replace(/\bINNER JOIN\b/gi, '\nINNER JOIN\n  ')
+      .replace(/\bON\b/gi, 'ON ')
+      .replace(/\bGROUP BY\b/gi, '\nGROUP BY\n  ')
+      .replace(/\bORDER BY\b/gi, '\nORDER BY\n  ')
+      .replace(/\bHAVING\b/gi, '\nHAVING\n  ')
+      .replace(/\bLIMIT\b/gi, '\nLIMIT ')
+      .replace(/,\s*/g, ',\n  ')
+      .replace(/\n\s*\n/g, '\n');
+  }
   document.getElementById("sqlStepSql").innerHTML =
-    '<div class="sql-code-label">执行 SQL</div><pre>' + escHtml(s.sql) + '</pre>';
+    '<div class="sql-code-label">执行 SQL</div><pre>' + escHtml(fmtSql(s.sql)) + '</pre>';
 
   // Table
   var cols = s.columns, rows = s.rows;
@@ -725,23 +658,10 @@ function renderSqlStep() {
   document.getElementById("sqlBtnNext").disabled = idx >= steps.length - 1;
 }
 
-function sqlPlayerGoTo(i) { sqlPause(); sqlPlayer.current = Math.max(0, Math.min(SQL_WALKTHROUGH_DATA.steps.length - 1, i)); renderSqlStep(); }
-function sqlPlayerNext() { if (sqlPlayer.current < SQL_WALKTHROUGH_DATA.steps.length - 1) sqlPlayerGoTo(sqlPlayer.current + 1); else sqlPause(); }
+function sqlPlayerGoTo(i) { sqlPlayer.current = Math.max(0, Math.min(SQL_WALKTHROUGH_DATA.steps.length - 1, i)); renderSqlStep(); }
+function sqlPlayerNext() { if (sqlPlayer.current < SQL_WALKTHROUGH_DATA.steps.length - 1) sqlPlayerGoTo(sqlPlayer.current + 1); }
 function sqlPlayerPrev() { sqlPlayerGoTo(sqlPlayer.current - 1); }
 function sqlPlayerReset() { sqlPlayerGoTo(0); }
-function sqlPlayerTogglePlay() { sqlPlayer.playing ? sqlPause() : sqlPlay(); }
-function sqlPlay() {
-  if (sqlPlayer.current >= SQL_WALKTHROUGH_DATA.steps.length - 1) { sqlPlayer.current = 0; renderSqlStep(); }
-  sqlPlayer.playing = true; document.getElementById("sqlBtnPlay").innerHTML = "⏸ 暂停"; sqlAdvance();
-}
-function sqlPause() { sqlPlayer.playing = false; document.getElementById("sqlBtnPlay").innerHTML = "▶ 播放"; if (sqlPlayer.timer) { clearTimeout(sqlPlayer.timer); sqlPlayer.timer = null; } }
-function sqlAdvance() {
-  if (!sqlPlayer.playing) return;
-  if (sqlPlayer.current >= SQL_WALKTHROUGH_DATA.steps.length - 1) { sqlPause(); return; }
-  sqlPlayerGoTo(sqlPlayer.current + 1);
-  if (sqlPlayer.playing) sqlPlayer.timer = setTimeout(sqlAdvance, sqlPlayer.speed);
-}
-function sqlPlayerSetSpeed(v) { sqlPlayer.speed = parseInt(v); if (sqlPlayer.playing) { sqlPause(); sqlPlay(); } }
 
 // Keyboard
 document.addEventListener("keydown", function(e) {
@@ -750,7 +670,6 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") { closeSqlPlayback(); return; }
   if (e.key === "ArrowRight") { e.preventDefault(); sqlPlayerNext(); return; }
   if (e.key === "ArrowLeft") { e.preventDefault(); sqlPlayerPrev(); return; }
-  if (e.key === " ") { e.preventDefault(); sqlPlayerTogglePlay(); return; }
 });
 document.getElementById("sqlPlaybackModal").addEventListener("click", function(e) { if (e.target === this) closeSqlPlayback(); });
 </script>

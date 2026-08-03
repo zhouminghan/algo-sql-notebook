@@ -19,3 +19,8 @@ output/
 
 # Node (if any)
 node_modules/
+
+# Skills — only track algo-to-page and sql-to-page
+.codebuddy/skills/*
+!.codebuddy/skills/algo-to-page/
+!.codebuddy/skills/sql-to-page/

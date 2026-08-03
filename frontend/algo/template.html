@@ -20,7 +20,8 @@
   }
   /* ── left panel ── */
   .left-panel {
-    padding: 24px; overflow-y: auto; background: #12121a; flex: none;
+    padding: 24px; overflow-y: auto; background: #12121a;
+    flex: 1 1 0; min-width: 280px; max-width: 42%;
   }
   .left-panel h2 { font-size: 1.2rem; margin-bottom: 4px; }
   .difficulty-tag {
@@ -220,21 +221,16 @@
   }
   .modal-controls button:hover { border-color: var(--accent); background: rgba(108,92,231,0.1); }
   .modal-controls button:disabled { opacity: 0.2; cursor: default; }
-  .modal-controls .btn-play {
-    background: var(--accent); border-color: var(--accent); color: #fff;
-    min-width: 90px; justify-content: center; font-weight: 600;
-  }
-  .modal-controls .btn-play:hover { filter: brightness(1.15); }
-  .modal-controls .speed-label { font-size: 0.68rem; color: var(--text-muted); margin: 0 2px; }
-  .modal-controls input[type=range] { width: 80px; accent-color: var(--accent); }
+
 
   .modal-code-panel {
     width: 45%; overflow-y: auto; border-right: 1px solid rgba(108,92,231,0.15);
     background: rgba(0,0,0,0.2); padding: 0; flex-shrink: 0;
   }
+  .modal-code-panel .CodeMirror { height: 100% !important; }
   .modal-viz-panel {
-    flex: 1; padding: 18px; overflow-y: auto; display: flex;
-    flex-direction: column; gap: 12px; background: rgba(0,0,0,0.1);
+    flex: 1; padding: 14px 18px; overflow-y: auto; display: flex;
+    flex-direction: column; gap: 10px; background: rgba(0,0,0,0.1);
   }
   .modal-viz-panel .step-indicator { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
   .modal-viz-panel .step-dot {
@@ -253,6 +249,124 @@
   .modal-hint-box .hint-text { font-size: 0.88rem; color: var(--text); }
   .modal-hint-box .hint-text.found-status { color: var(--green); font-weight: 700; }
 
+  /* ── Walkthrough 可视化：数组盒子 + 哈希表 ── */
+  .viz-section { margin-bottom: 10px; }
+  .viz-section-title {
+    font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;
+    margin-bottom: 6px; letter-spacing: 0.5px;
+  }
+  .viz-array { display: flex; gap: 6px; flex-wrap: wrap; }
+  .viz-array-box {
+    width: 52px; height: 52px; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
+    transition: all 0.3s ease; position: relative;
+  }
+  .viz-array-box .val { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+  .viz-array-box .idx { font-size: 0.62rem; color: var(--text-muted); margin-top: 1px; }
+  .viz-array-box.current {
+    border-color: var(--accent); background: rgba(108,92,231,0.12);
+    transform: scale(1.08); box-shadow: 0 0 12px rgba(108,92,231,0.3);
+  }
+  .viz-array-box.processed {
+    border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
+  }
+  .viz-array-box.found { border-color: var(--green); background: rgba(46,204,113,0.12); }
+  .viz-arrow {
+    position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+    font-size: 0.65rem; color: var(--accent);
+  }
+
+  .viz-hashmap { display: flex; gap: 6px; flex-wrap: wrap; min-height: 44px; align-items: center; }
+  .viz-hashmap-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+  .viz-hash-box {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-radius: 8px;
+    background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.2);
+    font-size: 0.82rem; font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .viz-hash-box .key { color: var(--accent); }
+  .viz-hash-box .arrow { color: var(--text-muted); font-size: 0.75rem; }
+  .viz-hash-box .val { color: var(--text); }
+  .viz-hash-box.new {
+    animation: hashInsert 0.4s ease;
+    border-color: var(--green); background: rgba(46,204,113,0.1);
+  }
+  @keyframes hashInsert {
+    0% { transform: scale(0.6); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ── Input/Output banner ── */
+  .viz-info-banner {
+    padding: 10px 14px; margin-bottom: 8px;
+    background: rgba(108,92,231,0.06); border: 1px solid rgba(108,92,231,0.12);
+    border-radius: 8px; font-size: 0.78rem; display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .viz-info-row { display: flex; align-items: center; gap: 6px; }
+  .viz-info-label { color: var(--accent); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; }
+  .viz-info-banner code {
+    font-family: "SF Mono","Monaco",monospace; font-size: 0.78rem;
+    background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 4px;
+  }
+
+  .viz-compute {
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 8px;
+    background: rgba(108,92,231,0.06); border: 1px solid rgba(108,92,231,0.12);
+    font-size: 0.82rem; line-height: 1.6;
+  }
+  .viz-compute .formula { color: var(--accent); font-weight: 600; }
+  .viz-compute .result-found { color: var(--green); font-weight: 700; }
+  .viz-compute .result-miss { color: var(--text-muted); }
+
+  /* ── 补数等式卡片 ── */
+  .viz-equation {
+    padding: 14px 18px; margin-bottom: 10px;
+    background: rgba(108,92,231,0.08); border: 2px solid rgba(108,92,231,0.2);
+    border-radius: 10px; text-align: center;
+  }
+  .viz-equation .eq-row {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-size: 1.15rem; font-weight: 700; flex-wrap: wrap;
+  }
+  .viz-equation .eq-target { color: var(--accent); font-size: 1.3rem; }
+  .viz-equation .eq-current { color: var(--text); background: rgba(108,92,231,0.15); padding: 4px 12px; border-radius: 6px; }
+  .viz-equation .eq-operator { color: var(--text-muted); font-size: 0.9rem; }
+  .viz-equation .eq-result {
+    color: var(--green); font-size: 1.5rem;
+    padding: 6px 16px; border: 2px dashed var(--green);
+    border-radius: 8px; background: rgba(46,204,113,0.08);
+    animation: pulse 1.2s ease infinite;
+  }
+
+  /* ── 查找连线指示 ── */
+  .viz-lookup {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    margin-bottom: 10px; padding: 8px 0; font-size: 0.8rem;
+  }
+  .viz-lookup .lookup-icon { font-size: 1.2rem; }
+  .viz-lookup .lookup-dest {
+    padding: 4px 14px; border-radius: 6px; font-weight: 700; font-size: 0.9rem;
+  }
+  .viz-lookup .lookup-dest.miss {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);
+  }
+  .viz-lookup .lookup-dest.hit {
+    background: rgba(46,204,113,0.12); border: 1px solid var(--green); color: var(--green);
+  }
+
+  .viz-hash-box.hit {
+    border-color: var(--green) !important; background: rgba(46,204,113,0.12) !important;
+    box-shadow: 0 0 8px rgba(46,204,113,0.2);
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
   .modal-state-table {
     border: 1px solid rgba(108,92,231,0.1); border-radius: 10px; overflow: hidden; font-size: 0.8rem;
   }
@@ -267,30 +381,36 @@
   }
   .modal-state-table .step-current { background: rgba(108, 92, 231, 0.12); }
 
-  .modal-code-panel pre {
-    padding: 14px 0; margin: 0; counter-reset: line;
-    font-family: "SF Mono","Monaco","Menlo",monospace; font-size: 13px;
-    line-height: 1.65; color: var(--text); min-height: 100%; white-space: pre;
+  /* CodeMirror line highlights (in modal) */
+  .cm-active { background: rgba(108, 92, 231, 0.25) !important; }
+  .cm-found { background: rgba(0, 184, 148, 0.2) !important; }
+
+  .example-picker {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-shrink: 0;
   }
-  .modal-code-panel .code-line {
-    display: block; padding: 0 16px 0 56px; position: relative; min-height: 21.45px;
+  .example-picker span { font-size: 0.72rem; color: var(--text-muted); }
+  .example-picker code { font-size: 0.78rem; color: var(--yellow); background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius:4px; }
+
+  .state-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6px; margin-top: 10px;
   }
-  .modal-code-panel .code-line::before {
-    content: counter(line); counter-increment: line;
-    position: absolute; left: 8px; width: 38px; text-align: right;
-    color: var(--text-muted); font-size: 0.72rem; padding-right: 6px;
-    user-select: none;
+  .state-grid div {
+    background: rgba(0,0,0,0.2); border-radius: 6px; padding: 6px 10px;
   }
-  .modal-code-panel .code-line.active {
-    background: rgba(108, 92, 231, 0.25); border-left: 3px solid var(--accent);
+  .state-grid div span {
+    display: block; font-size: 0.68rem; color: var(--text-muted);
   }
-  .modal-code-panel .code-line.found {
-    background: rgba(0, 184, 148, 0.2); border-left: 3px solid var(--green);
+  .state-grid div strong {
+    font-size: 1rem; color: var(--accent);
+  }
+  .state-grid div code {
+    color: var(--yellow); font-size: 0.82rem;
   }
 
   /* ── right panel ── */
   .right-panel {
-    flex: 1; min-width: 300px; display: flex; flex-direction: column;
+    flex: 1.5 1 0; min-width: 340px; display: flex; flex-direction: column;
     overflow-y: auto; background: var(--bg);
   }
   .v-splitter {
@@ -339,10 +459,11 @@
 
   .section-box{ background:#1a1a28;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px; }
   .section-box h4{font-size:0.8rem;color:var(--yellow);margin-bottom:4px}
-  .section-box ul{padding-left:16px;font-size:0.8rem;color:var(--text-muted)}
-  .section-box li{margin-bottom:2px}
+  .bullet-list{padding-left:16px;font-size:0.8rem;color:var(--text-muted)}
+  .bullet-list li{margin-bottom:3px}
+  .bullet-list li b{color:var(--accent)}
 
-  @media(max-width:768px){ body{flex-direction:column} .left-panel,.right-panel{width:100%!important} }
+  @media(max-width:768px){ body{flex-direction:column} .left-panel,.right-panel{flex:none;width:100%!important;min-width:0;max-width:none} .v-splitter{display:none} }
 </style>
 </head>
 <body>
@@ -353,21 +474,13 @@
   <div class="desc-block">{{DESCRIPTION}}</div>
   {{EXAMPLES}}
 
-  {{WALKTHROUGH}}
-
-  <div class="approach-section" id="approachSection">
-    <div class="approach-header" id="approachHeader">
-      <h4>🧠 解题思路对比</h4>
-      <span class="toggle-arrow" id="approachArrow">▶</span>
-    </div>
-    <div class="approach-body" id="approachBody">
-      <div class="approach-compare">
-        {{APPROACH_CARDS}}
-      </div>
-      <button class="playback-trigger" id="playbackTrigger" onclick="openPlayback()" style="margin-top:10px;width:100%">
-        <span class="pb-icon">🎮</span> 步骤演示（逐步查看每一步的代码执行与数据变化）
-      </button>
-    </div>
+  <div class="section-box">
+    <h4>🧠 关键点</h4>
+    <ul class="bullet-list">{{KEYPOINTS}}</ul>
+  </div>
+  <div class="section-box">
+    <h4>⚠️ 易错点</h4>
+    <ul class="bullet-list">{{GOTCHAS}}</ul>
   </div>
 </div>
 
@@ -410,13 +523,19 @@
       </div>
     </div>
 
-    <div class="section-box">
-      <h4>🧠 关键点</h4>
-      <ul>{{KEYPOINTS}}</ul>
-    </div>
-    <div class="section-box" style="background:#1a1515;">
-      <h4 style="color:var(--red)">⚠️ 易错点</h4>
-      <ul>{{GOTCHAS}}</ul>
+    <div class="approach-section" id="approachSection">
+      <div class="approach-header" id="approachHeader">
+        <h4>🧠 解题思路对比</h4>
+        <span class="toggle-arrow" id="approachArrow">▶</span>
+      </div>
+      <div class="approach-body" id="approachBody">
+        <div class="approach-compare">
+          {{APPROACH_CARDS}}
+        </div>
+        <button class="playback-trigger" id="playbackTrigger" onclick="openPlayback()" style="margin-top:10px;width:100%">
+          <span class="pb-icon">🎮</span> 步骤演示
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -431,17 +550,13 @@
       <button class="close-modal" onclick="closePlayback()">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="modal-code-panel" id="modalCodePanel"></div>
+      <div class="modal-code-panel"><textarea id="walkthroughCodeTA" style="display:none"></textarea></div>
       <div class="modal-viz-panel" id="modalVizPanel"></div>
     </div>
     <div class="modal-controls">
       <button onclick="playerPrev()" id="btnPrev">⏮ 上一步</button>
       <button onclick="playerReset()" id="btnReset">↻ 重置</button>
-      <button class="btn-play" onclick="playerTogglePlay()" id="btnPlay">▶ 播放</button>
       <button onclick="playerNext()" id="btnNext">下一步 ⏭</button>
-      <span class="speed-label">慢</span>
-      <input type="range" min="300" max="2000" value="800" step="100" id="speedSlider" oninput="playerSetSpeed(this.value)">
-      <span class="speed-label">快</span>
       <span style="font-size:0.72rem;color:var(--text-muted);margin-left:8px" id="stepCounter">0/0</span>
     </div>
   </div>
@@ -458,12 +573,20 @@ try {
 console.log("[algo-practice] walkthrough player loaded, steps:", WALKTHROUGH_DATA ? WALKTHROUGH_DATA.steps.length : 0, "| page build: {{BUILD_TIME}}");
 </script>
 
+<script src="/shared/progress.js"></script>
+<script src="/shared/splitter.js"></script>
 <script src="/lib/codemirror.min.js"></script>
 <script src="/lib/mode/python.min.js"></script>
 <script src="/lib/mode/clike.min.js"></script>
 <script>
 var PROBLEM_ID = "{{PROBLEM_ID}}";
 var PROBLEM_TYPE = "algo";
+</script>
+<script src="/shared/progress.js"></script>
+<script src="/shared/splitter.js"></script>
+<script>
+initProgress();
+
 var STORAGE_KEY_PY = "algo_code_" + PROBLEM_ID + "_python";
 var STORAGE_KEY_JA = "algo_code_" + PROBLEM_ID + "_java";
 
@@ -494,7 +617,7 @@ jaAnswer.setOption("readOnly", true);
 
 // ── Auto-save ──
 (function() {
-  var ac = hasCM ? "change" : "input";
+  var ac = "change";
   pyEditor.on(ac, function() {
     try { localStorage.setItem(STORAGE_KEY_PY, pyEditor.getValue()); } catch(e) {}
   });
@@ -504,13 +627,20 @@ jaAnswer.setOption("readOnly", true);
 })();
 
 // ── Tab switch ──
+var activeLang = "python";
 function switchLang(lang) {
+  activeLang = lang;
   document.querySelectorAll(".lang-tab").forEach(function(t) { t.classList.remove("active"); });
   document.querySelector('.lang-tab[data-lang="' + lang + '"]').classList.add("active");
   document.getElementById("editor-python").style.display = lang === "python" ? "block" : "none";
   document.getElementById("editor-java").style.display = lang === "java" ? "block" : "none";
   document.getElementById("answer-python-view").style.display = lang === "python" ? "block" : "none";
   document.getElementById("answer-java-view").style.display = lang === "java" ? "block" : "none";
+  // 如果 walkthrough modal 开着，刷新代码面板
+  var modal = document.getElementById("playbackModal");
+  if (modal.classList.contains("open")) {
+    renderCodePanel();
+  }
   setTimeout(function() {
     (lang === "python" ? pyEditor : jaEditor).refresh();
     // 如果答案面板开着，刷新新 Tab 的答案编辑器
@@ -534,37 +664,16 @@ document.getElementById("approachHeader").addEventListener("click", function(e) 
   document.getElementById("approachBody").classList.toggle("collapsed");
 });
 
-// ── Progress ──
-async function markStatus(status) {
-  var resp = await fetch("/api/progress/" + PROBLEM_TYPE + "/" + PROBLEM_ID + "?status=" + status, { method: "POST" });
-  if (resp.ok) {
-    document.querySelectorAll(".progress-toggle button").forEach(function(b) {
-      if (b.classList.contains(status)) {
-        b.style.background = "var(--green)"; b.style.color = "#fff";
-      } else {
-        b.style.background = "transparent"; b.style.color = "";
-      }
-    });
-  }
-}
+// ── Progress (localStorage) ──
+// 使用共享模块: shared/progress.js
 
-// ── Vertical splitter ──
-var vs = document.getElementById("vSplitter");
-var lp = document.querySelector(".left-panel");
-var isDraggingV = false;
-function setVSplit(px) {
-  var maxW = document.body.clientWidth - vs.offsetWidth - 360;
-  px = Math.max(280, Math.min(maxW, px));
-  lp.style.width = px + "px";
-}
-setTimeout(function() { setVSplit(document.body.clientWidth * 0.4); }, 100);
-vs.addEventListener("mousedown", function(e) {
-  isDraggingV = true; document.body.style.cursor = "col-resize";
-  document.body.style.userSelect = "none"; e.preventDefault();
-});
-document.addEventListener("mousemove", function(e) { if (isDraggingV) setVSplit(e.clientX); });
+
+// ── Vertical splitter + editor refresh ──
+// 使用共享模块: shared/splitter.js
+// algo 专项：拖拽后 refresh CodeMirror
 document.addEventListener("mouseup", function() {
-  if (isDraggingV) { isDraggingV = false; document.body.style.cursor = ""; document.body.style.userSelect = ""; }
+  if (typeof pyEditor !== "undefined") pyEditor.refresh();
+  if (typeof javaEditor !== "undefined") javaEditor.refresh();
 });
 
 // ── Initial refresh ──
@@ -588,26 +697,36 @@ function openPlayback() {
 }
 
 function closePlayback() {
-  playerPause();
   document.getElementById("playbackModal").classList.remove("open");
   document.body.style.overflow = "";
 }
 
-function renderCodePanel() {
-  var d = WALKTHROUGH_DATA;
-  var code = d.code_python;
-  var lines = code.split("\n");
-  var html = "<pre>";
-  for (var i = 0; i < lines.length; i++) {
-    var cls = "code-line";
-    html += '<span class="' + cls + '" data-line="' + i + '">' + escHtml(lines[i]) + "</span>\n";
-  }
-  html += "</pre>";
-  document.getElementById("modalCodePanel").innerHTML = html;
-}
+var walkCM = null;
+function escHtml(s) { return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-function escHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function renderCodePanel() {
+  var isJava = activeLang === "java";
+  var code = isJava ? WALKTHROUGH_DATA.code_java : WALKTHROUGH_DATA.code_python;
+  var mode = isJava ? "text/x-java" : "python";
+  var ta = document.getElementById("walkthroughCodeTA");
+  ta.value = code;
+  if (walkCM) {
+    walkCM.setOption("mode", mode);
+    walkCM.setValue(code);
+    walkCM.refresh();
+  } else {
+    walkCM = CodeMirror.fromTextArea(ta, {
+      mode: mode, theme: "dracula", lineNumbers: true,
+      readOnly: true, indentUnit: 4, lineWrapping: false,
+    });
+  }
+  // 如果当前步骤超出代码行数，重置到 0
+  var codeLines = code.split("\n").length;
+  var step = WALKTHROUGH_DATA.steps[playerState.current];
+  if (step && step.line >= codeLines) {
+    playerState.current = 0;
+    renderPlayerStep();
+  }
 }
 
 function renderPlayerStep() {
@@ -615,77 +734,207 @@ function renderPlayerStep() {
   var steps = d.steps;
   var idx = playerState.current;
   var step = steps[idx];
-  if (!step) return;
+  if (!step || !walkCM) return;
 
   // ── Highlight code line ──
-  var codeLines = document.querySelectorAll("#modalCodePanel .code-line");
-  codeLines.forEach(function(el) {
-    el.classList.remove("active", "found");
-    if (parseInt(el.dataset.line) === (step.line || -1)) {
-      el.classList.add(step.status === "found" ? "found" : "active");
-    }
-  });
-  // Scroll highlighted line into view
-  var activeLine = document.querySelector("#modalCodePanel .code-line.active, #modalCodePanel .code-line.found");
-  if (activeLine) activeLine.scrollIntoView({ block: "center", behavior: "smooth" });
+  // Clear all highlights
+  for (var i = 0; i < walkCM.lineCount(); i++) {
+    walkCM.removeLineClass(i, "background", "cm-active");
+    walkCM.removeLineClass(i, "background", "cm-found");
+  }
+  // 按当前语言选用行号（Java 有独立的 ja_line）
+  var line = (activeLang === "java" && step.ja_line != null) ? step.ja_line : (step.line || 0);
+  var cls = step.status === "found" ? "cm-found" : "cm-active";
+  walkCM.addLineClass(line, "background", cls);
+  walkCM.scrollIntoView({line: line, ch: 0}, 50);
 
   // ── Step dots ──
   var dotsHtml = '<div class="step-indicator">';
   for (var i = 0; i < steps.length; i++) {
-    var cls = "step-dot";
+    var dc = "step-dot";
     var s = steps[i];
-    if (s.status === "found") cls += " found";
-    else if (i < idx) cls += " done";
-    else if (i === idx) cls += " current";
-    dotsHtml += '<span class="' + cls + '" onclick="playerGoTo(' + i + ')" title="步骤 ' + (i+1) + '"></span>';
+    if (s.status === "found") dc += " found";
+    else if (i < idx) dc += " done";
+    else if (i === idx) dc += " current";
+    dotsHtml += '<span class="' + dc + '" onclick="playerGoTo(' + i + ')"></span>';
   }
   dotsHtml += '</div>';
 
-  // ── Hint box ──
-  var hintStatus = step.status === "found" ? " found-status" : "";
-  var hintHtml = '<div class="modal-hint-box">';
-  hintHtml += '<div class="hint-step-num">步骤 ' + (idx + 1) + ' / ' + steps.length + '</div>';
-  hintHtml += '<div class="hint-text' + hintStatus + '">' + step.hint + '</div>';
-  hintHtml += '</div>';
-
-  // ── State table ──
-  var stateCols = [];
-  if (step.idx !== undefined) stateCols.push(["索引 i", step.idx]);
-  if (step.num !== undefined) stateCols.push(["当前值 nums[i]", step.num]);
-  if (step.comp !== undefined) stateCols.push(["补数 target-nums[i]", step.comp]);
-  if (step.seen !== undefined) stateCols.push(["seen 哈希表", step.seen]);
-
-  // ── Full step history table ──
-  var tableHtml = '<div class="modal-state-table"><table>';
-  tableHtml += '<thead><tr><th>#</th>';
-  var headers = [];
-  for (var h = 0; h < stateCols.length; h++) headers.push(stateCols[h][0]);
-  for (var hh = 0; hh < headers.length; hh++) tableHtml += '<th>' + headers[hh] + '</th>';
-  tableHtml += '</tr></thead><tbody>';
-
-  // Show all steps up to current
-  for (var j = 0; j <= idx; j++) {
-    var sj = steps[j];
-    var rowCls = j === idx ? " step-current" : "";
-    tableHtml += '<tr class="' + rowCls + '"><td>' + (j + 1) + '</td>';
-    tableHtml += '<td>' + (sj.idx !== undefined ? sj.idx : "-") + '</td>';
-    tableHtml += '<td>' + (sj.num !== undefined ? sj.num : "-") + '</td>';
-    tableHtml += '<td>' + (sj.comp !== undefined ? sj.comp : "-") + '</td>';
-    tableHtml += '<td><code style="color:var(--yellow);font-size:0.78rem">' + (sj.seen || "-") + '</code></td>';
-    tableHtml += '</tr>';
+  // ── 解析 input 信息 ──
+  var target = null, numsArr = [], expectedOut = "";
+  if (WALKTHROUGH_DATA.example) {
+    var tm = WALKTHROUGH_DATA.example.match(/target\s*=\s*(\d+)/);
+    if (tm) target = parseInt(tm[1]);
+    var nm = WALKTHROUGH_DATA.example.match(/nums\s*=\s*\[([^\]]+)\]/);
+    if (nm) numsArr = nm[1].split(",").map(function(s){ return parseInt(s.trim()); });
+    var om = WALKTHROUGH_DATA.example.match(/输出[：:]\s*(\[.+?\])/);
+    if (om) expectedOut = om[1];
   }
-  tableHtml += '</tbody></table></div>';
 
-  document.getElementById("modalVizPanel").innerHTML = dotsHtml + hintHtml + tableHtml;
+  // ── 预先计算 seenBeforeIdx ──
+  var seenBeforeIdx = null;
+  if ((step.status === "found" || (step.status === "check" && step.hint.indexOf("不在") === -1)) && step.seen) {
+    try {
+      var fso = {};
+      var fsp = step.seen.replace(/[\{\}]/g,"").split(",");
+      for (var fpi = 0; fpi < fsp.length; fpi++) {
+        var fkv = fsp[fpi].split(":");
+        if (fkv.length === 2) fso[parseInt(fkv[0])] = parseInt(fkv[1]);
+      }
+      seenBeforeIdx = fso[parseInt(step.comp)];
+    } catch(e) {}
+  }
 
-  // ── Update counter + buttons ──
+  // ── 输入/输出 Banner ──
+  var bannerHtml = '<div class="viz-info-banner">';
+  bannerHtml += '<div class="viz-info-row"><span class="viz-info-label">nums</span><code>' +
+    JSON.stringify(numsArr) + '</code></div>';
+  bannerHtml += '<div class="viz-info-row"><span class="viz-info-label">target</span><code>' +
+    target + '</code></div>';
+  if (expectedOut) {
+    bannerHtml += '<div class="viz-info-row"><span class="viz-info-label">输出</span><code style="color:var(--green);font-weight:700">' +
+      expectedOut + '</code></div>';
+  }
+  bannerHtml += '</div>';
+
+  // ── 数组可视化 ──
+  var arrHtml = '<div class="viz-section"><div class="viz-section-title">📊 数组扫描</div><div class="viz-array">';
+  for (var ai = 0; ai < numsArr.length; ai++) {
+    var boxCls = "viz-array-box";
+    var showArrow = false;
+    if (step.status === "found" || step.status === "complete") {
+      // found/complete：两个匹配元素都绿色，其余灰
+      if (ai === parseInt(step.idx) || ai === seenBeforeIdx) boxCls += " found";
+      else boxCls += " processed";
+    } else if (step.status === "skip") {
+      // skip：该元素灰色（已被跳过），已处理元素灰，未处理元素白
+      if (ai === parseInt(step.idx)) boxCls += " processed";
+      else if (ai < parseInt(step.idx)) boxCls += " processed";
+    } else if (ai === parseInt(step.idx)) {
+      boxCls += " current"; showArrow = true;
+    } else if (step.status !== "init" && ai < parseInt(step.idx)) {
+      boxCls += " processed";
+    }
+    arrHtml += '<div class="' + boxCls + '">';
+    arrHtml += '<span class="val">' + numsArr[ai] + '</span>';
+    arrHtml += '<span class="idx">i=' + ai + '</span>';
+    if (showArrow) arrHtml += '<span class="viz-arrow">▼</span>';
+    arrHtml += '</div>';
+  }
+  arrHtml += '</div></div>';
+
+  // ── 哈希表可视化 ──
+  var seenObj = {};
+  if (step.seen && step.seen !== "{}" && step.seen !== "-") {
+    try {
+      var pairs = step.seen.replace(/[\{\}]/g,"").split(",");
+      for (var pi = 0; pi < pairs.length; pi++) {
+        var kv = pairs[pi].split(":");
+        if (kv.length === 2) seenObj[parseInt(kv[0])] = parseInt(kv[1]);
+      }
+    } catch(e) {}
+  }
+  // 新插入的 key
+  var newKey = null;
+  if (idx > 0 && step.status === "store") {
+    try {
+      var prevSeen = steps[idx - 1].seen || "{}";
+      var prevObj = {};
+      var prevPairs = prevSeen.replace(/[\{\}]/g,"").split(",");
+      for (var pj = 0; pj < prevPairs.length; pj++) {
+        var pkv = prevPairs[pj].split(":");
+        if (pkv.length === 2) prevObj[parseInt(pkv[0])] = parseInt(pkv[1]);
+      }
+      for (var k in seenObj) {
+        if (!(k in prevObj)) { newKey = k; break; }
+      }
+    } catch(e) {}
+  }
+  // 命中的 key (found 状态)
+  var hitKey = null;
+  if (step.status === "found" || (step.status === "check" && !step.hint.match(/不/))) {
+    hitKey = step.comp;
+  }
+  var hashHtml = '<div class="viz-section"><div class="viz-section-title">🗂️ 哈希表 seen</div><div class="viz-hashmap">';
+  var keys = Object.keys(seenObj);
+  if (keys.length === 0) {
+    hashHtml += '<span class="viz-hashmap-empty">（空）</span>';
+  } else {
+    for (var ki = 0; ki < keys.length; ki++) {
+      var k = keys[ki];
+      var v = seenObj[k];
+      var hashBoxCls = "viz-hash-box";
+      if (parseInt(k) === parseInt(newKey)) hashBoxCls += " new";
+      if (hitKey !== null && parseInt(k) === parseInt(hitKey)) hashBoxCls += " hit";
+      hashHtml += '<div class="' + hashBoxCls + '">';
+      hashHtml += '<span class="key">' + k + '</span>';
+      hashHtml += '<span class="arrow">→</span>';
+      hashHtml += '<span class="val">' + v + '</span>';
+      hashHtml += '</div>';
+    }
+  }
+  hashHtml += '</div></div>';
+
+  // ── 计算/结果面板 ──
+  var panelHtml = '<div class="viz-compute">';
+  panelHtml += '<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px">步骤 ' + (idx + 1) + ' / ' + steps.length + '</div>';
+  if (step.status === "init") {
+    panelHtml += '<div>' + step.hint + '</div>';
+  } else if (step.status === "loop") {
+    panelHtml += '<div>🔄 ' + step.hint + '</div>';
+  } else if (step.status === "compute") {
+    panelHtml += '<div>🧮 计算补数</div>';
+  } else if (step.status === "check") {
+    if (step.hint.indexOf("不在") !== -1) {
+      panelHtml += '<div>🔍 查找 seen 表...</div><div class="result-miss">→ 未命中，将存入</div>';
+    } else {
+      panelHtml += '<div>🔍 查找 seen 表...</div>';
+    }
+  } else if (step.status === "store") {
+    panelHtml += '<div>📥 ' + step.hint + '</div>';
+  } else if (step.status === "found") {
+    panelHtml += '<div class="result-found" style="font-size:1.1rem;">✅ 命中！答案为 <b>[' + seenBeforeIdx + ', ' + step.idx + ']</b></div>';
+    panelHtml += '<div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">验证：nums[' + seenBeforeIdx + ']+nums[' + step.idx + '] = ' + numsArr[seenBeforeIdx] + '+' + numsArr[step.idx] + ' = ' + target + ' ✅</div>';
+  } else if (step.status === "skip") {
+    panelHtml += '<div style="color:var(--text-muted);font-style:italic">⏭ ' + step.hint + '</div>';
+  } else if (step.status === "complete") {
+    panelHtml += '<div class="result-found" style="font-size:1.1rem;">' + step.hint + '</div>';
+  }
+  panelHtml += '</div>';
+
+  // ── 补数等式卡片 (仅 compute/check/store 显示) ──
+  var eqHtml = "";
+  if (step.status !== "init" && step.status !== "loop" && step.status !== "skip" && step.status !== "complete" && step.comp && step.comp !== "-") {
+    eqHtml = '<div class="viz-equation"><div class="eq-row">';
+    eqHtml += '<span class="eq-target">' + target + '</span>';
+    eqHtml += '<span class="eq-operator">−</span>';
+    eqHtml += '<span class="eq-current">' + step.num + '</span>';
+    eqHtml += '<span class="eq-operator">=</span>';
+    eqHtml += '<span class="eq-result">complement = ' + step.comp + '</span>';
+    eqHtml += '</div></div>';
+  }
+
+  // ── 查找连线指示 (仅 check/found 显示) ──
+  var lookupHtml = "";
+  if (step.status === "check" || step.status === "found") {
+    var isHit = step.hint.indexOf("不在") === -1 || step.status === "found";
+    var lookupCls = isHit ? "hit" : "miss";
+    var lookupText = isHit ? "✅ 在 seen 中找到 " + step.comp + " → 索引 " + seenBeforeIdx : "✗ " + step.comp + " 不在 seen 中";
+    lookupHtml = '<div class="viz-lookup">';
+    lookupHtml += '<span class="lookup-icon">🔎</span>';
+    lookupHtml += '<span class="lookup-dest ' + lookupCls + '">' + lookupText + '</span>';
+    lookupHtml += '</div>';
+  }
+
+  document.getElementById("modalVizPanel").innerHTML = bannerHtml + panelHtml + dotsHtml + eqHtml + lookupHtml + arrHtml + hashHtml;
+
+  // Counter + buttons
   document.getElementById("stepCounter").textContent = (idx + 1) + "/" + steps.length;
   document.getElementById("btnPrev").disabled = idx === 0;
   document.getElementById("btnNext").disabled = idx >= steps.length - 1;
 }
 
 function playerGoTo(idx) {
-  playerPause();
   playerState.current = Math.max(0, Math.min(WALKTHROUGH_DATA.steps.length - 1, idx));
   renderPlayerStep();
 }
@@ -693,58 +942,12 @@ function playerGoTo(idx) {
 function playerNext() {
   if (playerState.current < WALKTHROUGH_DATA.steps.length - 1) {
     playerGoTo(playerState.current + 1);
-  } else {
-    playerPause();
   }
 }
 
 function playerPrev() { playerGoTo(playerState.current - 1); }
 
 function playerReset() { playerGoTo(0); }
-
-function playerTogglePlay() {
-  if (playerState.playing) {
-    playerPause();
-  } else {
-    playerPlay();
-  }
-}
-
-function playerPlay() {
-  if (playerState.current >= WALKTHROUGH_DATA.steps.length - 1) {
-    playerState.current = 0;
-    renderPlayerStep();
-  }
-  playerState.playing = true;
-  document.getElementById("btnPlay").innerHTML = "⏸ 暂停";
-  playerAdvance();
-}
-
-function playerPause() {
-  playerState.playing = false;
-  document.getElementById("btnPlay").innerHTML = "▶ 播放";
-  if (playerState.timer) { clearTimeout(playerState.timer); playerState.timer = null; }
-}
-
-function playerAdvance() {
-  if (!playerState.playing) return;
-  if (playerState.current >= WALKTHROUGH_DATA.steps.length - 1) {
-    playerPause();
-    return;
-  }
-  playerGoTo(playerState.current + 1);
-  if (playerState.playing) {
-    playerState.timer = setTimeout(playerAdvance, playerState.speed);
-  }
-}
-
-function playerSetSpeed(val) {
-  playerState.speed = parseInt(val);
-  if (playerState.playing) {
-    playerPause();
-    playerPlay();
-  }
-}
 
 // Keyboard shortcuts
 document.addEventListener("keydown", function(e) {
@@ -753,7 +956,6 @@ document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") { closePlayback(); return; }
   if (e.key === "ArrowRight") { e.preventDefault(); playerNext(); return; }
   if (e.key === "ArrowLeft") { e.preventDefault(); playerPrev(); return; }
-  if (e.key === " ") { e.preventDefault(); playerTogglePlay(); return; }
 });
 
 // Close on overlay click

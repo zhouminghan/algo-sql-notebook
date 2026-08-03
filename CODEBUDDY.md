@@ -1,1 +1,0 @@
-.codebuddy/CODEBUDDY.md
