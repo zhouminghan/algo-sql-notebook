@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>001. 两数之和 — algo-sql-notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="../assets/js/draw-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function() {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply(t) { document.documentElement.setAttribute('data-theme', t); }
+  const s = localStorage.getItem('theme');
+  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
+  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+})();
+</script>
+</head>
+<body>
+
+<div class="page-topbar">
+  <span><!-- 首题，无上一题 --></span>
+  <a href="../index.html">📋 返回首页</a>
+  <a href="002-两数相加.html">下一题 →</a>
+</div>
+
+<div class="problem-header">
+  <span class="problem-number">001</span>
+  <h1>两数之和</h1>
+</div>
+<div class="problem-tags">
+  <span class="tag-badge tag-easy">简单</span>
+  <span class="tag-badge tag-ds">数组</span>
+  <span class="tag-badge tag-ds">哈希表</span>
+</div>
+
+<a class="origin-link" href="https://leetcode.cn/problems/two-sum/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用哈希表？</strong><br>
+  暴力双循环 O(n²)，10⁴ 数据量能过但不够优雅。哈希表把「查找目标值」从 O(n) 降到 O(1)，一边遍历一边查，一次过。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定一个整数数组 <code>nums</code> 和一个整数目标值 <code>target</code>，请你在该数组中找出 <strong>和为目标值</strong> <code>target</code> 的那 <strong>两个</strong> 整数，并返回它们的数组下标。</p>
+<p>你可以假设每种输入只会对应一个答案，并且你不能使用两次相同的元素。</p>
+
+<p><strong>示例：</strong></p>
+<pre><code>输入：nums = [2,7,11,15], target = 9
+输出：[0,1]
+解释：因为 nums[0] + nums[1] == 9 ，返回 [0, 1]</code></pre>
+
+<h3>📐 图解即思路</h3>
+
+<div class="why-box">
+  <strong>🗺️ HashMap 说明</strong><br>
+  <code>Key = 数组元素值</code>（用来快速查找 complement 是否存在）<br>
+  <code>Value = 数组下标</code>（命中后直接获取对方的 index）<br>
+  算法：遍历数组 → 算 complement → 查 HashMap → 命中则返回，否则存入继续
+</div>
+
+<div class="frame-grid" id="frame1">
+  <div class="frame-card">
+    <div class="frame-label">① i=0，nums[0]=2</div>
+    <div id="frame1-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame2">
+  <div class="frame-card">
+    <div class="frame-label">② i=1，nums[1]=7</div>
+    <div id="frame2-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame3">
+  <div class="frame-card">
+    <div class="frame-label">③ i=2，nums[2]=11（如未命中则继续）</div>
+    <div id="frame3-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame4">
+  <div class="frame-card">
+    <div class="frame-label">④ i=3，nums[3]=15（如未命中则继续）</div>
+    <div id="frame4-svg"></div>
+  </div>
+</div>
+
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  i=1 时 <code>nums[0] + nums[1] = 2 + 7 = 9</code>，返回 <code>[0, 1]</code>。<br>
+  <strong>关键：先查 complement 再存当前值</strong>，避免同一个元素被用两次。<br>
+  一次遍历 O(n)，HashMap 查找 O(1)，空间 O(n)。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def twoSum(nums, target):
+    seen = {}  # val -> index
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in seen:
+            return [seen[complement], i]
+        seen[num] = i
+    return []</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int[] twoSum(int[] nums, int target) {
+    Map&lt;Integer, Integer&gt; map = new HashMap&lt;&gt;();
+    for (int i = 0; i &lt; nums.length; i++) {
+        int complement = target - nums[i];
+        if (map.containsKey(complement)) {
+            return new int[]{map.get(complement), i};
+        }
+        map.put(nums[i], i);
+    }
+    return new int[]{};
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n) — 一次遍历，哈希表查找 O(1)</li>
+  <li><strong>空间</strong>：O(n) — 最坏情况存储全部 n 个元素</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>不能先存再查</strong>：先 <code>seen[num]=i</code> 再查 complement，同一个元素可能被用两次（如 target=6, nums=[3,2,4]，3+3=6 就会错误返回 [0,0]）</li>
+  <li><strong>哈希冲突</strong>：Java HashMap 底层链表长度 >8 会转红黑树，但在两数之和场景下不会触发</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q1:</strong> 如果 <code>nums</code> 有重复元素（如 [3,3]），解法还正确吗？为什么？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：正确的。</strong> 顺序是先查 complement 再存 seen。i=0 时 seen 为空，查不到 3；存入 (3,0)。i=1 时查 complement=3，在 seen 中找到 (3,0) → 返回 [0,1]。如果先存再查，第一次就查到同一个元素 3 了，返回 [0,0] 错误。</p>
+
+    <p><strong>Q2:</strong> 题目改为「返回所有两数之和等于 target 的<em>不重复</em>配对」，怎么改？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong>用排序 + 双指针。先排序，左指针从 0 开始，右指针从末尾开始。和 < target 左指针右移，和 > target 右指针左移，相等则收集一对然后两个指针都跳过重复值。或者仍用哈希表但用 Set 来去重配对结果。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+// 表格随网页宽度自适应：宽度取 frame-card 容器宽，resize 时重绘
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTwoSumMap({
+  arr: [2, 7, 11, 15],
+  map: [{key: '2', val: '0', new: true}],
+  currentIdx: 0,
+  complement: 7,
+  action: '7 不在表中 → 存入 (2 → 0)',
+  width: U.frameCardWidth('frame1-svg')
+});
+
+document.getElementById('frame2-svg').innerHTML = U.drawTwoSumMap({
+  arr: [2, 7, 11, 15],
+  map: [{key: '2', val: '0'}],
+  currentIdx: 1,
+  complement: 2,
+  highlight: '2',
+  action: '2 命中！→ 找到答案 [0, 1]',
+  width: U.frameCardWidth('frame2-svg')
+});
+
+document.getElementById('frame3-svg').innerHTML = U.drawTwoSumMap({
+  arr: [2, 7, 11, 15],
+  map: [{key: '2', val: '0'}, {key: '7', val: '1'}, {key: '11', val: '2', new: true}],
+  currentIdx: 2,
+  complement: -2,
+  action: '-2 不在表中 → 存入 (11 → 2)',
+  width: U.frameCardWidth('frame3-svg')
+});
+
+document.getElementById('frame4-svg').innerHTML = U.drawTwoSumMap({
+  arr: [2, 7, 11, 15],
+  map: [{key: '2', val: '0'}, {key: '7', val: '1'}, {key: '11', val: '2'}, {key: '15', val: '3', new: true}],
+  currentIdx: 3,
+  complement: -6,
+  action: '-6 不在表中 → 存入 (15 → 3)',
+  width: U.frameCardWidth('frame4-svg')
+});
+
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+
+function copyCode(btn, codeId) {
+  const code = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>

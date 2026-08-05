@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>001. 连续登录天数 — algo-sql-notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="../assets/js/draw-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function() {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply(t) { document.documentElement.setAttribute('data-theme', t); }
+  const s = localStorage.getItem('theme');
+  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
+  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+})();
+</script>
+</head>
+<body>
+
+<div class="page-topbar">
+  <span><!-- 首题，无上一题 --></span>
+  <a href="../index.html">📋 返回首页</a>
+  <a href="002-shein%E6%96%B0%E5%AE%A2%E5%9B%9E%E8%AE%BF%E5%A4%8D%E8%B4%AD%E5%88%86%E6%9E%90.html">下一题 →</a>
+</div>
+
+<div class="problem-header">
+  <span class="problem-number">001</span>
+  <h1>连续登录天数</h1>
+</div>
+<div class="problem-tags">
+  <span class="tag-badge tag-medium">中等</span>
+  <span class="tag-badge tag-ds">窗口函数</span>
+  <span class="tag-badge tag-ds">日期</span>
+</div>
+
+<div class="why-box">
+  <strong>🤔 为什么用窗口函数而不是自连接？</strong><br>
+  自连接需要把同一用户的每条记录和其他记录比较（O(n²)），而且跨月/跨年边界处理麻烦。<code>row_number()</code> 差值分组法一次扫描即可完成，O(n log n) 搞定。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>有一张用户登录表 <code>user_login</code>，找出每个用户的最长连续登录天数。同一天多次登录只算一次。</p>
+
+<div class="frame-card" style="margin-bottom:1rem;">
+  <div class="frame-label">📥 user_login（源数据）</div>
+  <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">同一天多次登录保留全部记录（DISTINCT 去重回 frame① 处理）</div>
+  <div id="desc-schema"></div>
+  <div id="desc-svg"></div>
+</div>
+
+<h3>📐 图解即思路</h3>
+
+<div class="frame-card" style="margin-bottom:1.5rem;">
+  <div class="frame-label">① CTE: dedup — 去重，为 ROW_NUMBER 编号做准备</div>
+  <pre><code class="language-sql">WITH dedup AS (
+    SELECT DISTINCT user_id, login_date FROM user_login
+),</code></pre>
+  <div id="frame1-svg"></div>
+</div>
+
+<div class="frame-card" style="margin-bottom:1.5rem;">
+  <div class="frame-label">② CTE: numbered — ROW_NUMBER 按用户分组、按日期排序编号</div>
+  <pre><code class="language-sql">numbered AS (
+    SELECT user_id, login_date,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn
+    FROM dedup
+),</code></pre>
+  <div id="frame2-svg"></div>
+</div>
+
+<div class="frame-card" style="margin-bottom:1.5rem;">
+  <div class="frame-label">③ CTE: grouped — 日期减去序号，连续日期的差值 grp 相同</div>
+  <pre><code class="language-sql">grouped AS (
+    SELECT user_id, login_date, rn,
+           DATE_SUB(login_date, INTERVAL rn DAY) AS grp
+    FROM numbered
+)</code></pre>
+  <div id="frame3-svg"></div>
+</div>
+
+<div class="frame-card" style="margin-bottom:1.5rem;">
+  <div class="frame-label">④ 按 grp 分组聚合 — COUNT + MAX 取最长连续天数</div>
+  <pre><code class="language-sql">SELECT user_id, MAX(consecutive_days) AS max_consecutive_days
+FROM (
+    SELECT user_id, grp, COUNT(*) AS consecutive_days
+    FROM grouped GROUP BY user_id, grp
+) t
+GROUP BY user_id ORDER BY user_id;</code></pre>
+  <div id="frame4-svg"></div>
+</div>
+
+<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">⬆ 以上 4 帧的 SQL 按顺序拼接，即为完整答案。</p>
+
+<h3>📝 SQL 代码</h3>
+
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">📋 复制</button>
+  <pre><code class="language-sql" id="sql-code">WITH dedup AS (
+    SELECT DISTINCT user_id, login_date FROM user_login
+),
+numbered AS (
+    SELECT user_id, login_date,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn
+    FROM dedup
+),
+grouped AS (
+    SELECT user_id, login_date, rn,
+           DATE_SUB(login_date, INTERVAL rn DAY) AS grp
+    FROM numbered
+)
+SELECT user_id, MAX(consecutive_days) AS max_consecutive_days
+FROM (
+    SELECT user_id, grp, COUNT(*) AS consecutive_days
+    FROM grouped GROUP BY user_id, grp
+) t
+GROUP BY user_id ORDER BY user_id;</code></pre>
+</div>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>必须先 DISTINCT 去重</strong>：如果同一天有两条记录，row_number 会让它们有不同编号，差值就不同了，同一天会被算成两天</li>
+  <li><strong>跨月/跨年没问题</strong>：DATE_SUB(login_date, INTERVAL rn DAY) 自动处理月份和年份边界</li>
+  <li><strong>只有 1 天登录</strong>：差值分组后 COUNT=1，正确返回 1</li>
+</ul>
+
+<details id="ddlToggle">
+  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">📦 本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <div id="ddlBody" class="collapsible-body">
+    <div class="code-block-wrapper">
+      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">📋 一键复制全部</button>
+      <pre><code class="language-sql" id="ddl-code">CREATE TABLE user_login (
+    user_id INT,
+    login_date DATE
+);
+
+INSERT INTO user_login VALUES
+(1, '2024-01-01'), (1, '2024-01-02'), (1, '2024-01-03'),
+(1, '2024-01-05'), (1, '2024-01-06'), (1, '2024-01-07'),
+(2, '2024-01-01'), (2, '2024-01-02'),
+(2, '2024-01-04'),
+(3, '2024-01-10'),
+(4, '2024-01-01'), (4, '2024-01-01');
+
+WITH dedup AS (
+    SELECT DISTINCT user_id, login_date FROM user_login
+),
+numbered AS (
+    SELECT user_id, login_date,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) AS rn
+    FROM dedup
+),
+grouped AS (
+    SELECT user_id, login_date, rn,
+           DATE_SUB(login_date, INTERVAL rn DAY) AS grp
+    FROM numbered
+)
+SELECT user_id, MAX(consecutive_days) AS max_consecutive_days
+FROM (
+    SELECT user_id, grp, COUNT(*) AS consecutive_days
+    FROM grouped GROUP BY user_id, grp
+) t
+GROUP BY user_id ORDER BY user_id;
+
+-- 期望结果：
+-- user_id=1 → 3  (1-3号连续3天，5-7号连续3天)
+-- user_id=2 → 2  (1-2号连续2天，4号单独1天)
+-- user_id=3 → 1  (只登录1天)
+-- user_id=4 → 1  (同一天重复去重后仅1天)</code></pre>
+    </div>
+  </div>
+</details>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q1:</strong> 如果不去重（不用 DISTINCT），测试数据 user_id=4 同一天登录两次，结果会是多少？为什么？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 同一天两条记录 row_number 分别为 1 和 2，差值 = 同一天 - 不同序号 → 产生两个不同的 grp 值，这两个 grp 各自只有 1 条记录，COUNT=1。最后 MAX=1——巧合结果对，但内部逻辑是错的。如果有用户连续 2 天且其中一天有重复，就会被切成多个片段，连续天数被低估。</p>
+
+    <p><strong>Q2:</strong> 题目改为「找出至少连续登录 N 天的用户」（N 可配置），SQL 怎么改？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 在最外层查询加 <code>HAVING MAX(consecutive_days) >= N</code>。如果 N 很大（如 100），可以先在 grouped 子查询后用 WHERE 提前过滤，避免对大量不可能满足条件的数据做最终聚合：<code>WHERE consecutive_days >= N</code> 放在内层子查询里即可。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+// 表格随网页宽度自适应：宽度取 frame-card 容器宽，resize 时重绘
+function renderFrames() {
+
+// ---- 题目描述：源数据表 ----
+document.getElementById('desc-schema').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['列名','类型','说明'],
+      rows: [
+        ['user_id','INT','用户ID'],
+        ['login_date','DATE','登录日期'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('desc-schema'), height: 80
+});
+document.getElementById('desc-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','login_date'],
+      rows: [
+        ['1','2024-01-01'],['1','2024-01-02'],['1','2024-01-03'],
+        ['1','2024-01-05'],['1','2024-01-06'],['1','2024-01-07'],
+        ['2','2024-01-01'],['2','2024-01-02'],
+        ['2','2024-01-04'],
+        ['3','2024-01-10'],
+        ['4','2024-01-01'],['4','2024-01-01'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 6, label: 'user_id=1' },
+      { startRow: 6, count: 3, label: 'user_id=2' },
+      { startRow: 9, count: 1, label: '3' },
+      { startRow: 10, count: 2, label: '4' },
+    ]
+  }],
+  width: U.frameCardWidth('desc-svg'), height: 340
+});
+
+document.getElementById('frame1-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id', 'login_date'],
+      rows: [
+        ['1','2024-01-01'],['1','2024-01-02'],['1','2024-01-03'],
+        ['1','2024-01-05'],['1','2024-01-06'],['1','2024-01-07'],
+        ['2','2024-01-01'],['2','2024-01-02'],
+        ['2','2024-01-04'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 6, label: 'user_id=1' },
+      { startRow: 6, count: 3, label: 'user_id=2' },
+    ]
+  }],
+  width: U.frameCardWidth('frame1-svg'), height: 300
+});
+
+document.getElementById('frame2-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','login_date','rn'],
+      rows: [
+        ['1','2024-01-01','1'],['1','2024-01-02','2'],['1','2024-01-03','3'],
+        ['1','2024-01-05','4'],['1','2024-01-06','5'],['1','2024-01-07','6'],
+        ['2','2024-01-01','1'],['2','2024-01-02','2'],
+        ['2','2024-01-04','3'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 6, label: 'user_id=1' },
+      { startRow: 6, count: 3, label: 'user_id=2' },
+    ]
+  }],
+  width: U.frameCardWidth('frame2-svg'), height: 340
+});
+
+document.getElementById('frame3-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','login_date','rn','grp (date - rn)'],
+      rows: [
+        ['1','2024-01-01','1','2023-12-31'],['1','2024-01-02','2','2023-12-31'],
+        ['1','2024-01-03','3','2023-12-31'],
+        ['1','2024-01-05','4','2024-01-01'],
+        ['1','2024-01-06','5','2024-01-01'],['1','2024-01-07','6','2024-01-01'],
+        ['2','2024-01-01','1','2023-12-31'],['2','2024-01-02','2','2023-12-31'],
+        ['2','2024-01-04','3','2024-01-01'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 3, label: '连续组A (12-31)' },
+      { startRow: 3, count: 3, label: '连续组B (1-1)' },
+      { startRow: 6, count: 2, label: '连续组A (12-31)' },
+      { startRow: 8, count: 1, label: '单独 (1-1)' },
+    ]
+  }],
+  width: U.frameCardWidth('frame3-svg'), height: 340
+});
+
+document.getElementById('frame4-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id', 'max_consecutive_days'],
+      rows: [['1','3'],['2','2']],
+    },
+    partitions: [
+      { startRow: 0, count: 2, label: '最终结果' },
+    ]
+  }],
+  width: U.frameCardWidth('frame4-svg'), height: 140
+});
+
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+
+function copyCode(btn, codeId) {
+  const code = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>

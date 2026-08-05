@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>008. 三数之和 — algo-sql-notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="../assets/js/draw-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function() {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply(t) { document.documentElement.setAttribute('data-theme', t); }
+  const s = localStorage.getItem('theme');
+  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
+  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+})();
+</script>
+</head>
+<body>
+
+<div class="page-topbar">
+  <a href="007-盛最多水的容器.html">← 上一题</a>
+  <a href="../index.html">📋 返回首页</a>
+  <a href="009-电话号码的字母组合.html">下一题 →</a>
+</div>
+
+<div class="problem-header">
+  <span class="problem-number">008</span>
+  <h1>三数之和</h1>
+</div>
+<div class="problem-tags">
+  <span class="tag-badge tag-medium">中等</span>
+  <span class="tag-badge tag-ds">双指针</span>
+  <span class="tag-badge tag-ds">排序</span>
+</div>
+
+<a class="origin-link" href="https://leetcode.cn/problems/3sum/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么排序 + 双指针？</strong><br>
+  暴力 O(n³)。排序后固定一个数，剩下两数用双指针在有序数组上 O(n) 求解，总 O(n²)。排序同时方便去重。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给你一个整数数组 <code>nums</code>，判断是否存在三元组 <code>[nums[i], nums[j], nums[k]]</code> 满足 <code>i != j</code>、<code>i != k</code> 且 <code>j != k</code>，同时还满足 <code>nums[i] + nums[j] + nums[k] == 0</code>。返回所有和为 0 且不重复的三元组。</p>
+
+<p><strong>示例：</strong></p>
+<pre><code>输入：nums = [-1,0,1,2,-1,-4]
+输出：[[-1,-1,2],[-1,0,1]]
+解释：nums[0]+nums[1]+nums[2]=(-1)+0+1=0</code></pre>
+
+<h3>📐 图解即思路</h3>
+
+<div class="why-box">
+  <strong>🎯 固定 + 双指针</strong><br>
+  排序 → 遍历 i 作为第一个数 → left=i+1, right=n-1 双指针找两数之和 = -nums[i]。和 < target 则 left++，> target 则 right--。注意去重。
+</div>
+
+<div class="frame-grid" id="frame1">
+  <div class="frame-card">
+    <div class="frame-label">① 排序后：[-4,-1,-1,0,1,2]，i=0, left=1, right=5</div>
+    <div id="frame1-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame2">
+  <div class="frame-card">
+    <div class="frame-label">② i=0(-4): left+right=-1+2=1 < 4 → left++</div>
+    <div id="frame2-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame3">
+  <div class="frame-card">
+    <div class="frame-label">③ i=1(-1): left=2(-1), right=5(2) → -1+2=1 == 1 ✓ 找到[-1,-1,2]</div>
+    <div id="frame3-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame4">
+  <div class="frame-card">
+    <div class="frame-label">④ i=2(-1): 跳过重复，i=3(0): left=4(1), right=5(2) → 1+2=3 > 0 → right--</div>
+    <div id="frame4-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame5">
+  <div class="frame-card">
+    <div class="frame-label">⑤ i=3(0): left=4(1), right=5(2): 1+2≠0, 结果 [[-1,-1,2],[-1,0,1]]</div>
+    <div id="frame5-svg"></div>
+  </div>
+</div>
+
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  排序 O(nlogn) + 双指针 O(n²) = O(n²)。去重是关键：跳过相同的 i 值，找到答案后跳过重复的 left 和 right。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def threeSum(nums):
+    nums.sort()
+    res = []
+    n = len(nums)
+
+    for i in range(n - 2):
+        if i > 0 and nums[i] == nums[i-1]:
+            continue
+        left, right = i + 1, n - 1
+        while left < right:
+            total = nums[i] + nums[left] + nums[right]
+            if total < 0:
+                left += 1
+            elif total > 0:
+                right -= 1
+            else:
+                res.append([nums[i], nums[left], nums[right]])
+                while left < right and nums[left] == nums[left+1]:
+                    left += 1
+                while left < right and nums[right] == nums[right-1]:
+                    right -= 1
+                left += 1; right -= 1
+    return res</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public List&lt;List&lt;Integer&gt;&gt; threeSum(int[] nums) {
+    Arrays.sort(nums);
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    int n = nums.length;
+
+    for (int i = 0; i < n - 2; i++) {
+        if (i > 0 && nums[i] == nums[i-1]) continue;
+        int left = i + 1, right = n - 1;
+        while (left < right) {
+            int sum = nums[i] + nums[left] + nums[right];
+            if (sum < 0) left++;
+            else if (sum > 0) right--;
+            else {
+                res.add(Arrays.asList(nums[i], nums[left], nums[right]));
+                while (left < right && nums[left] == nums[left+1]) left++;
+                while (left < right && nums[right] == nums[right-1]) right--;
+                left++; right--;
+            }
+        }
+    }
+    return res;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n²) — 排序 O(nlogn) + 双指针 O(n²)</li>
+  <li><strong>空间</strong>：O(1) — 不计返回结果</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>去重三处</strong>：i 跳过重复值，找到答案后 left 和 right 也需跳过重复值</li>
+  <li><strong>跳过 i 的条件</strong>：<code>if i > 0 and nums[i] == nums[i-1]</code>，不能写成 <code>nums[i] == nums[i+1]</code>，后者会漏掉第一个</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q1:</strong> nums=[0,0,0,0]，结果是什么？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：[[0,0,0]]。</strong> i=0 时找到 [0,0,0]，去重后 left/right 跳过重复 0。i=1,2,3 的 nums[i]=0 被跳过，最终只有一个结果。</p>
+
+    <p><strong>Q2:</strong> 为什么排序不会影响结果？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：题目要求的是值的三元组，不是下标。</strong> 排序后双指针需要有序数组才能正确收缩。去重也依赖排序使相同值相邻。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+  const arr = [-4,-1,-1,0,1,2];
+  document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({arr, left:1, right:5, width:U.frameCardWidth('frame1-svg')});
+  document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({arr, left:2, right:5, width:U.frameCardWidth('frame2-svg')});
+  document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({arr, left:2, right:5, window:{start:2,end:5}, width:U.frameCardWidth('frame3-svg')});
+  document.getElementById('frame4-svg').innerHTML = U.drawTwoPointers({arr, left:4, right:5, width:U.frameCardWidth('frame4-svg')});
+  document.getElementById('frame5-svg').innerHTML = U.drawTwoPointers({arr, left:5, right:5, width:U.frameCardWidth('frame5-svg')});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+
+function copyCode(btn, codeId) {
+  const code = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>

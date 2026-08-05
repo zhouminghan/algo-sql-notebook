@@ -20,7 +20,51 @@ output/
 # Node (if any)
 node_modules/
 
-# Skills — only track algo-to-page and sql-to-page
-.codebuddy/skills/*
-!.codebuddy/skills/algo-to-page/
-!.codebuddy/skills/sql-to-page/
+# CodeBuddy
+.codebuddy/
+
+# Playwright CLI artifacts
+.playwright-cli/
+
+# Plans & Reports
+plans/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# Coverage & Test
+.coverage
+htmlcov/
+.pytest_cache/
+*.cover
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Package locks (optional, uncomment if needed)
+# package-lock.json
+# yarn.lock
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Generated images
+generated-images/

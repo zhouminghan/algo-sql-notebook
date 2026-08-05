@@ -1,0 +1,473 @@
+/* ============================================================
+   algo-sql-notebook — 全局补充样式
+   依赖：Pico.css CDN（classless，暗色跟随系统）
+   ============================================================ */
+
+/* ---- CSS 变量：语义色板（亮色/暗色分别定义） ---- */
+:root {
+  --color-highlight: #d97706;    /* 金色：当前操作 */
+  --color-done: #16a34a;         /* 绿色：已完成 */
+  --color-neutral: #9ca3af;      /* 灰色：待处理 */
+  --color-pointer: #dc2626;      /* 红色：指针/箭头 */
+  --color-null: #94a3b8;         /* 浅灰：null/空位 */
+  --color-bg-frame: #f8fafc;     /* 图解帧背景 */
+  --color-border: #e2e8f0;
+  --color-tag-bg: #f1f5f9;
+  --color-tag-text: #475569;
+}
+
+[data-theme="dark"], :root.dark {
+  --color-highlight: #fbbf24;
+  --color-done: #4ade80;
+  --color-neutral: #6b7280;
+  --color-pointer: #f87171;
+  --color-null: #64748b;
+  --color-bg-frame: #1e293b;
+  --color-border: #334155;
+  --color-tag-bg: #1e293b;
+  --color-tag-text: #94a3b8;
+}
+
+/* ---- 暗色模式自动跟随系统 ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-highlight: #fbbf24;
+    --color-done: #4ade80;
+    --color-neutral: #6b7280;
+    --color-pointer: #f87171;
+    --color-null: #64748b;
+    --color-bg-frame: #1e293b;
+    --color-border: #334155;
+    --color-tag-bg: #1e293b;
+    --color-tag-text: #94a3b8;
+  }
+}
+
+/* ---- 布局 ---- */
+body {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* ---- 首页：Tab 容器（吸顶） ---- */
+.tab-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--pico-background-color);
+  padding-top: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--color-border);
+}
+.tab-bar button {
+  padding: 0.5rem 1.2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-neutral);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.tab-bar button:hover { color: var(--pico-color); }
+.tab-bar button.active {
+  color: var(--pico-primary);
+  border-bottom-color: var(--pico-primary);
+}
+
+.sub-tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.5rem 0;
+}
+.sub-tab-bar button {
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-tag-bg);
+  color: var(--color-tag-text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.sub-tab-bar button:hover { border-color: var(--pico-primary); color: var(--pico-primary); }
+.sub-tab-bar button.active {
+  background: var(--pico-primary);
+  color: #fff;
+  border-color: var(--pico-primary);
+}
+
+/* ---- 题目列表 ---- */
+.problem-list {
+  list-style: none;
+  padding: 0;
+}
+.problem-list li {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: 38px 1fr 56px auto;
+  align-items: center;
+  gap: 0.6rem;
+  transition: background 0.15s;
+}
+.problem-list li:hover { background: var(--color-bg-frame); }
+.problem-list li a {
+  text-decoration: none;
+}
+.problem-list li a:hover { text-decoration: underline; }
+.problem-list .prob-num {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--color-neutral);
+  text-align: right;
+}
+.problem-list .difficulty-col {
+  display: flex;
+  justify-content: center;
+}
+.problem-list .tags-col {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+/* 难度颜色 */
+.diff-easy { color: #16a34a; }
+.diff-medium { color: #d97706; }
+.diff-hard { color: #dc2626; }
+
+/* ---- 图解帧容器 ---- */
+.frame-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.frame-card {
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: var(--color-bg-frame);
+  margin-left: auto;
+  margin-right: auto;
+}
+/* 卡片收缩贴合 SVG 后，内部代码块/SQL 标注不超过卡片宽，长内容横向滚动 */
+.frame-card pre { max-width: 100%; overflow-x: auto; }
+.frame-card .frame-sql { max-width: 100%; }
+.frame-card .frame-label {
+  font-size: 0.75rem;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: var(--pico-primary);
+  border-radius: 4px;
+}
+.frame-card .frame-caption {
+  font-size: 0.85rem;
+  color: var(--color-tag-text);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+.frame-card svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+.frame-card pre {
+  margin: 0 0 0.3rem 0;
+  border-radius: 6px;
+}
+.frame-card pre code {
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+/* ---- 代码块增强 ---- */
+/* highlight.js 暗色模式覆盖（github 主题为基础） */
+[data-theme="dark"] .hljs, :root.dark .hljs {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+[data-theme="dark"] .hljs-keyword, :root.dark .hljs-keyword { color: #c084fc !important; }    /* def, for, if, return */
+[data-theme="dark"] .hljs-string, :root.dark .hljs-string { color: #86efac !important; }     /* 字符串 */
+[data-theme="dark"] .hljs-number, :root.dark .hljs-number { color: #fbbf24 !important; }     /* 数字 */
+[data-theme="dark"] .hljs-comment, :root.dark .hljs-comment { color: #64748b !important; }   /* 注释 */
+[data-theme="dark"] .hljs-function, :root.dark .hljs-function { color: #93c5fd !important; } /* 函数名 */
+[data-theme="dark"] .hljs-type, :root.dark .hljs-type { color: #67e8f9 !important; }          /* 类型 */
+[data-theme="dark"] .hljs-built_in, :root.dark .hljs-built_in { color: #f9a8d4 !important; }  /* 内置函数 */
+[data-theme="dark"] .hljs-params, :root.dark .hljs-params { color: #fca5a5 !important; }     /* 参数 */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hljs { background: #1e293b !important; color: #e2e8f0 !important; }
+  :root:not([data-theme="light"]) .hljs-keyword { color: #c084fc !important; }
+  :root:not([data-theme="light"]) .hljs-string { color: #86efac !important; }
+  :root:not([data-theme="light"]) .hljs-number { color: #fbbf24 !important; }
+  :root:not([data-theme="light"]) .hljs-comment { color: #64748b !important; }
+  :root:not([data-theme="light"]) .hljs-function { color: #93c5fd !important; }
+}
+pre code.hljs {
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  border: 1px solid var(--color-border);
+}
+
+.code-block-wrapper {
+  position: relative;
+  margin: 0.75rem 0;
+}
+.copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg-frame);
+  color: var(--color-tag-text);
+  cursor: pointer;
+  transition: all 0.15s;
+  z-index: 1;
+}
+.copy-btn:hover {
+  border-color: var(--pico-primary);
+  color: var(--pico-primary);
+}
+.copy-btn.copied {
+  background: var(--color-done);
+  color: #fff;
+  border-color: var(--color-done);
+}
+
+.lang-label {
+  font-size: 0.75rem;
+  color: var(--pico-primary);
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+/* ---- 可折叠区块 ---- */
+.collapsible-toggle {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  color: var(--pico-primary);
+  padding: 0.5rem 0;
+}
+.collapsible-toggle::before {
+  content: '▸ ';
+  display: inline-block;
+  transition: transform 0.2s;
+}
+.collapsible-toggle.open::before {
+  transform: rotate(90deg);
+}
+.collapsible-body {
+  display: none;
+  padding: 0.5rem 0 1rem 0;
+}
+.collapsible-body.open { display: block; }
+
+/* ---- 题目页头部 ---- */
+.problem-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.problem-header h1 { margin: 0; font-size: 1.5rem; }
+.problem-header .problem-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 28px;
+  padding: 0 8px;
+  background: var(--pico-primary);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+/* ---- 题目页标签行 ---- */
+.problem-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.problem-tags .tag-badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tag-easy {
+  background: #dcfce7; color: #166534;
+}
+.tag-medium {
+  background: #fef3c7; color: #92400e;
+}
+.tag-hard {
+  background: #fee2e2; color: #991b1b;
+}
+.tag-ds {
+  background: var(--color-tag-bg); color: var(--color-tag-text);
+  border: 1px solid var(--color-border);
+}
+
+/* 暗色模式标签适配 */
+[data-theme="dark"] .tag-easy, :root.dark .tag-easy { background: #14532d; color: #86efac; }
+[data-theme="dark"] .tag-medium, :root.dark .tag-medium { background: #78350f; color: #fde68a; }
+[data-theme="dark"] .tag-hard, :root.dark .tag-hard { background: #7f1d1d; color: #fca5a5; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tag-easy { background: #14532d; color: #86efac; }
+  :root:not([data-theme="light"]) .tag-medium { background: #78350f; color: #fde68a; }
+  :root:not([data-theme="light"]) .tag-hard { background: #7f1d1d; color: #fca5a5; }
+}
+
+/* ---- 原题链接 ---- */
+.origin-link {
+  font-size: 0.85rem;
+  color: var(--color-neutral);
+}
+
+/* ---- 为什么选这个方案 区块 ---- */
+.why-box {
+  border-left: 3px solid var(--pico-primary);
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+  background: var(--color-bg-frame);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.9rem;
+}
+
+/* ---- 相关信息 区块 ---- */
+.related-box, .selfcheck-box {
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-frame);
+}
+.related-box h3, .selfcheck-box h3 {
+  font-size: 0.95rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+.selfcheck-box summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--pico-primary);
+}
+
+/* ---- 底部导航 ---- */
+.bottom-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+.bottom-nav a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ---- 首页标题 ---- */
+.site-title {
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+.site-subtitle {
+  text-align: center;
+  color: var(--color-neutral);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+/* ---- 首页空状态 ---- */
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-neutral);
+}
+
+/* ---- SVG 绘图公共类（给 draw-utils 使用） ---- */
+text.node-val { font-family: monospace; font-size: 13px; }
+text.ptr-label { font-family: monospace; font-size: 11px; fill: var(--color-pointer); }
+text.idx-label { font-family: monospace; font-size: 10px; fill: var(--color-neutral); }
+text.caption { font-family: system-ui; font-size: 11px; fill: var(--color-tag-text); }
+line.edge { stroke: var(--color-neutral); stroke-width: 2; }
+line.ptr-arrow { stroke: var(--color-pointer); stroke-width: 2; }
+rect.node-box { fill: var(--color-bg-frame); stroke: var(--color-border); stroke-width: 1.5; rx: 4; }
+rect.node-active { fill: var(--color-highlight); stroke: var(--color-highlight); stroke-width: 2; opacity: 0.2; }
+rect.node-done { fill: var(--color-done); stroke: var(--color-done); stroke-width: 2; opacity: 0.15; }
+rect.cell { fill: var(--color-bg-frame); stroke: var(--color-border); stroke-width: 1; }
+rect.cell-highlight { fill: var(--color-highlight); stroke: var(--color-highlight); stroke-width: 1; opacity: 0.2; }
+circle.tree-node { fill: var(--color-bg-frame); stroke: var(--color-border); stroke-width: 2; }
+circle.tree-active { fill: var(--color-highlight); stroke: var(--color-highlight); stroke-width: 2; opacity: 0.3; }
+
+/* ---- 响应式保底（桌面优先，移动端不做特殊优化） ---- */
+@media (max-width: 640px) {
+  body { padding: 1rem 0.5rem; }
+  .frame-card { min-width: 100%; }
+}
+
+/* ---- 题目页固定顶栏 ---- */
+.page-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  background: var(--pico-background-color);
+  border-bottom: 1px solid var(--color-border);
+}
+.page-topbar a {
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--pico-primary);
+}
+.page-topbar a:hover { text-decoration: underline; }
+
+/* ---- 图解帧内的 SQL 代码标注 ---- */
+.frame-sql {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--pico-primary);
+  background: var(--color-tag-bg);
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

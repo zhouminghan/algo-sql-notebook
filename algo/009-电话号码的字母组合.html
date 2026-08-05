@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>009. 电话号码的字母组合 — algo-sql-notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="../assets/js/draw-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function() {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply(t) { document.documentElement.setAttribute('data-theme', t); }
+  const s = localStorage.getItem('theme');
+  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
+  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+})();
+</script>
+</head>
+<body>
+
+<div class="page-topbar">
+  <a href="008-三数之和.html">← 上一题</a>
+  <a href="../index.html">📋 返回首页</a>
+  <a href="010-删除链表的倒数第N个结点.html">下一题 →</a>
+</div>
+
+<div class="problem-header">
+  <span class="problem-number">009</span>
+  <h1>电话号码的字母组合</h1>
+</div>
+<div class="problem-tags">
+  <span class="tag-badge tag-medium">中等</span>
+  <span class="tag-badge tag-ds">回溯</span>
+  <span class="tag-badge tag-ds">哈希表</span>
+</div>
+
+<a class="origin-link" href="https://leetcode.cn/problems/letter-combinations-of-a-phone-number/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用回溯？</strong><br>
+  每个数字映射 3-4 个字母，组合总数最多 4ⁿ。回溯递归地构建每个组合，到达叶子节点（长度等于 digits 长度）时收集结果。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定一个仅包含数字 <code>2-9</code> 的字符串，返回所有它能表示的字母组合。数字到字母的映射与电话按键相同。</p>
+
+<p><strong>示例：</strong></p>
+<pre><code>输入：digits = "23"
+输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]</code></pre>
+
+<h3>📐 图解即思路</h3>
+
+<div class="why-box">
+  <strong>🌳 回溯树</strong><br>
+  每个数字对应一个字母集合。DFS 遍历：从第 0 个数字开始，依次取每个字母加入 path，递归处理下一个数字。到达末尾时 path 即为一个有效组合。
+</div>
+
+<div class="frame-grid" id="frame1">
+  <div class="frame-card">
+    <div class="frame-label">① digits="23": 数字2→[a,b,c], 数字3→[d,e,f]</div>
+    <div id="frame1-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame2">
+  <div class="frame-card">
+    <div class="frame-label">② 选 'a' → 递归到数字3，依次选 d/e/f → ad,ae,af</div>
+    <div id="frame2-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame3">
+  <div class="frame-card">
+    <div class="frame-label">③ 回溯，选 'b' → 递归 → bd,be,bf</div>
+    <div id="frame3-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame4">
+  <div class="frame-card">
+    <div class="frame-label">④ 回溯，选 'c' → 递归 → cd,ce,cf，收集全部 9 种组合</div>
+    <div id="frame4-svg"></div>
+  </div>
+</div>
+
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  回溯模板：for 每个选择 → 做选择 → 递归 → 撤销选择。时间 O(4ⁿ)，空间 O(n) 递归栈深度。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def letterCombinations(digits: str):
+    if not digits:
+        return []
+
+    phone = {
+        '2': 'abc', '3': 'def', '4': 'ghi', '5': 'jkl',
+        '6': 'mno', '7': 'pqrs', '8': 'tuv', '9': 'wxyz'
+    }
+    res = []
+
+    def backtrack(idx, path):
+        if idx == len(digits):
+            res.append(''.join(path))
+            return
+        for ch in phone[digits[idx]]:
+            path.append(ch)
+            backtrack(idx + 1, path)
+            path.pop()
+
+    backtrack(0, [])
+    return res</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public List&lt;String&gt; letterCombinations(String digits) {
+    if (digits.isEmpty()) return new ArrayList&lt;&gt;();
+    String[] phone = {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+    List&lt;String&gt; res = new ArrayList&lt;&gt;();
+    backtrack(digits, 0, new StringBuilder(), phone, res);
+    return res;
+}
+
+private void backtrack(String digits, int idx, StringBuilder path, String[] phone, List&lt;String&gt; res) {
+    if (idx == digits.length()) {
+        res.add(path.toString());
+        return;
+    }
+    for (char c : phone[digits.charAt(idx) - '0'].toCharArray()) {
+        path.append(c);
+        backtrack(digits, idx + 1, path, phone, res);
+        path.deleteCharAt(path.length() - 1);
+    }
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(4ⁿ) — 每个数字最多 4 种选择，共 n 个数字</li>
+  <li><strong>空间</strong>：O(n) — 递归栈深度</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>空输入处理</strong>：digits="" 时返回 [] 而非 [""]</li>
+  <li><strong>回溯撤销</strong>：path.pop() 或 deleteCharAt() 必须在递归后执行，否则污染后续分支</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q1:</strong> digits="2"，输出是什么？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：["a","b","c"]。</strong> 只有一个数字，每个字母构成一个单字符组合。</p>
+
+    <p><strong>Q2:</strong> 能否用迭代（队列）代替递归？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：可以。</strong> 初始化队列=[""]，遍历每个数字，将队列中每个元素拼接当前数字的所有字母后重新入队。时间相同，但需要额外空间存储中间结果。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+  const w = U.frameCardWidth('frame1-svg');
+  document.getElementById('frame1-svg').innerHTML = U.drawTable({headers:['数字','字母'], rows:[['2','a,b,c'],['3','d,e,f']], width:w, height:80});
+  document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({nodes:[{val:'a',x:300,y:30,color:'path'},{val:'d',x:200,y:80,color:'path'},{val:'e',x:300,y:80,color:'normal'},{val:'f',x:400,y:80,color:'normal'}],edges:[{x1:300,y1:44,x2:200,y2:66,color:'path'},{x1:300,y1:44,x2:300,y2:66,color:'normal'},{x1:300,y1:44,x2:400,y2:66,color:'normal'}],width:w,height:120});
+  document.getElementById('frame3-svg').innerHTML = U.drawBacktrack({nodes:[{val:'b',x:300,y:30,color:'path'},{val:'d',x:200,y:80,color:'normal'},{val:'e',x:300,y:80,color:'path'},{val:'f',x:400,y:80,color:'normal'}],edges:[{x1:300,y1:44,x2:200,y2:66,color:'normal'},{x1:300,y1:44,x2:300,y2:66,color:'path'},{x1:300,y1:44,x2:400,y2:66,color:'normal'}],width:w,height:120});
+  document.getElementById('frame4-svg').innerHTML = U.drawBacktrack({nodes:[{val:'c',x:300,y:30,color:'path'},{val:'d',x:200,y:80,color:'normal'},{val:'e',x:300,y:80,color:'normal'},{val:'f',x:400,y:80,color:'path'}],edges:[{x1:300,y1:44,x2:200,y2:66,color:'normal'},{x1:300,y1:44,x2:300,y2:66,color:'normal'},{x1:300,y1:44,x2:400,y2:66,color:'path'}],width:w,height:120});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+
+function copyCode(btn, codeId) {
+  const code = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>

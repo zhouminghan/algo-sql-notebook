@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>003. 无重复字符的最长子串 — algo-sql-notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="../assets/js/draw-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function() {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply(t) { document.documentElement.setAttribute('data-theme', t); }
+  const s = localStorage.getItem('theme');
+  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
+  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+})();
+</script>
+</head>
+<body>
+
+<div class="page-topbar">
+  <a href="002-两数相加.html">← 上一题</a>
+  <a href="../index.html">📋 返回首页</a>
+  <a href="004-寻找两个正序数组的中位数.html">下一题 →</a>
+</div>
+
+<div class="problem-header">
+  <span class="problem-number">003</span>
+  <h1>无重复字符的最长子串</h1>
+</div>
+<div class="problem-tags">
+  <span class="tag-badge tag-medium">中等</span>
+  <span class="tag-badge tag-ds">滑动窗口</span>
+  <span class="tag-badge tag-ds">哈希表</span>
+</div>
+
+<a class="origin-link" href="https://leetcode.cn/problems/longest-substring-without-repeating-characters/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用滑动窗口？</strong><br>
+  暴力枚举所有子串 O(n³)。滑动窗口 + HashSet：右指针扩展窗口，遇到重复时左指针收缩，每个字符最多访问两次，O(n) 时间。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定一个字符串 <code>s</code>，请你找出其中不含有重复字符的 <strong>最长子串</strong> 的长度。</p>
+
+<p><strong>示例：</strong></p>
+<pre><code>输入：s = "abcabcbb"
+输出：3
+解释：最长无重复子串是 "abc"，长度为 3</code></pre>
+
+<h3>📐 图解即思路</h3>
+
+<div class="why-box">
+  <strong>🪟 滑动窗口核心</strong><br>
+  维护 [left, right] 区间不含重复字符。right 右移扩展窗口，用 Set 记录窗口内字符。若 s[right] 已存在，left 右移并移除 s[left]，直到窗口无重复。每步更新 maxLen。
+</div>
+
+<div class="frame-grid" id="frame1">
+  <div class="frame-card">
+    <div class="frame-label">① left=0, right=0, set={}, 'a' 不重复 → 加入, maxLen=1</div>
+    <div id="frame1-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame2">
+  <div class="frame-card">
+    <div class="frame-label">② right=1, set={'a'}, 'b' 不重复 → 加入, maxLen=2</div>
+    <div id="frame2-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame3">
+  <div class="frame-card">
+    <div class="frame-label">③ right=2, set={'a','b'}, 'c' 不重复 → 加入, maxLen=3</div>
+    <div id="frame3-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame4">
+  <div class="frame-card">
+    <div class="frame-label">④ right=3, s[3]='a' 重复！left 右移收缩窗口</div>
+    <div id="frame4-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame5">
+  <div class="frame-card">
+    <div class="frame-label">⑤ 继续扫描到末尾，最终 maxLen=3</div>
+    <div id="frame5-svg"></div>
+  </div>
+</div>
+
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  滑动窗口核心：右指针扩张找可行解，左指针收缩找最优解。每个字符最多进/出窗口各一次，O(n)。Set 保证 O(1) 查重。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def lengthOfLongestSubstring(s: str) -> int:
+    seen = set()
+    left = 0
+    max_len = 0
+
+    for right in range(len(s)):
+        while s[right] in seen:
+            seen.remove(s[left])
+            left += 1
+        seen.add(s[right])
+        max_len = max(max_len, right - left + 1)
+
+    return max_len</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int lengthOfLongestSubstring(String s) {
+    Set&lt;Character&gt; set = new HashSet&lt;&gt;();
+    int left = 0, maxLen = 0;
+
+    for (int right = 0; right &lt; s.length(); right++) {
+        while (set.contains(s.charAt(right))) {
+            set.remove(s.charAt(left));
+            left++;
+        }
+        set.add(s.charAt(right));
+        maxLen = Math.max(maxLen, right - left + 1);
+    }
+
+    return maxLen;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n) — 每个字符最多被访问两次（right 和 left 各一次）</li>
+  <li><strong>空间</strong>：O(min(m, n)) — m 为字符集大小，n 为字符串长度</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>必须用 while 而非 if</strong>：窗口中有多个重复字符时，需要一直收缩直到移除所有重复。例如 s="pwwkew"，当 right=2 时 'w' 重复，需 left 从 0 收缩到 2</li>
+  <li><strong>maxLen 更新位置</strong>：每次 right 扩展后都要更新 maxLen，而非只在无重复时更新</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q1:</strong> 如果 s = "pwwkew"，最长无重复子串是什么？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答："wke"，长度为 3。</strong> 注意 "pwke" 是子序列不是子串。当 right=2 时 'w' 重复，left 从 0 收缩到 2，窗口变为 [2,2]；之后扩展到 [2,4]="wke"，maxLen=3。</p>
+
+    <p><strong>Q2:</strong> 能否用数组代替 HashSet 优化？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：可以。</strong> 如果字符集已知（如 ASCII 128），用 int[128] 存最近出现位置，遇到重复直接跳 left = max(left, lastPos[c] + 1)，无需 while 循环。时间仍是 O(n) 但常数更小。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+  const arr = ['a','b','c','a','b','c','b','b'];
+  document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({arr, left:0, right:0, window:{start:0,end:0}, width:U.frameCardWidth('frame1-svg')});
+  document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({arr, left:0, right:1, window:{start:0,end:1}, width:U.frameCardWidth('frame2-svg')});
+  document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({arr, left:0, right:2, window:{start:0,end:2}, width:U.frameCardWidth('frame3-svg')});
+  document.getElementById('frame4-svg').innerHTML = U.drawTwoPointers({arr, left:1, right:3, window:{start:1,end:3}, width:U.frameCardWidth('frame4-svg')});
+  document.getElementById('frame5-svg').innerHTML = U.drawTwoPointers({arr, left:1, right:7, window:{start:1,end:7}, width:U.frameCardWidth('frame5-svg')});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+
+function copyCode(btn, codeId) {
+  const code = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>

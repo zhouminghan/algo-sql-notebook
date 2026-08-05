@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>007. 盛最多水的容器 — algo-sql-notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="../assets/js/draw-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function() {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply(t) { document.documentElement.setAttribute('data-theme', t); }
+  const s = localStorage.getItem('theme');
+  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
+  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+})();
+</script>
+</head>
+<body>
+
+<div class="page-topbar">
+  <a href="006-正则表达式匹配.html">← 上一题</a>
+  <a href="../index.html">📋 返回首页</a>
+  <a href="008-三数之和.html">下一题 →</a>
+</div>
+
+<div class="problem-header">
+  <span class="problem-number">007</span>
+  <h1>盛最多水的容器</h1>
+</div>
+<div class="problem-tags">
+  <span class="tag-badge tag-medium">中等</span>
+  <span class="tag-badge tag-ds">双指针</span>
+  <span class="tag-badge tag-ds">贪心</span>
+</div>
+
+<a class="origin-link" href="https://leetcode.cn/problems/container-with-most-water/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用双指针？</strong><br>
+  暴力 O(n²) 枚举所有组合。双指针从两端向中间收缩：面积由较短的柱子决定，移动较短的一边才有可能找到更大的面积。O(n) 时间。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定一个长度为 <code>n</code> 的整数数组 <code>height</code>。有 <code>n</code> 条垂线，第 <code>i</code> 条线的两个端点是 <code>(i, 0)</code> 和 <code>(i, height[i])</code>。</p>
+<p>找出其中的两条线，使得它们与 <code>x</code> 轴共同构成的容器可以容纳最多的水。返回容器可以储存的最大水量。</p>
+
+<p><strong>示例：</strong></p>
+<pre><code>输入：height = [1,8,6,2,5,4,8,3,7]
+输出：49
+解释：选择索引 1 和 8（高度 8 和 7），宽度 7，面积 = min(8,7) × 7 = 49</code></pre>
+
+<h3>📐 图解即思路</h3>
+
+<div class="why-box">
+  <strong>↔️ 双指针收缩</strong><br>
+  left=0, right=n-1。面积 = min(h[left], h[right]) × (right - left)。移动较短的一边（因为宽度在缩小，只有提高较短边才可能增大面积）。
+</div>
+
+<div class="frame-grid" id="frame1">
+  <div class="frame-card">
+    <div class="frame-label">① left=0, right=8：min(1,7)×8=8，left 较短 → 右移</div>
+    <div id="frame1-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame2">
+  <div class="frame-card">
+    <div class="frame-label">② left=1, right=8：min(8,7)×7=49，right 较短 → 左移</div>
+    <div id="frame2-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame3">
+  <div class="frame-card">
+    <div class="frame-label">③ left=1, right=6：min(8,8)×5=40，right 左移</div>
+    <div id="frame3-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame4">
+  <div class="frame-card">
+    <div class="frame-label">④ 继续收缩直到 left=right，maxArea=49</div>
+    <div id="frame4-svg"></div>
+  </div>
+</div>
+
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  贪心正确性：宽度缩小时，移动较短边是唯一可能增大面积的方式（因为面积由 min(h[l],h[r]) 决定）。O(n) 时间，O(1) 空间。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def maxArea(height):
+    left, right = 0, len(height) - 1
+    max_area = 0
+
+    while left < right:
+        h = min(height[left], height[right])
+        max_area = max(max_area, h * (right - left))
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+
+    return max_area</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int maxArea(int[] height) {
+    int left = 0, right = height.length - 1;
+    int maxArea = 0;
+
+    while (left < right) {
+        int h = Math.min(height[left], height[right]);
+        maxArea = Math.max(maxArea, h * (right - left));
+        if (height[left] < height[right]) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+
+    return maxArea;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n) — 双指针各走一次</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>移动哪边</strong>：必须移动较短的一边。移动较高边，宽度减小而高度不会增加，面积一定变小</li>
+  <li><strong>相等时移动哪边</strong>：两边高度相等时，移动任意一边都不影响正确性，因为无论移动哪边，新面积不会更大</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q1:</strong> 为什么移动较短边是正确的？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：面积由短板决定。</strong> 设 left 较短，移动 right（较长边）→ 新宽度变小，新高度 ≤ height[left]（短板不变或更短），面积一定 ≤ 当前面积。所以只有移动短板才可能找到更大的面积。</p>
+
+    <p><strong>Q2:</strong> height=[1,1]，面积是多少？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：1。</strong> min(1,1) × (1-0) = 1。两边相等，移动任意一边后 left=right 循环结束。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+  const h = [1,8,6,2,5,4,8,3,7];
+  document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({arr:h, left:0, right:8, window:{start:0,end:8}, width:U.frameCardWidth('frame1-svg')});
+  document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({arr:h, left:1, right:8, window:{start:1,end:8}, width:U.frameCardWidth('frame2-svg')});
+  document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({arr:h, left:1, right:6, window:{start:1,end:6}, width:U.frameCardWidth('frame3-svg')});
+  document.getElementById('frame4-svg').innerHTML = U.drawTwoPointers({arr:h, left:1, right:8, window:{start:1,end:8}, width:U.frameCardWidth('frame4-svg')});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+
+function copyCode(btn, codeId) {
+  const code = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>

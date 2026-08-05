@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>004. 寻找两个正序数组的中位数 — algo-sql-notebook</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="../assets/js/draw-utils.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function() {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function apply(t) { document.documentElement.setAttribute('data-theme', t); }
+  const s = localStorage.getItem('theme');
+  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
+  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+})();
+</script>
+</head>
+<body>
+
+<div class="page-topbar">
+  <a href="003-无重复字符的最长子串.html">← 上一题</a>
+  <a href="../index.html">📋 返回首页</a>
+  <a href="005-最长回文子串.html">下一题 →</a>
+</div>
+
+<div class="problem-header">
+  <span class="problem-number">004</span>
+  <h1>寻找两个正序数组的中位数</h1>
+</div>
+<div class="problem-tags">
+  <span class="tag-badge tag-hard">困难</span>
+  <span class="tag-badge tag-ds">二分查找</span>
+  <span class="tag-badge tag-ds">数组</span>
+</div>
+
+<a class="origin-link" href="https://leetcode.cn/problems/median-of-two-sorted-arrays/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用二分查找？</strong><br>
+  合并两数组 O(m+n)，但题目要求 O(log(m+n))。核心思想：在较短数组上二分查找分割线，使得左半部分最大值 ≤ 右半部分最小值，避免真正合并。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定两个大小分别为 <code>m</code> 和 <code>n</code> 的正序数组 <code>nums1</code> 和 <code>nums2</code>。找出这两个正序数组的 <strong>中位数</strong>，时间复杂度 O(log(m+n))。</p>
+
+<p><strong>示例：</strong></p>
+<pre><code>输入：nums1 = [1,3], nums2 = [2]
+输出：2.0
+解释：合并数组 = [1,2,3]，中位数 2</code></pre>
+
+<h3>📐 图解即思路</h3>
+
+<div class="why-box">
+  <strong>🔪 分割线思想</strong><br>
+  在 nums1 上二分查找分割点 i，则 nums2 的分割点 j = (m+n+1)//2 - i。满足 nums1[i-1] ≤ nums2[j] 且 nums2[j-1] ≤ nums1[i] 时找到正确分割。
+</div>
+
+<div class="frame-grid" id="frame1">
+  <div class="frame-card">
+    <div class="frame-label">① nums1=[1,3], nums2=[2], 在 nums1 上二分 i=1</div>
+    <div id="frame1-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame2">
+  <div class="frame-card">
+    <div class="frame-label">② i=1, j=(3+1)//2-1=1，检查条件</div>
+    <div id="frame2-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame3">
+  <div class="frame-card">
+    <div class="frame-label">③ nums1[0]=1 ≤ nums2[1]=+∞ ✓, nums2[0]=2 ≤ nums1[1]=3 ✓</div>
+    <div id="frame3-svg"></div>
+  </div>
+</div>
+
+<div class="frame-grid" id="frame4">
+  <div class="frame-card">
+    <div class="frame-label">④ 奇数长度(m+n=3)：中位数 = max(左半) = max(1,2) = 2</div>
+    <div id="frame4-svg"></div>
+  </div>
+</div>
+
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  在较短数组上二分，保证 j 非负。边界用 ±inf 处理。奇数取 max(左半)，偶数取 (max(左半)+min(右半))/2。O(log(min(m,n)))。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def findMedianSortedArrays(nums1, nums2):
+    if len(nums1) > len(nums2):
+        nums1, nums2 = nums2, nums1
+    m, n = len(nums1), len(nums2)
+    left, right = 0, m
+    half = (m + n + 1) // 2
+
+    while left <= right:
+        i = (left + right) // 2
+        j = half - i
+        l1 = nums1[i-1] if i > 0 else float('-inf')
+        r1 = nums1[i] if i < m else float('inf')
+        l2 = nums2[j-1] if j > 0 else float('-inf')
+        r2 = nums2[j] if j < n else float('inf')
+
+        if l1 <= r2 and l2 <= r1:
+            if (m + n) % 2 == 1:
+                return max(l1, l2)
+            return (max(l1, l2) + min(r1, r2)) / 2
+        elif l1 > r2:
+            right = i - 1
+        else:
+            left = i + 1
+    return 0.0</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+    if (nums1.length > nums2.length) {
+        int[] temp = nums1; nums1 = nums2; nums2 = temp;
+    }
+    int m = nums1.length, n = nums2.length;
+    int left = 0, right = m, half = (m + n + 1) / 2;
+
+    while (left <= right) {
+        int i = (left + right) / 2;
+        int j = half - i;
+        double l1 = (i > 0) ? nums1[i-1] : Double.NEGATIVE_INFINITY;
+        double r1 = (i < m) ? nums1[i] : Double.POSITIVE_INFINITY;
+        double l2 = (j > 0) ? nums2[j-1] : Double.NEGATIVE_INFINITY;
+        double r2 = (j < n) ? nums2[j] : Double.POSITIVE_INFINITY;
+
+        if (l1 <= r2 && l2 <= r1) {
+            if ((m + n) % 2 == 1) return Math.max(l1, l2);
+            return (Math.max(l1, l2) + Math.min(r1, r2)) / 2.0;
+        } else if (l1 > r2) {
+            right = i - 1;
+        } else {
+            left = i + 1;
+        }
+    }
+    return 0.0;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(log(min(m, n))) — 在较短数组上二分</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>保证 nums1 较短</strong>：否则 j = half - i 可能为负，导致索引越界</li>
+  <li><strong>边界条件</strong>：i=0 或 i=m 时用 -inf/+inf 代替越界值，避免特殊判断</li>
+  <li><strong>奇偶长度公式不同</strong>：奇数取 max(l1,l2)，偶数取 (max(l1,l2)+min(r1,r2))/2</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q1:</strong> nums1=[1,2], nums2=[3,4]，中位数是多少？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：2.5。</strong> 合并后 [1,2,3,4]，偶数长度，(2+3)/2=2.5。i=1, j=1，l1=1, r1=2, l2=3, r2=4，满足条件，中位数=(max(1,3)+min(2,4))/2=2.5。</p>
+
+    <p><strong>Q2:</strong> 为什么要在较短数组上二分？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：保证 j 非负。</strong> j = half - i，half = (m+n+1)//2。若 nums1 较长且 i 取 m，j = half - m。由于 m > half 时 j 为负。在较短数组上二分，i ∈ [0, m] ≤ half，j 始终 ≥ 0。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+  const a1 = ['1','3'], a2 = ['2'];
+  document.getElementById('frame1-svg').innerHTML = U.drawBinarySearch({arr:a1, left:0, mid:1, right:1, width:U.frameCardWidth('frame1-svg'), height:100});
+  document.getElementById('frame2-svg').innerHTML = U.drawTable({headers:['nums1','','nums2',''], rows:[['1','3','2',''],['i=1','','j=1','']], width:U.frameCardWidth('frame2-svg'), height:80});
+  document.getElementById('frame3-svg').innerHTML = U.drawTable({headers:['左半','','右半'], rows:[['1','3','2'],['1≤+∞ ✓','','2≤3 ✓']], width:U.frameCardWidth('frame3-svg'), height:80});
+  document.getElementById('frame4-svg').innerHTML = U.drawTable({headers:['结论'], rows:[['奇数长度 → 中位数 = max(左半) = 2.0']], width:U.frameCardWidth('frame4-svg'), height:60});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+
+function copyCode(btn, codeId) {
+  const code = document.getElementById(codeId).textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 复制'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+</script>
+</body>
+</html>
