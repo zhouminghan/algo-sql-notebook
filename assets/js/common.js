@@ -132,15 +132,16 @@
   }
 
   // ---------------- 目录树 ----------------
-  function lessonLink(p, currentFile) {
+  function lessonLink(p, currentFile, isIndex) {
     var a = el('a', 'lesson-link', String(p.id).padStart(3, '0') + '  ' + p.title);
-    a.href = p.file.split('/').pop();
+    // 首页在根目录，需带 algo/ 或 sql/ 前缀；题目页在同目录，只需文件名
+    a.href = isIndex ? p.file : p.file.split('/').pop();
     if (p.file === currentFile) a.classList.add('active');
     if (isDone(p.file)) a.classList.add('done');
     return a;
   }
 
-  function topicBlock(title, lessons, currentFile, defaultOpen) {
+  function topicBlock(title, lessons, currentFile, defaultOpen, isIndex) {
     var block = el('div', 'topic-block');
     if (!defaultOpen) block.classList.add('collapsed');
     var head = el('button', 'topic-head');
@@ -150,7 +151,7 @@
     head.appendChild(el('span', 'topic-count', String(lessons.length)));
     block.appendChild(head);
     var list = el('div', 'lesson-list');
-    lessons.forEach(function (p) { list.appendChild(lessonLink(p, currentFile)); });
+    lessons.forEach(function (p) { list.appendChild(lessonLink(p, currentFile, isIndex)); });
     block.appendChild(list);
     head.addEventListener('click', function () { block.classList.toggle('collapsed'); });
     return block;
@@ -158,6 +159,7 @@
 
   function buildNavTree(currentFile) {
     var nav = el('nav', 'nav-tree');
+    var isIndex = !currentFile;
 
     // 算法：按分类分组
     var algoGroup = el('div', 'nav-group');
@@ -175,7 +177,7 @@
     });
     Object.keys(byCat).forEach(function (c) {
       var containsCurrent = byCat[c].some(function (p) { return p.file === currentFile; });
-      algoBody.appendChild(topicBlock(c, byCat[c], currentFile, containsCurrent || !currentFile));
+      algoBody.appendChild(topicBlock(c, byCat[c], currentFile, containsCurrent || isIndex, isIndex));
     });
     algoGroup.appendChild(algoBody);
     algoHead.addEventListener('click', function () { algoGroup.classList.toggle('collapsed'); });
@@ -191,7 +193,7 @@
     var sqlBody = el('div', 'nav-group-body');
     var sqlList = PROBLEMS.sql.filter(function (p) { return p.file; });
     var sqlContains = sqlList.some(function (p) { return p.file === currentFile; });
-    sqlBody.appendChild(topicBlock('全部', sqlList, currentFile, sqlContains || !currentFile));
+    sqlBody.appendChild(topicBlock('全部', sqlList, currentFile, sqlContains || isIndex, isIndex));
     sqlGroup.appendChild(sqlBody);
     sqlHead.addEventListener('click', function () { sqlGroup.classList.toggle('collapsed'); });
     if (currentFile && currentFile.indexOf('algo/') === 0) sqlGroup.classList.add('collapsed');
