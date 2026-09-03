@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/055-二叉树中的最大路径和.html">
+<title>055. 二叉树中的最大路径和 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/binary-tree-maximum-path-sum/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  路径可以不过根、只走一部分。递归时每个节点返回「以它为起点向下延伸的最大单边和」，同时用「左单边 + 自己 + 右单边」更新全局最大，负数边直接舍弃。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>二叉树中的路径，是任意节点间、每个节点至多经过一次的序列。路径和是路径上节点值的总和。返回所有路径中的最大路径和。</p>
+<p><strong>示例：</strong><br><code>[1,2,3]</code> → <code>6</code>（2→1→3）；<code>[-10,9,20,null,null,15,7]</code> → <code>42</code>（15→20→7）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 每个节点返回「向下最大单边和」</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 20 的左右单边 15、7 都为正，弯折路径 15+20+7=42</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  单边和 = max(0, 左单边) + max(0, 右单边) + 自身 更新答案；返回值只取较大一侧 + 自身。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def maxPathSum(root):
+    ans = [float('-inf')]
+    def dfs(node):
+        if not node:
+            return 0
+        left = max(dfs(node.left), 0)    # 负边舍弃
+        right = max(dfs(node.right), 0)
+        ans[0] = max(ans[0], left + right + node.val)  # 弯折路径
+        return max(left, right) + node.val             # 向上单边
+    dfs(root)
+    return ans[0]</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">int ans = Integer.MIN_VALUE;
+public int maxPathSum(TreeNode root) {
+    dfs(root);
+    return ans;
+}
+int dfs(TreeNode n) {
+    if (n == null) return 0;
+    int l = Math.max(dfs(n.left), 0);
+    int r = Math.max(dfs(n.right), 0);
+    ans = Math.max(ans, l + r + n.val);
+    return Math.max(l, r) + n.val;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n)</li>
+  <li><strong>空间</strong>：O(h)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>负贡献舍弃</strong>：单边和与 0 取 max，负子树直接不选</li>
+  <li><strong>返回值与答案分开</strong>：返回「单边」给父节点用，答案用「弯折」更新，二者不能混</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 全负节点怎么办？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 单边都被 0 截断，答案最终取到最大的那个负节点值（如 -3 是最大值）。</p>
+    <p><strong>Q:</strong> 路径一定要经过根吗？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 不一定。答案是全局任意路径，这正是递归要在每个节点都更新 ans 的原因。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTree({"nodes": [{"val": "-10", "x": 300, "y": 25}, {"val": "9", "x": 160, "y": 110}, {"val": "20", "x": 440, "y": 110, "highlight": "active"}, {"val": "15", "x": 380, "y": 200, "highlight": "done"}, {"val": "7", "x": 500, "y": 200, "highlight": "done"}], "edges": [{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 440, "y1": 110, "x2": 380, "y2": 200}, {"x1": 440, "y1": 110, "x2": 500, "y2": 200}], "width": U.frameCardWidth('frame1-svg'), "height": 240});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["节点", "左单边", "右单边", "弯折和"], "rows": [["20", "15", "7", {"val": "42", "highlight": true}], ["-10", "9", "35", "34"]], "width": U.frameCardWidth('frame2-svg'), "height": 140});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

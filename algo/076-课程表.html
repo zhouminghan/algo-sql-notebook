@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/076-课程表.html">
+<title>076. 课程表 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/course-schedule/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  课程依赖构成有向图，能否修完 = 图是否无环（可拓扑排序）。Kahn 算法：统计入度，把入度为 0 的课入队，依次出队并把后续课入度减一；若最终修完所有课则无环。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>你需要修 <code>numCourses</code> 门课。先修课程 <code>prerequisites[i] = [a, b]</code> 表示修 a 前必须先修 b。判断是否可能完成所有课程。</p>
+<p><strong>示例：</strong><br><code>numCourses=2, [[1,0]]</code> → <code>true</code>；<code>[[1,0],[0,1]]</code> → <code>false</code>（互相依赖成环）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 建图并统计入度</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 入度 0 的课入队，出队后把后续课入度 -1</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 修完的课数 == 总数则无环可完成</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  拓扑排序能排完全部课程 = 无环 = 可完成。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">from collections import deque
+def canFinish(numCourses, prerequisites):
+    indeg = [0] * numCourses
+    graph = [[] for _ in range(numCourses)]
+    for a, b in prerequisites:
+        graph[b].append(a)
+        indeg[a] += 1
+    q = deque([i for i in range(numCourses) if indeg[i] == 0])
+    count = 0
+    while q:
+        cur = q.popleft()
+        count += 1
+        for nxt in graph[cur]:
+            indeg[nxt] -= 1
+            if indeg[nxt] == 0:
+                q.append(nxt)
+    return count == numCourses</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public boolean canFinish(int n, int[][] prerequisites) {
+    int[] indeg = new int[n];
+    List&lt;List&lt;Integer&gt;&gt; g = new ArrayList&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) g.add(new ArrayList&lt;&gt;());
+    for (int[] p : prerequisites) { g.get(p[1]).add(p[0]); indeg[p[0]]++; }
+    Queue&lt;Integer&gt; q = new LinkedList&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) if (indeg[i] == 0) q.offer(i);
+    int count = 0;
+    while (!q.isEmpty()) {
+        int cur = q.poll(); count++;
+        for (int nxt : g.get(cur)) if (--indeg[nxt] == 0) q.offer(nxt);
+    }
+    return count == n;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(V + E)</li>
+  <li><strong>空间</strong>：O(V + E) — 邻接表</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>边方向</strong>：先修 b → 后修 a，建图方向是 b 指向 a，入度记在 a 上</li>
+  <li><strong>成环判定</strong>：最终 count < n 说明有环，返回 false</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 为什么拓扑排序能判环？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 无环图才能把所有入度逐步减到 0 并全部出队；有环的节点入度永远降不到 0。</p>
+    <p><strong>Q:</strong> DFS 判环做法？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 三色标记：0 未访问、1 访问中、2 已完成，DFS 遇到「访问中」的节点即发现环。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["课程", "先修", "入度"], "rows": [["0", "无", "0"], ["1", "0", "1"], ["2", "0, 1", "2"]], "width": U.frameCardWidth('frame1-svg'), "height": 160});
+document.getElementById('frame2-svg').innerHTML = U.drawStack({"items": [{"val": "0"}], "type": "queue", "height": 130, "width": U.frameCardWidth('frame2-svg')});
+document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["课程", "2, 0", "1, 1"], "rows": [["已修数", "0", "1", "2"]], "width": U.frameCardWidth('frame3-svg'), "height": 120});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

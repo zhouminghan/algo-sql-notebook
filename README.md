@@ -10,11 +10,20 @@
 algo-sql-notebook/
 ├── index.html              # 首页：题目索引（Tab 切换 算法/SQL）
 ├── assets/
-│   ├── css/style.css       # 全局样式（表头/斑马纹/帧标签/分区色）
-│   └── js/draw-utils.js    # SVG 绘图库（链表/树/DP表/窗口函数/Join 等 20+ 函数）
+│   ├── css/style.css       # 全局样式（主题/导航/卡片/表头/斑马纹/帧标签/分区色）
+│   ├── js/problems.js      # 题目唯一数据源（首页列表、README、页面导航均从此读取）
+│   ├── js/common.js        # 公共运行时（主题切换/进度收藏/目录/复制）
+│   ├── js/draw-utils.js    # SVG 绘图库（链表/树/DP表/窗口函数/Join 等 20+ 函数）
+│   └── vendor/             # 本地化的 Pico.css 与 highlight.js（离线可用）
 ├── algo/                   # 算法题页面（LeetCode Hot 100）
 └── sql/                    # SQL 题页面（字节/SHEIN 机试等）
 ```
+
+> 题目数据（题号 / 标题 / 难度 / 标签 / 文件）统一维护在 `assets/js/problems.js`。
+> 新增一道题：写好页面文件后，在该文件里登记对应条目的 `file` 字段即可自动上架（首页列表、上一题/下一题导航会同步生效）。
+
+> 算法题页面由 `scripts/algo_gen.py` 从 `scripts/specs/` 的题目规格批量生成（含题目描述、图解帧、Python/Java 代码、复杂度、易错点、自我检验）。
+> 改一道算法题：直接编辑对应 spec 后运行 `python3 -m scripts.algo_gen` 重新生成。
 
 ## 启动
 
@@ -36,13 +45,20 @@ python3 -m http.server 8000
 
 所有帧的 pre code 按顺序拼接 = 完整答案。
 
+## 页面能力
+
+- **亮 / 暗主题**：右上角一键切换，跟随系统 + 手动偏好（localStorage 记忆）
+- **做题进度**：打开过的题目在首页显示 ✓（localStorage 记忆）
+- **收藏**：首页与题目页均可收藏 ⭐
+- **题目内目录**：顶部横向目录条，点击跳转到「题目描述 / 图解 / SQL / 易错点 / 自测」等区块
+
 ## 命名约定
 
 SQL 题：`NNN-{来源}题目名.html`（如 `002-shein新客回访复购分析.html`）
 
 ## 技术栈
 
-Pico.css + highlight.js + 纯 SVG 内联绘图（CSS 变量适配暗色/亮色模式，表格随窗口自适应）
+Pico.css + highlight.js（本地 vendor）+ 纯 SVG 内联绘图（CSS 变量适配暗色/亮色模式，表格随窗口自适应）
 
 ## LeetCode Hot 100 计划
 

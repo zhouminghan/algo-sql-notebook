@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/025-跳跃游戏 II.html">
+<title>025. 跳跃游戏 II — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/jump-game-ii/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  求最少步数，贪心思路是「每走一步都尽量覆盖最远」。维护当前步能覆盖的边界 end，走到边界就 +1 步并更新下一跳的最远边界，保证步数最少。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定一个非负整数数组 <code>nums</code>，最初位于数组第一个下标。数组中的每个元素代表你在该位置可以跳跃的最大长度。求到达最后一个下标的最少跳跃次数。保证可达。</p>
+<p><strong>示例：</strong><br><code>nums=[2,3,1,1,4]</code> → <code>2</code>（0→1→4）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 从 0 跳：最远可达 2，end=2</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 走到边界 end=2 时，步数 +1，新最远 = max(1+2, 2+1)=4</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 最远已覆盖末尾，共 2 步</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  把「当前位置能到的最远」不断更新，每当走到本步边界就记一步并切换到新的最远边界。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def jump(nums):
+    n = len(nums)
+    steps = end = farthest = 0
+    for i in range(n - 1):       # 最后一位不用跳
+        farthest = max(farthest, i + nums[i])
+        if i == end:
+            steps += 1
+            end = farthest
+    return steps</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int jump(int[] nums) {
+    int steps = 0, end = 0, farthest = 0;
+    for (int i = 0; i &lt; nums.length - 1; i++) {
+        farthest = Math.max(farthest, i + nums[i]);
+        if (i == end) { steps++; end = farthest; }
+    }
+    return steps;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n) — 一次遍历</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>循环到 n-2 即可</strong>：最后一个位置不需要再起跳，遍历到 n-1 可能多算一步</li>
+  <li><strong>i == end 才加步数</strong>：走到当前覆盖边界才确认必须再跳一次，提前加会算多</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 为什么这是最优步数？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 每步的边界 end 都是「这一步能覆盖的最远范围」，在边界处切换 = 用最少步数换最大覆盖，贪心即最优。</p>
+    <p><strong>Q:</strong> nums=[0] 呢？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> n=1，循环不执行，返回 0，已经在终点。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({"arr": [2, 3, 1, 1, 4], "left": 0, "right": 2, "width": U.frameCardWidth('frame1-svg'), "height": 140});
+document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": [2, 3, 1, 1, 4], "left": 2, "right": 4, "width": U.frameCardWidth('frame2-svg'), "height": 140});
+document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [2, 3, 1, 1, 4], "left": 4, "right": 4, "window": {"start": 1, "end": 4}, "width": U.frameCardWidth('frame3-svg'), "height": 140});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

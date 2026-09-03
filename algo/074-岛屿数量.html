@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/074-岛屿数量.html">
+<title>074. 岛屿数量 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/number-of-islands/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  遍历每个格子，遇到 '1' 就启动 DFS，把相连的陆地全部「淹没」为 '0'（或标记已访问），计一个岛。每个格子访问一次，O(m·n)。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定由 <code>'1'</code>（陆地）和 <code>'0'</code>（水）组成的二维网格，计算网格中岛屿的数量。岛屿被水包围，由水平或垂直相邻的陆地连接形成。</p>
+<p><strong>示例：</strong><br><code>[["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]</code> → <code>3</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 遇到陆地就 DFS 淹没整片</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 淹没后该岛计 1，继续扫描</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  一次 DFS 消灭一个连通块，计数就是岛屿数。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def numIslands(grid):
+    m, n = len(grid), len(grid[0])
+    def dfs(i, j):
+        if i &lt; 0 or i &gt;= m or j &lt; 0 or j &gt;= n or grid[i][j] != '1':
+            return
+        grid[i][j] = '0'          # 淹没
+        dfs(i + 1, j); dfs(i - 1, j); dfs(i, j + 1); dfs(i, j - 1)
+    ans = 0
+    for i in range(m):
+        for j in range(n):
+            if grid[i][j] == '1':
+                ans += 1
+                dfs(i, j)
+    return ans</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int numIslands(char[][] grid) {
+    int m = grid.length, n = grid[0].length, ans = 0;
+    for (int i = 0; i &lt; m; i++)
+        for (int j = 0; j &lt; n; j++)
+            if (grid[i][j] == '1') { ans++; dfs(grid, i, j); }
+    return ans;
+}
+void dfs(char[][] g, int i, int j) {
+    if (i &lt; 0 || i &gt;= g.length || j &lt; 0 || j &gt;= g[0].length || g[i][j] != '1') return;
+    g[i][j] = '0';
+    dfs(g, i + 1, j); dfs(g, i - 1, j); dfs(g, i, j + 1); dfs(g, i, j - 1);
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(m · n)</li>
+  <li><strong>空间</strong>：O(m · n) — 递归栈最坏全陆地</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>淹没或标记</strong>：访问过必须置 '0' 或 visited，否则重复计数/死循环</li>
+  <li><strong>边界与越界</strong>：四个方向先判界再判值</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> BFS 版本？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 用队列把相连陆地依次入队处理，逻辑与 DFS 一致，只是遍历方式不同。</p>
+    <p><strong>Q:</strong> 为什么 DFS 递归不会重复访问？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 进入就置 '0'，后续递归不会再把它当作 '1'，天然去重。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["", "0", "1", "2", "3", "4"], "rows": [["0", "1", "1", "0", "0", "0"], ["1", "1", "1", "0", "0", "0"], ["2", "0", "0", "1", "0", "0"], ["3", "0", "0", "0", "1", "1"]], "width": U.frameCardWidth('frame1-svg'), "height": 190});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["", "0", "1", "2", "3", "4"], "rows": [["0", "0", "0", "0", "0", "0"], ["1", "0", "0", "0", "0", "0"], ["2", "0", "0", {"val": "1", "highlight": true}, "0", "0"], ["3", "0", "0", "0", "1", "1"]], "width": U.frameCardWidth('frame2-svg'), "height": 190});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

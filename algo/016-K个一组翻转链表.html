@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/016-K个一组翻转链表.html">
+<title>016. K个一组翻转链表 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/reverse-nodes-in-k-group/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  整段翻转是「翻转链表」的推广：先数出 K 个节点，不足 K 就不翻；够 K 就用头插法/三指针翻转这一段，再把上一段的尾巴接到新头。核心是「分组 + 段内翻转 + 接缝处理」。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给链表的每 <code>k</code> 个节点一组进行翻转，返回修改后的链表。<code>k</code> 是正整数且小于等于链表长度。如果节点总数不是 <code>k</code> 的整数倍，最后剩余的节点保持原样。</p>
+<p><strong>示例：</strong><br><code>head = [1,2,3,4,5], k = 2</code> → <code>[2,1,4,3,5]</code><br><code>k = 3</code> → <code>[3,2,1,4,5]</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 先数出 K=2 个节点：1、2</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 翻转该组：2→1，再接回 3</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 下一组 3、4 翻转，尾组 5 不足 K 保持原样</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  每组先判断「是否凑满 K」，够 K 翻、不够 K 停；翻转后把组头接到上一组尾部即可。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def reverseKGroup(head, k):
+    dummy = ListNode(0, head)
+    pre = dummy
+    while True:
+        tail = pre
+        for _ in range(k):               # 数 K 个
+            tail = tail.next
+            if not tail:
+                return dummy.next        # 不足 K，不再翻转
+        nxt = tail.next
+        cur, prev = pre.next, nxt
+        while cur is not nxt:            # 段内翻转
+            tmp = cur.next
+            cur.next, prev, cur = prev, cur, tmp
+        pre.next, pre = tail, pre.next   # 接缝</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public ListNode reverseKGroup(ListNode head, int k) {
+    ListNode dummy = new ListNode(0, head), pre = dummy;
+    while (true) {
+        ListNode tail = pre;
+        for (int i = 0; i &lt; k; i++) { tail = tail.next; if (tail == null) return dummy.next; }
+        ListNode nxt = tail.next, cur = pre.next, prev = nxt;
+        while (cur != nxt) { ListNode tmp = cur.next; cur.next = prev; prev = cur; cur = tmp; }
+        ListNode newHead = pre.next;
+        pre.next = tail; pre = newHead;
+    }
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n) — 每个节点恰好处理一次</li>
+  <li><strong>空间</strong>：O(1) — 原地翻转</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>不足 K 要原样保留</strong>：先数 K 再决定是否翻转；边翻边发现不足 K 会翻乱尾巴</li>
+  <li><strong>翻转后接缝</strong>：每段翻完要把「上一段尾」接到本段新头，并把本段新尾接到下一段</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> k=1 时结果是什么？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 每 1 个一组翻转等于不翻转，直接返回原链表。</p>
+    <p><strong>Q:</strong> 为什么每段翻转用 cur != nxt 而不是 cur？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 因为翻转段的「终点」是下一段的头 nxt，cur 走到 nxt 就表示本段翻完，这样不会越界翻到下一段。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1, "highlight": "active"}, {"val": 2, "highlight": "active"}, {"val": 3}, {"val": 4}, {"val": 5}], "width": U.frameCardWidth('frame1-svg'), "height": 90});
+document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 2, "highlight": "done"}, {"val": 1, "highlight": "done"}, {"val": 3}, {"val": 4}, {"val": 5}], "width": U.frameCardWidth('frame2-svg'), "height": 90});
+document.getElementById('frame3-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 2, "highlight": "done"}, {"val": 1, "highlight": "done"}, {"val": 4, "highlight": "done"}, {"val": 3, "highlight": "done"}, {"val": 5}], "width": U.frameCardWidth('frame3-svg'), "height": 90});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/056-最长连续序列.html">
+<title>056. 最长连续序列 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/longest-consecutive-sequence/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  要求 O(n)。把数组放进集合，只从「序列起点」（num-1 不在集合里）开始向后数连续长度，每个元素最多被访问两次，避免排序的 O(n log n)。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定一个未排序的整数数组，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。要求时间复杂度 O(n)。</p>
+<p><strong>示例：</strong><br><code>[100,4,200,1,3,2]</code> → <code>4</code>（最长连续序列是 <code>[1,2,3,4]</code>）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 放入集合，快速判断某个数是否存在</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 只有「起点」（前一个数不在集合）才开始计数</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 最长连续序列 [1,2,3,4]，长度 4</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  只从每个连续段的起点开始向后数，保证总工作量 O(n)。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def longestConsecutive(nums):
+    s = set(nums)
+    ans = 0
+    for x in s:
+        if x - 1 not in s:        # 只从起点开始
+            cur, length = x, 1
+            while cur + 1 in s:
+                cur += 1
+                length += 1
+            ans = max(ans, length)
+    return ans</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int longestConsecutive(int[] nums) {
+    Set&lt;Integer&gt; s = new HashSet&lt;&gt;();
+    for (int x : nums) s.add(x);
+    int ans = 0;
+    for (int x : s) {
+        if (!s.contains(x - 1)) {
+            int cur = x, len = 1;
+            while (s.contains(cur + 1)) { cur++; len++; }
+            ans = Math.max(ans, len);
+        }
+    }
+    return ans;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n) — 每个元素至多被内层 while 访问两次</li>
+  <li><strong>空间</strong>：O(n) — 集合</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>只从起点数</strong>：若对每个数都向后数，会重复计算，最坏 O(n²)</li>
+  <li><strong>去重</strong>：用 set 自动去重，重复元素不影响长度</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 为什么复杂度仍是 O(n)？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 每个连续段只在其起点被数一次，段内每个元素最多被「向后找」访问一次，总访问量 ≤ 2n。</p>
+    <p><strong>Q:</strong> 空数组？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 返回 0。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["集合", "1", "2", "3", "4", "100", "200"], "rows": [["存在", "✓", "✓", "✓", "✓", "✓", "✓"]], "width": U.frameCardWidth('frame1-svg'), "height": 110});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["数", "num-1 在?", "是起点?", "连续长度"], "rows": [["1", "✗", "✓", "4"], ["4", "✓(3在)", "✗", "-"], ["100", "✗", "✓", "1"], ["200", "✗", "✓", "1"]], "width": U.frameCardWidth('frame2-svg'), "height": 190});
+document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["连续序列", "1", "2", "3", "4"], "rows": [["是否在集合", "✓", "✓", "✓", "✓"]], "width": U.frameCardWidth('frame3-svg'), "height": 120});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

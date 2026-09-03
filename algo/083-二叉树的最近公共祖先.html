@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/083-二叉树的最近公共祖先.html">
+<title>083. 二叉树的最近公共祖先 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  自底向上递归：若当前节点是 p 或 q 就返回它；否则看左右子树是否各找到一个。两边都找到 → 当前就是 LCA；只一边找到 → 返回那一边。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定二叉树，找到该树中两个指定节点的<strong>最近公共祖先</strong>（LCA）。</p>
+<p><strong>示例：</strong><br>树 <code>[3,5,1,6,2,0,8,null,null,7,4]</code>，p=5, q=1 → <code>3</code>；p=5, q=4 → <code>5</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 自底向上：左右各找到一个，当前即 LCA</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 只一边找到，继续上抛</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  递归返回「找到的 p/q 或 LCA」，两边会师处就是最近公共祖先。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def lowestCommonAncestor(root, p, q):
+    if not root or root == p or root == q:
+        return root
+    left = lowestCommonAncestor(root.left, p, q)
+    right = lowestCommonAncestor(root.right, p, q)
+    if left and right:
+        return root
+    return left or right</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+    if (root == null || root == p || root == q) return root;
+    TreeNode l = lowestCommonAncestor(root.left, p, q);
+    TreeNode r = lowestCommonAncestor(root.right, p, q);
+    if (l != null &amp;&amp; r != null) return root;
+    return l != null ? l : r;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n)</li>
+  <li><strong>空间</strong>：O(h)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>返回条件</strong>：root 为 p 或 q 直接返回，意味着「找到了」向上传递</li>
+  <li><strong>两边会师</strong>：left 和 right 都非空时当前节点就是 LCA</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> p 是 q 的祖先？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 递归到 p 直接返回 p，上层继续上抛 p，结果正确。</p>
+    <p><strong>Q:</strong> p、q 都在同一侧？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 只有那一侧返回值非空，继续上抛，直到某一层两侧都命中。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTree({"nodes": [{"val": "3", "x": 300, "y": 25, "highlight": "active"}, {"val": "5", "x": 160, "y": 110, "highlight": "done"}, {"val": "1", "x": 440, "y": 110, "highlight": "done"}, {"val": "6", "x": 100, "y": 200}, {"val": "2", "x": 220, "y": 200}, {"val": "0", "x": 380, "y": 200}, {"val": "8", "x": 500, "y": 200}], "edges": [{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 160, "y1": 110, "x2": 100, "y2": 200}, {"x1": 160, "y1": 110, "x2": 220, "y2": 200}, {"x1": 440, "y1": 110, "x2": 380, "y2": 200}, {"x1": 440, "y1": 110, "x2": 500, "y2": 200}], "width": U.frameCardWidth('frame1-svg'), "height": 240});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["情况", "返回值"], "rows": [["当前是 p/q", "当前节点"], ["两边都有", "当前节点(LCA)"], ["只有一边", "那一侧的结果"]], "width": U.frameCardWidth('frame2-svg'), "height": 160});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

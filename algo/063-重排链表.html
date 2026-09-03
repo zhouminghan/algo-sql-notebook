@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/063-重排链表.html">
+<title>063. 重排链表 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/reorder-list/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  目标顺序是「首、尾、次首、次尾…」。三步：找中点 → 反转后半段 → 交替合并两段。每步都是链表基础操作。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定单链表，将其重排为 <code>L0 → Ln → L1 → Ln-1 → L2 → Ln-2 → …</code> 的形式，不能只改值，必须改变节点结构。</p>
+<p><strong>示例：</strong><br><code>[1,2,3,4]</code> → <code>[1,4,2,3]</code>；<code>[1,2,3,4,5]</code> → <code>[1,5,2,4,3]</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 找中点，切成前后两半</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 反转后半段 3→4→5 变成 5→4→3</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 交替合并：1→5→2→4→3</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  找中点、反转后半、交替拼接，三步组合出「首尾交替」的效果。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def reorderList(head):
+    if not head:
+        return
+    slow = fast = head
+    while fast.next and fast.next.next:
+        slow, fast = slow.next, fast.next.next
+    # 反转后半
+    prev, cur = None, slow.next
+    slow.next = None
+    while cur:
+        nxt = cur.next
+        cur.next, prev, cur = prev, cur, nxt
+    # 交替合并
+    a, b = head, prev
+    while b:
+        a.next, a = b, a.next
+        b.next, b = a, b.next</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public void reorderList(ListNode head) {
+    if (head == null) return;
+    ListNode slow = head, fast = head;
+    while (fast.next != null &amp;&amp; fast.next.next != null) { slow = slow.next; fast = fast.next.next; }
+    ListNode prev = null, cur = slow.next;
+    slow.next = null;
+    while (cur != null) { ListNode n = cur.next; cur.next = prev; prev = cur; cur = n; }
+    ListNode a = head, b = prev;
+    while (b != null) { ListNode na = a.next, nb = b.next; a.next = b; b.next = na; a = na; b = nb; }
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n) — 三步各扫一遍</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>找中点断开</strong>：slow 停在中间，slow.next = None 把前后两段切断</li>
+  <li><strong>合并时保存后继</strong>：交替拼接前先存 a.next、b.next，否则指针被覆盖丢失</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 偶数长度 [1,2,3,4]？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 中点 slow=2，后半反转得 4→3，合并得 1→4→2→3。</p>
+    <p><strong>Q:</strong> 奇数长度 [1,2,3,4,5]？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 中点 slow=3，后半 4→5 反转 5→4，合并 1→5→2→4，剩 3 作尾。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 3, "highlight": "active"}, {"val": 4}, {"val": 5}], "width": U.frameCardWidth('frame1-svg'), "height": 90});
+document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 5, "highlight": "done"}, {"val": 4, "highlight": "done"}, {"val": 3, "highlight": "done"}], "width": U.frameCardWidth('frame2-svg'), "height": 90});
+document.getElementById('frame3-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1, "highlight": "done"}, {"val": 5, "highlight": "done"}, {"val": 2, "highlight": "done"}, {"val": 4, "highlight": "done"}, {"val": 3, "highlight": "done"}], "width": U.frameCardWidth('frame3-svg'), "height": 90});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

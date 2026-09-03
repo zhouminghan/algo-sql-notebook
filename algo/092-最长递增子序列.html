@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/092-最长递增子序列.html">
+<title>092. 最长递增子序列 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/longest-increasing-subsequence/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  dp[i] = 以 nums[i] 结尾的最长递增子序列长度，遍历前面所有更小元素取最大 +1。O(n²)；或用「贪心 + 二分」维护一个递增 tails 数组做到 O(n log n)。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定整数数组，找到其中最长严格递增子序列的长度（子序列不要求连续）。</p>
+<p><strong>示例：</strong><br><code>[10,9,2,5,3,7,101,18]</code> → <code>4</code>（[2,3,7,101]）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① dp[i] = max(前面更小元素的 dp) + 1</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 贪心 tails：维护最小结尾的递增序列</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  DP 版直观；二分版把「找前面更小」优化成「找 tails 中插入位置」，O(n log n)。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">import bisect
+def lengthOfLIS(nums):
+    tails = []
+    for x in nums:
+        i = bisect.bisect_left(tails, x)
+        if i == len(tails):
+            tails.append(x)
+        else:
+            tails[i] = x
+    return len(tails)</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int lengthOfLIS(int[] nums) {
+    int[] tails = new int[nums.length];
+    int size = 0;
+    for (int x : nums) {
+        int l = 0, r = size;
+        while (l &lt; r) { int m = (l + r) &gt;&gt;&gt; 1; if (tails[m] &lt; x) l = m + 1; else r = m; }
+        tails[l] = x;
+        if (l == size) size++;
+    }
+    return size;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n log n)</li>
+  <li><strong>空间</strong>：O(n)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>tails 不是真实子序列</strong>：它只维护「最小结尾」，长度正确但内容可能不是某条真实子序列</li>
+  <li><strong>严格递增用 bisect_left</strong>：相等元素要替换而非追加，否则会算成非严格递增</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 为什么 tails 长度等于答案？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> tails 的每个槽位代表「长度为 k 的子序列的最小可能结尾」，能放更多槽位即答案。</p>
+    <p><strong>Q:</strong> 要输出具体子序列？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 二分法需额外记录前驱；DP 版记录 prev 可回溯。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["i", "0", "1", "2", "3", "4", "5", "6", "7"], "rows": [["nums", "10", "9", "2", "5", "3", "7", "101", "18"], ["dp", "1", "1", "1", "2", "2", "3", "4", "4"]], "width": U.frameCardWidth('frame1-svg'), "height": 130});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["遍历", "tails"], "rows": [["2", "[2]"], ["5", "[2,5]"], ["3", "[2,3]"], ["7", "[2,3,7]"], ["101", "[2,3,7,101]"]], "width": U.frameCardWidth('frame2-svg'), "height": 210});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

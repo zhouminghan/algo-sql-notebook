@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/070-多数元素.html">
+<title>070. 多数元素 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/majority-element/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  Boyer-Moore 投票：维护候选人和计数。遇到相同数 +1、不同数 -1，计数归零就换候选人。多数元素出现次数超过一半，最终幸存者必是它。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定大小为 n 的数组，返回其中的<strong>多数元素</strong>。多数元素指在数组中出现次数<strong>大于 ⌊n/2⌋</strong> 的元素。保证一定存在。</p>
+<p><strong>示例：</strong><br><code>[2,2,1,1,1,2,2]</code> → <code>2</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 候选人 cand，计数 count：相同 +1、不同 -1</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 最终幸存者 2 即多数元素</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  多数元素出现次数过半，「抵消」不掉，投票结束后仍存活。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def majorityElement(nums):
+    cand = count = 0
+    for x in nums:
+        if count == 0:
+            cand = x
+        count += 1 if x == cand else -1
+    return cand</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int majorityElement(int[] nums) {
+    int cand = 0, count = 0;
+    for (int x : nums) {
+        if (count == 0) cand = x;
+        count += (x == cand) ? 1 : -1;
+    }
+    return cand;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n)</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>count==0 换候选人</strong>：抵消完后，下一个元素成为新候选人</li>
+  <li><strong>前提是多数元素存在</strong>：题目保证一定存在；若不确定，最后要再遍历验证一次</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 为什么投票法成立？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 多数元素次数 > n/2，任何其它元素集合的总数都 < n/2，抵消到最后必有剩余，且剩余者就是多数。</p>
+    <p><strong>Q:</strong> 若不一定存在多数元素？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 投票后需再扫描一遍确认 cand 次数是否真的 > n/2，否则返回无解。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["步骤", "元素", "cand", "count"], "rows": [["1", "2", "2", "1"], ["2", "2", "2", "2"], ["3", "1", "2", "1"], ["4", "1", "2", "0"], ["5", "1", "1", "1"], ["6", "2", "1", "0"], ["7", "2", "2", "1"]], "width": U.frameCardWidth('frame1-svg'), "height": 240});
+document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": [2, 2, 1, 1, 1, 2, 2], "left": 0, "right": 6, "width": U.frameCardWidth('frame2-svg'), "height": 130});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

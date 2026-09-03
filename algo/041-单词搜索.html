@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/041-单词搜索.html">
+<title>041. 单词搜索 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/word-search/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  从每个格子出发做 DFS，向上下左右四个方向匹配单词的下一字符；走过的格子暂时标记，走不通就回溯还原，避免重复使用同一格。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定 m×n 的字符网格 <code>board</code> 和字符串 <code>word</code>，判断 word 是否存在于网格中。单词必须按相邻单元格的字母构成（水平或垂直相邻），同一单元格不能用两次。</p>
+<p><strong>示例：</strong><br><code>board=[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word="ABCCED"</code> → <code>true</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 从每个格子出发，向四周 DFS</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 匹配路径 A→B→C→C→E→D，走过的格子临时标记</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 走不通就回溯，恢复标记，换方向</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  四个方向递归匹配 + 原地标记去重 + 失败回溯，遍历所有起点即可判断是否存在。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def exist(board, word):
+    m, n = len(board), len(board[0])
+    def dfs(i, j, k):
+        if k == len(word):
+            return True
+        if i &lt; 0 or i &gt;= m or j &lt; 0 or j &gt;= n or board[i][j] != word[k]:
+            return False
+        tmp = board[i][j]
+        board[i][j] = '#'          # 标记已走
+        found = (dfs(i + 1, j, k + 1) or dfs(i - 1, j, k + 1)
+                 or dfs(i, j + 1, k + 1) or dfs(i, j - 1, k + 1))
+        board[i][j] = tmp          # 回溯还原
+        return found
+    for i in range(m):
+        for j in range(n):
+            if dfs(i, j, 0):
+                return True
+    return False</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public boolean exist(char[][] board, String word) {
+    int m = board.length, n = board[0].length;
+    for (int i = 0; i &lt; m; i++)
+        for (int j = 0; j &lt; n; j++)
+            if (dfs(board, word, i, j, 0)) return true;
+    return false;
+}
+boolean dfs(char[][] b, String w, int i, int j, int k) {
+    if (k == w.length()) return true;
+    if (i &lt; 0 || i &gt;= b.length || j &lt; 0 || j &gt;= b[0].length || b[i][j] != w.charAt(k)) return false;
+    char tmp = b[i][j]; b[i][j] = '#';
+    boolean f = dfs(b, w, i + 1, j, k + 1) || dfs(b, w, i - 1, j, k + 1)
+             || dfs(b, w, i, j + 1, k + 1) || dfs(b, w, i, j - 1, k + 1);
+    b[i][j] = tmp;
+    return f;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(m·n·3^L) — L 为单词长度，每步最多 3 个方向</li>
+  <li><strong>空间</strong>：O(L) — 递归深度</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>标记与还原</strong>：用 board[i][j]='#' 临时占用，返回前必须还原，否则兄弟分支被污染</li>
+  <li><strong>方向边界</strong>：四个方向都要判越界，别漏 i、j 的范围检查</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 同一格子能用两次吗？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 不能。标记 '#' 后，后续递归不会再匹配它，回溯时再还原给别的路径使用。</p>
+    <p><strong>Q:</strong> 多个起点怎么处理？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 外层双重循环对每个格子都尝试作为起点，只要有一个返回 true 即存在。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["", "0", "1", "2", "3"], "rows": [["0", "A", "B", "C", "E"], ["1", "S", "F", "C", "S"], ["2", "A", "D", "E", "E"]], "width": U.frameCardWidth('frame1-svg'), "height": 170});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["", "0", "1", "2", "3"], "rows": [["0", {"val": "A", "highlight": true}, {"val": "B", "highlight": true}, {"val": "C", "highlight": true}, "E"], ["1", "S", "F", {"val": "C", "highlight": true}, "S"], ["2", "A", {"val": "D", "highlight": true}, {"val": "E", "highlight": true}, "E"]], "width": U.frameCardWidth('frame2-svg'), "height": 170});
+document.getElementById('frame3-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "A", "x": 300, "y": 15, "color": "path"}, {"val": "B", "x": 200, "y": 90, "color": "path"}, {"val": "C(上)", "x": 120, "y": 170, "color": "path"}, {"val": "走不通 ✗", "x": 360, "y": 170, "color": "pruned"}, {"val": "C(右)", "x": 210, "y": 245, "color": "path"}], "edges": [{"x1": 300, "y1": 15, "x2": 200, "y2": 90, "color": "path"}, {"x1": 200, "y1": 90, "x2": 120, "y2": 170, "color": "path"}, {"x1": 120, "y1": 170, "x2": 360, "y2": 170, "color": "pruned"}, {"x1": 200, "y1": 90, "x2": 210, "y2": 245, "color": "path"}], "width": U.frameCardWidth('frame3-svg'), "height": 280});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

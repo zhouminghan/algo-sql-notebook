@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/014-合并K个升序链表.html">
+<title>014. 合并K个升序链表 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/merge-k-sorted-lists/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  K 条有序链表的合并，每一轮都要知道「K 个当前头里谁最小」。最小堆正好 O(log K) 取出最小值，再用 dummy 哨兵逐个拼接，比两两合并更简洁高效。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定一个链表数组，每个链表都已按<strong>升序</strong>排列。将所有链表合并为一个升序链表并返回。</p>
+<p><strong>示例：</strong><br><code>lists = [[1,4,5],[1,3,4],[2,6]]</code> → <code>[1,1,2,3,4,4,5,6]</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 三条链的头入堆：1、1、2</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 弹出最小头 1，接进结果，压入其 next=4</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 不断弹出最小头拼接，直到堆空</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  堆里始终保存「每条链当前最小头」，反复 pop 最小 + push 其后继，直到所有节点都被取出。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">import heapq
+def mergeKLists(lists):
+    dummy = ListNode(0)
+    cur = dummy
+    heap = []
+    for i, node in enumerate(lists):      # 用 i 避免节点值相等时的比较问题
+        if node:
+            heapq.heappush(heap, (node.val, i, node))
+    while heap:
+        _, i, node = heapq.heappop(heap)
+        cur.next = node
+        cur = cur.next
+        if node.next:
+            heapq.heappush(heap, (node.next.val, i, node.next))
+    return dummy.next</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public ListNode mergeKLists(ListNode[] lists) {
+    PriorityQueue&lt;ListNode&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; a.val - b.val);
+    for (ListNode n : lists) if (n != null) pq.offer(n);
+    ListNode dummy = new ListNode(0), cur = dummy;
+    while (!pq.isEmpty()) {
+        ListNode n = pq.poll();
+        cur.next = n; cur = cur.next;
+        if (n.next != null) pq.offer(n.next);
+    }
+    return dummy.next;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(N log K) — N 为总节点数，堆操作 O(log K)</li>
+  <li><strong>空间</strong>：O(K) — 堆中最多 K 个节点</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>堆元素比较问题</strong>：Python 元组里若节点值相等，会去比较 ListNode 导致报错，需加下标 i 兜底</li>
+  <li><strong>初始入堆要判空</strong>：lists 里可能含空链表，空链表不入堆</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 如果 K 条链表里有空链表会怎样？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 只把非空链表头入堆即可；若全部为空，堆为空，直接返回 dummy.next = None。</p>
+    <p><strong>Q:</strong> 为什么复杂度是 O(N log K) 而不是 O(NK)？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 每次取最小是 O(log K)（堆），共 N 个节点，所以 N log K；暴力每次线性扫 K 个头才是 O(NK)。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["链表", "当前头", "内容"], "rows": [["L1", {"val": "1", "highlight": true}, "1→4→5"], ["L2", {"val": "1", "highlight": true}, "1→3→4"], ["L3", {"val": "2", "highlight": true}, "2→6"]], "width": U.frameCardWidth('frame1-svg'), "height": 160});
+document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1, "highlight": "done"}], "width": U.frameCardWidth('frame2-svg'), "height": 90});
+document.getElementById('frame3-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1, "highlight": "done"}, {"val": 1, "highlight": "done"}, {"val": 2, "highlight": "done"}, {"val": 3, "highlight": "done"}, {"val": 4, "highlight": "done"}, {"val": 4, "highlight": "done"}, {"val": 5, "highlight": "done"}, {"val": 6, "highlight": "done"}], "width": U.frameCardWidth('frame3-svg'), "height": 90});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

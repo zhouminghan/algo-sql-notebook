@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/086-搜索二维矩阵 II.html">
+<title>086. 搜索二维矩阵 II — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/search-a-2d-matrix-ii/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  矩阵每行每列都升序。从左下角出发：比 target 小就向右，比 target 大就向上，每次排除一行或一列，O(m+n) 即可，无需二分。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>编写一个高效算法，搜索 m×n 矩阵中的目标值。矩阵每行从左到右升序、每列从上到下升序。</p>
+<p><strong>示例：</strong><br><code>[[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]], target=5</code> → <code>true</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 从左下角出发</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 比 target 小向右，比 target 大向上</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  左下角是「行最小、列最大」的分水岭，每次都能确定性地排除一行或一列。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def searchMatrix(matrix, target):
+    m, n = len(matrix), len(matrix[0])
+    i, j = m - 1, 0
+    while i &gt;= 0 and j &lt; n:
+        if matrix[i][j] == target:
+            return True
+        if matrix[i][j] &lt; target:
+            j += 1        # 向右
+        else:
+            i -= 1        # 向上
+    return False</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public boolean searchMatrix(int[][] matrix, int target) {
+    int i = matrix.length - 1, j = 0;
+    while (i &gt;= 0 &amp;&amp; j &lt; matrix[0].length) {
+        if (matrix[i][j] == target) return true;
+        if (matrix[i][j] &lt; target) j++; else i--;
+    }
+    return false;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(m + n)</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>从左下角出发</strong>：左上角两个方向都更大，无法决策；左下角一清二楚</li>
+  <li><strong>移动方向</strong>：小→右，大→上，不要反</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 为什么不能整体二分？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 矩阵整体并非有序（行尾不一定小于下行首），只有行内和列内有序，所以用「Z 字形」排除法。</p>
+    <p><strong>Q:</strong> 右上角出发行吗？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 可以，对称：比 target 小向下、比 target 大向左。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["", "0", "1", "2", "3", "4"], "rows": [["0", "1", "4", "7", "11", "15"], ["1", "2", "5", "8", "12", "19"], ["2", "3", "6", "9", "16", "22"], ["3", "10", "13", "14", "17", "24"], ["4", "18", "21", "23", "26", "30"]], "width": U.frameCardWidth('frame1-svg'), "height": 220});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["", "0", "1", "2", "3", "4"], "rows": [["0", "1", "4", "7", "11", "15"], ["1", "2", {"val": "5", "highlight": true}, "8", "12", "19"], ["2", "3", "6", "9", "16", "22"], ["3", "10", "13", "14", "17", "24"], ["4", "18", "21", "23", "26", "30"]], "width": U.frameCardWidth('frame2-svg'), "height": 220});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

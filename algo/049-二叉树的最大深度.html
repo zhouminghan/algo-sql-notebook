@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/049-二叉树的最大深度.html">
+<title>049. 二叉树的最大深度 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/maximum-depth-of-binary-tree/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  树的最大深度 = 1 + max(左子树深度, 右子树深度)。递归自底向上求值，空节点深度为 0，一行即可。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定二叉树，找出其<strong>最大深度</strong>。最大深度是从根节点到最远叶子节点的最长路径上的节点数。</p>
+<p><strong>示例：</strong><br><code>[3,9,20,null,null,15,7]</code> → <code>3</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 深度 = 1 + max(左深, 右深)</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 自底向上：叶子深 1，逐层 +1</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  空节点深度 0，非空节点 = 左右子树较大者 + 1。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def maxDepth(root):
+    if not root:
+        return 0
+    return 1 + max(maxDepth(root.left), maxDepth(root.right))</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int maxDepth(TreeNode root) {
+    if (root == null) return 0;
+    return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n)</li>
+  <li><strong>空间</strong>：O(h)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>空节点返回 0</strong>：否则空树会崩</li>
+  <li><strong>别和「最小深度」搞混</strong>：最小深度还要处理单侧为空的情况，不是简单 min</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 空树深度？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 0。</p>
+    <p><strong>Q:</strong> 一条链（退化链表）呢？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 深度就是节点个数 n，递归栈深度 O(n)。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTree({"nodes": [{"val": "3", "x": 300, "y": 25, "highlight": "active"}, {"val": "9", "x": 160, "y": 110}, {"val": "20", "x": 440, "y": 110}, {"val": "15", "x": 380, "y": 200, "highlight": "done"}, {"val": "7", "x": 500, "y": 200, "highlight": "done"}], "edges": [{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 440, "y1": 110, "x2": 380, "y2": 200}, {"x1": 440, "y1": 110, "x2": 500, "y2": 200}], "width": U.frameCardWidth('frame1-svg'), "height": 240});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["节点", "左深", "右深", "深度"], "rows": [["15", "0", "0", "1"], ["20", "1", "1", "2"], ["3", "1", "2", "3"]], "width": U.frameCardWidth('frame2-svg'), "height": 170});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

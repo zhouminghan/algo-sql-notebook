@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/066-乘积最大子数组.html">
+<title>066. 乘积最大子数组 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/maximum-product-subarray/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  乘积会因负数翻转：当前最小可能变最大。同时维护「以 i 结尾的最大乘积」和「最小乘积」，遇到负数交换两者再乘，取全局最大。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定整数数组，找出乘积最大的连续子数组，返回该乘积。</p>
+<p><strong>示例：</strong><br><code>[2,3,-2,4]</code> → <code>6</code>（[2,3]）；<code>[-2,0,-1]</code> → <code>0</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 同时维护 cur_max 与 cur_min</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 遇负数：max 与 min 互换再乘</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 全局最大 = 6</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  最大最小一起维护，负数一来就互换，再与当前值比较更新。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def maxProduct(nums):
+    ans = cur_max = cur_min = nums[0]
+    for x in nums[1:]:
+        if x &lt; 0:
+            cur_max, cur_min = cur_min, cur_max
+        cur_max = max(x, cur_max * x)
+        cur_min = min(x, cur_min * x)
+        ans = max(ans, cur_max)
+    return ans</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int maxProduct(int[] nums) {
+    int ans = nums[0], curMax = nums[0], curMin = nums[0];
+    for (int i = 1; i &lt; nums.length; i++) {
+        int x = nums[i];
+        if (x &lt; 0) { int t = curMax; curMax = curMin; curMin = t; }
+        curMax = Math.max(x, curMax * x);
+        curMin = Math.min(x, curMin * x);
+        ans = Math.max(ans, curMax);
+    }
+    return ans;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n)</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>同时维护最小值</strong>：负数乘最小可能得到最大，只维护最大值会漏</li>
+  <li><strong>遇 0 重开</strong>：x=0 时 cur_max=cur_min=0，下一个数自动另起炉灶</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> [-2,0,-1] 为何是 0？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 以 0 为界，cur 归零，后面 -1 单段最大 -1，全局仍 0。</p>
+    <p><strong>Q:</strong> 为什么不能像最大子数组和那样只维护一个值？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 和是线性叠加，负贡献直接丢弃；乘积遇负会「翻倍变正」，必须保留最小乘积以防翻转。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["i", "0", "1", "2", "3"], "rows": [["nums", "2", "3", "-2", "4"], ["cur_max", "2", "6", "-2", "4"], ["cur_min", "2", "3", "-12", "-48"]], "width": U.frameCardWidth('frame1-svg'), "height": 150});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["步骤", "操作", "cur_max", "cur_min"], "rows": [["-2 到来", "swap", "6→-12", "-12→6"]], "width": U.frameCardWidth('frame2-svg'), "height": 130});
+document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [2, 3, -2, 4], "left": 0, "right": 1, "window": {"start": 0, "end": 1}, "width": U.frameCardWidth('frame3-svg'), "height": 140});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

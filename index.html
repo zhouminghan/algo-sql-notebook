@@ -3,234 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>algo-sql-notebook</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-<link rel="stylesheet" href="assets/css/style.css">
+<meta name="color-scheme" content="light dark">
+<title>algo-sql-notebook · 算法 + SQL 图解题库</title>
 <script>
-(function() {
-  const mq = window.matchMedia('(prefers-color-scheme: dark)');
-  function apply(theme) { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); }
-  const s = localStorage.getItem('theme');
-  if (s) apply(s); else if (mq.matches) apply('dark'); else apply('light');
-  mq.addEventListener('change', e => { if (!localStorage.getItem('theme')) apply(e.matches ? 'dark' : 'light'); });
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
 })();
 </script>
+<link rel="stylesheet" href="assets/vendor/pico.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="assets/js/problems.js"></script>
+<script src="assets/js/common.js"></script>
 </head>
 <body>
 
-<header>
-  <h1 class="site-title">algo-sql-notebook</h1>
-  <p class="site-subtitle">算法 + SQL 图解题库 · LeetCode Hot 100 · 零构建 · 桌面向</p>
-</header>
-
-<div class="tab-container">
-  <div class="tab-bar" id="topTabBar">
-    <button class="active" data-tab="algo">💻 LeetCode Hot 100</button>
-    <button data-tab="sql">🗄️ SQL 高级题</button>
+<main class="index-body">
+  <div class="hero">
+    <h1><span class="accent">算法 + SQL</span> 图解题库</h1>
+    <p>LeetCode Hot 100 · 字节 / SHEIN 机试题 · 纯静态 · 零构建 · 图解码题</p>
+    <div class="hero-stats" id="heroStats"></div>
   </div>
-</div>
 
-<ul class="problem-list" id="problemList"></ul>
-<div id="emptyState" class="empty-state" style="display:none"><p>暂无题目，按需添加中...</p></div>
+  <section id="algoSection">
+    <h2 class="section-title">💻 算法 <span class="section-count" id="algoCount"></span></h2>
+    <ul class="prob-grid" id="algoGrid"></ul>
+  </section>
+
+  <section id="sqlSection" style="margin-top:2.5rem;">
+    <h2 class="section-title">🗄️ SQL 高级题 <span class="section-count" id="sqlCount"></span></h2>
+    <ul class="prob-grid" id="sqlGrid"></ul>
+  </section>
+
+  <div class="empty-state" id="emptyState" style="display:none;">没有匹配的题目</div>
+</main>
 
 <script>
 const DIFF_MAP = { easy: '简单', medium: '中等', hard: '困难' };
 const DIFF_CLASS = { easy: 'tag-easy', medium: 'tag-medium', hard: 'tag-hard' };
+let query = '';
 
-// LeetCode Hot 100（按 001-100 自编号，非力扣题号。有 file 才显示）
-const algoProblems = [
-  { id: 1, title: '两数之和', diff: 'easy', tags: ['哈希表'], file: 'algo/001-两数之和.html' },
-  { id: 2, title: '两数相加', diff: 'medium', tags: ['链表'], file: 'algo/002-两数相加.html' },
-  { id: 3, title: '无重复字符的最长子串', diff: 'medium', tags: ['滑动窗口'], file: 'algo/003-无重复字符的最长子串.html' },
-  { id: 4, title: '寻找两个正序数组的中位数', diff: 'hard', tags: ['二分'], file: 'algo/004-寻找两个正序数组的中位数.html' },
-  { id: 5, title: '最长回文子串', diff: 'medium', tags: ['DP'], file: 'algo/005-最长回文子串.html' },
-  { id: 6, title: '正则表达式匹配', diff: 'hard', tags: ['DP'], file: 'algo/006-正则表达式匹配.html' },
-  { id: 7, title: '盛最多水的容器', diff: 'medium', tags: ['双指针'], file: 'algo/007-盛最多水的容器.html' },
-  { id: 8, title: '三数之和', diff: 'medium', tags: ['双指针'], file: 'algo/008-三数之和.html' },
-  { id: 9, title: '电话号码的字母组合', diff: 'medium', tags: ['回溯'], file: 'algo/009-电话号码的字母组合.html' },
-  { id: 10, title: '删除链表的倒数第N个结点', diff: 'medium', tags: ['链表', '双指针'], file: 'algo/010-删除链表的倒数第N个结点.html' },
-  { id: 11, title: '有效的括号', diff: 'easy', tags: ['栈'] },
-  { id: 12, title: '合并两个有序链表', diff: 'easy', tags: ['链表'] },
-  { id: 13, title: '括号生成', diff: 'medium', tags: ['回溯'] },
-  { id: 14, title: '合并K个升序链表', diff: 'hard', tags: ['堆', '链表'] },
-  { id: 15, title: '两两交换链表中的节点', diff: 'medium', tags: ['链表'] },
-  { id: 16, title: 'K个一组翻转链表', diff: 'hard', tags: ['链表'] },
-  { id: 17, title: '下一个排列', diff: 'medium', tags: ['数组'] },
-  { id: 18, title: '最长有效括号', diff: 'hard', tags: ['DP'] },
-  { id: 19, title: '搜索旋转排序数组', diff: 'medium', tags: ['二分'] },
-  { id: 20, title: '在排序数组中查找元素的第一个和最后一个位置', diff: 'medium', tags: ['二分'] },
-  { id: 21, title: '搜索插入位置', diff: 'easy', tags: ['二分'] },
-  { id: 22, title: '组合总和', diff: 'medium', tags: ['回溯'] },
-  { id: 23, title: '缺失的第一个正数', diff: 'hard', tags: ['哈希表'] },
-  { id: 24, title: '接雨水', diff: 'hard', tags: ['单调栈'] },
-  { id: 25, title: '跳跃游戏 II', diff: 'medium', tags: ['贪心'] },
-  { id: 26, title: '全排列', diff: 'medium', tags: ['回溯'] },
-  { id: 27, title: '旋转图像', diff: 'medium', tags: ['数组'] },
-  { id: 28, title: '字母异位词分组', diff: 'medium', tags: ['哈希表'] },
-  { id: 29, title: 'N皇后', diff: 'hard', tags: ['回溯'] },
-  { id: 30, title: '最大子数组和', diff: 'medium', tags: ['DP'] },
-  { id: 31, title: '跳跃游戏', diff: 'medium', tags: ['贪心'] },
-  { id: 32, title: '合并区间', diff: 'medium', tags: ['排序'] },
-  { id: 33, title: '不同路径', diff: 'medium', tags: ['DP'] },
-  { id: 34, title: '最小路径和', diff: 'medium', tags: ['DP'] },
-  { id: 35, title: '爬楼梯', diff: 'easy', tags: ['DP'] },
-  { id: 36, title: '编辑距离', diff: 'medium', tags: ['DP'] },
-  { id: 37, title: '搜索二维矩阵', diff: 'medium', tags: ['二分'] },
-  { id: 38, title: '颜色分类', diff: 'medium', tags: ['双指针'] },
-  { id: 39, title: '最小覆盖子串', diff: 'hard', tags: ['滑动窗口'] },
-  { id: 40, title: '子集', diff: 'medium', tags: ['回溯'] },
-  { id: 41, title: '单词搜索', diff: 'medium', tags: ['回溯'] },
-  { id: 42, title: '柱状图中最大的矩形', diff: 'hard', tags: ['单调栈'] },
-  { id: 43, title: '最大矩形', diff: 'hard', tags: ['单调栈'] },
-  { id: 44, title: '二叉树的中序遍历', diff: 'easy', tags: ['树'] },
-  { id: 45, title: '不同的二叉搜索树', diff: 'medium', tags: ['树'] },
-  { id: 46, title: '验证二叉搜索树', diff: 'medium', tags: ['BST'] },
-  { id: 47, title: '对称二叉树', diff: 'easy', tags: ['树'] },
-  { id: 48, title: '二叉树的层序遍历', diff: 'medium', tags: ['BFS'] },
-  { id: 49, title: '二叉树的最大深度', diff: 'easy', tags: ['树'] },
-  { id: 50, title: '从前序与中序遍历构造二叉树', diff: 'medium', tags: ['树'] },
-  { id: 51, title: '将有序数组转换为二叉搜索树', diff: 'easy', tags: ['BST'] },
-  { id: 52, title: '二叉树展开为链表', diff: 'medium', tags: ['树'] },
-  { id: 53, title: '杨辉三角', diff: 'easy', tags: ['DP'] },
-  { id: 54, title: '买卖股票的最佳时机', diff: 'easy', tags: ['贪心'] },
-  { id: 55, title: '二叉树中的最大路径和', diff: 'hard', tags: ['树'] },
-  { id: 56, title: '最长连续序列', diff: 'medium', tags: ['哈希表'] },
-  { id: 57, title: '分割回文串', diff: 'medium', tags: ['回溯'] },
-  { id: 58, title: '只出现一次的数字', diff: 'easy', tags: ['位运算'] },
-  { id: 59, title: '随机链表的复制', diff: 'medium', tags: ['链表'] },
-  { id: 60, title: '单词拆分', diff: 'medium', tags: ['DP'] },
-  { id: 61, title: '环形链表', diff: 'easy', tags: ['快慢指针'] },
-  { id: 62, title: '环形链表 II', diff: 'medium', tags: ['快慢指针'] },
-  { id: 63, title: '重排链表', diff: 'medium', tags: ['链表'] },
-  { id: 64, title: 'LRU缓存', diff: 'medium', tags: ['哈希表', '链表'] },
-  { id: 65, title: '排序链表', diff: 'medium', tags: ['链表', '归并'] },
-  { id: 66, title: '乘积最大子数组', diff: 'medium', tags: ['DP'] },
-  { id: 67, title: '寻找旋转排序数组中的最小值', diff: 'medium', tags: ['二分'] },
-  { id: 68, title: '最小栈', diff: 'medium', tags: ['栈'] },
-  { id: 69, title: '相交链表', diff: 'easy', tags: ['链表'] },
-  { id: 70, title: '多数元素', diff: 'easy', tags: ['投票'] },
-  { id: 71, title: '轮转数组', diff: 'medium', tags: ['数组'] },
-  { id: 72, title: '打家劫舍', diff: 'medium', tags: ['DP'] },
-  { id: 73, title: '二叉树的右视图', diff: 'medium', tags: ['BFS'] },
-  { id: 74, title: '岛屿数量', diff: 'medium', tags: ['DFS'] },
-  { id: 75, title: '反转链表', diff: 'easy', tags: ['链表'] },
-  { id: 76, title: '课程表', diff: 'medium', tags: ['拓扑排序'] },
-  { id: 77, title: '实现Trie(前缀树)', diff: 'medium', tags: ['Trie'] },
-  { id: 78, title: '数组中的第K个最大元素', diff: 'medium', tags: ['堆'] },
-  { id: 79, title: '最大正方形', diff: 'medium', tags: ['DP'] },
-  { id: 80, title: '翻转二叉树', diff: 'easy', tags: ['树'] },
-  { id: 81, title: '二叉搜索树中第K小的元素', diff: 'medium', tags: ['BST'] },
-  { id: 82, title: '回文链表', diff: 'easy', tags: ['链表'] },
-  { id: 83, title: '二叉树的最近公共祖先', diff: 'medium', tags: ['树'] },
-  { id: 84, title: '除自身以外数组的乘积', diff: 'medium', tags: ['前缀积'] },
-  { id: 85, title: '滑动窗口最大值', diff: 'hard', tags: ['单调队列'] },
-  { id: 86, title: '搜索二维矩阵 II', diff: 'medium', tags: ['二分'] },
-  { id: 87, title: '完全平方数', diff: 'medium', tags: ['DP'] },
-  { id: 88, title: '移动零', diff: 'easy', tags: ['双指针'] },
-  { id: 89, title: '寻找重复数', diff: 'medium', tags: ['快慢指针'] },
-  { id: 90, title: '数据流的中位数', diff: 'hard', tags: ['堆'] },
-  { id: 91, title: '二叉树的序列化与反序列化', diff: 'hard', tags: ['树'] },
-  { id: 92, title: '最长递增子序列', diff: 'medium', tags: ['DP'] },
-  { id: 93, title: '删除无效的括号', diff: 'hard', tags: ['BFS'] },
-  { id: 94, title: '买卖股票最佳时机含冷冻期', diff: 'medium', tags: ['DP'] },
-  { id: 95, title: '戳气球', diff: 'hard', tags: ['DP'] },
-  { id: 96, title: '零钱兑换', diff: 'medium', tags: ['DP'] },
-  { id: 97, title: '打家劫舍 III', diff: 'medium', tags: ['树', 'DP'] },
-  { id: 98, title: '前K个高频元素', diff: 'medium', tags: ['堆'] },
-  { id: 99, title: '字符串解码', diff: 'medium', tags: ['栈'] },
-  { id: 100, title: '除法求值', diff: 'medium', tags: ['图'] },
-];
+function implemented(list) { return list.filter(p => p.file); }
 
-// SQL 高级题（按 001+ 自编号。有 file 才显示）
-const sqlProblems = [
-  { id: 1, title: '连续登录天数', diff: 'medium', tags: ['窗口函数', '日期'], file: 'sql/001-连续登录天数.html' },
-  { id: 2, title: 'SHEIN新客回访复购分析', diff: 'hard', tags: ['多表JOIN', '窗口函数', '条件聚合'], file: 'sql/002-shein新客回访复购分析.html' },
-  { id: 3, title: 'SHEIN平台合并与过滤', diff: 'easy', tags: ['CASE WHEN', 'JOIN', '聚合过滤'], file: 'sql/003-shein平台合并与过滤.html' },
-  { id: 4, title: 'SHEIN库存售罄天数分析', diff: 'medium', tags: ['窗口函数', '日期计算', '聚合'], file: 'sql/004-shein库存售罄天数分析.html' },
-  { id: 5, title: '互相关注用户对', diff: 'medium', tags: ['自连接', '字节'], file: 'sql/005-字节互相关注用户对.html' },
-];
-
-let activeTab = 'algo';
-
-function renderProblems(tab) {
-  const all = tab === 'algo' ? algoProblems : sqlProblems;
-  // 只显示有 HTML 文件的题目
-  const problems = all.filter(p => p.file);
-  const list = document.getElementById('problemList');
-  const empty = document.getElementById('emptyState');
-  list.innerHTML = '';
-
-  if (!problems.length) {
-    empty.style.display = 'block';
-    list.style.display = 'none';
-    return;
-  }
-
-  empty.style.display = 'none';
-  list.style.display = 'block';
-
-  problems.forEach(p => {
-    const li = document.createElement('li');
-
-    // 题号
-    const numSpan = document.createElement('span');
-    numSpan.className = 'prob-num';
-    numSpan.textContent = String(p.id).padStart(3, '0');
-    li.appendChild(numSpan);
-
-    // 标题
-    if (p.file) {
-      const link = document.createElement('a');
-      link.href = p.file;
-      link.textContent = p.title;
-      li.appendChild(link);
-    } else {
-      const span = document.createElement('span');
-      span.textContent = p.title;
-      span.style.color = 'var(--color-neutral)';
-      li.appendChild(span);
-    }
-
-    // 难度列
-    const diffCol = document.createElement('span');
-    diffCol.className = 'difficulty-col';
-    const diffSpan = document.createElement('span');
-    diffSpan.className = `tag-badge ${DIFF_CLASS[p.diff]}`;
-    diffSpan.textContent = DIFF_MAP[p.diff];
-    diffCol.appendChild(diffSpan);
-    li.appendChild(diffCol);
-
-    // 标签列
-    const tagsCol = document.createElement('span');
-    tagsCol.className = 'tags-col';
-    p.tags.forEach(tag => {
-      const tagSpan = document.createElement('span');
-      tagSpan.className = 'tag-badge tag-ds';
-      tagSpan.textContent = tag;
-      tagsCol.appendChild(tagSpan);
-    });
-    li.appendChild(tagsCol);
-
-    list.appendChild(li);
-  });
+function matches(p) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  return (p.title + ' ' + (p.tags || []).join(' ') + ' ' + p.id).toLowerCase().indexOf(q) !== -1;
 }
 
-document.getElementById('topTabBar').addEventListener('click', e => {
-  if (e.target.tagName !== 'BUTTON') return;
-  const tab = e.target.dataset.tab;
-  if (!tab || tab === activeTab) return;
-  activeTab = tab;
-  document.querySelectorAll('#topTabBar button').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-  renderProblems(tab);
-});
+function renderStats() {
+  const all = implemented(ASN.PROBLEMS.algo).concat(implemented(ASN.PROBLEMS.sql));
+  const done = all.filter(p => ASN.isDone(p.file)).length;
+  const starred = all.filter(p => ASN.isStar(p.file)).length;
+  document.getElementById('heroStats').innerHTML =
+    `<div class="hero-stat"><b>${implemented(ASN.PROBLEMS.algo).length}</b><span>算法题</span></div>` +
+    `<div class="hero-stat"><b>${implemented(ASN.PROBLEMS.sql).length}</b><span>SQL 题</span></div>` +
+    `<div class="hero-stat"><b>${done}</b><span>已阅读</span></div>` +
+    `<div class="hero-stat"><b>${starred}</b><span>已收藏</span></div>`;
+}
 
-renderProblems('algo');
+function card(p) {
+  const li = document.createElement('li');
+  li.className = 'prob-card';
+  const a = document.createElement('a');
+  a.className = 'prob-card-link';
+  a.href = p.file;
+
+  const top = document.createElement('div');
+  top.className = 'prob-card-top';
+  const num = document.createElement('span');
+  num.className = 'prob-card-num';
+  num.textContent = String(p.id).padStart(3, '0');
+  top.appendChild(num);
+  if (ASN.isDone(p.file)) {
+    const check = document.createElement('span');
+    check.className = 'prob-check';
+    check.textContent = '✓';
+    top.appendChild(check);
+  }
+  const title = document.createElement('span');
+  title.className = 'prob-card-title';
+  title.textContent = p.title;
+  top.appendChild(title);
+  a.appendChild(top);
+
+  const meta = document.createElement('div');
+  meta.className = 'prob-card-meta';
+  const diff = document.createElement('span');
+  diff.className = `tag-badge ${DIFF_CLASS[p.diff]}`;
+  diff.textContent = DIFF_MAP[p.diff];
+  meta.appendChild(diff);
+  (p.tags || []).slice(0, 2).forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'tag-badge tag-ds';
+    tag.textContent = t;
+    meta.appendChild(tag);
+  });
+  a.appendChild(meta);
+  li.appendChild(a);
+
+  const star = document.createElement('button');
+  star.type = 'button';
+  star.className = 'prob-star' + (ASN.isStar(p.file) ? ' on' : '');
+  star.textContent = ASN.isStar(p.file) ? '★' : '☆';
+  star.setAttribute('aria-label', '收藏 ' + p.title);
+  star.addEventListener('click', () => {
+    const on = ASN.toggleStar(p.file);
+    star.textContent = on ? '★' : '☆';
+    star.classList.toggle('on', on);
+    renderStats();
+  });
+  li.appendChild(star);
+  return li;
+}
+
+function renderGrid(listEl, countEl, problems) {
+  listEl.innerHTML = '';
+  const filtered = problems.filter(matches);
+  countEl.textContent = filtered.length + ' / ' + problems.length;
+  filtered.forEach(p => listEl.appendChild(card(p)));
+}
+
+function renderAll() {
+  const algo = implemented(ASN.PROBLEMS.algo);
+  const sql = implemented(ASN.PROBLEMS.sql);
+  renderGrid(document.getElementById('algoGrid'), document.getElementById('algoCount'), algo);
+  renderGrid(document.getElementById('sqlGrid'), document.getElementById('sqlCount'), sql);
+  const any = algo.some(matches) || sql.some(matches);
+  document.getElementById('emptyState').style.display = any ? 'none' : 'block';
+  renderStats();
+}
+
+window.addEventListener('asn:search', e => { query = e.detail || ''; renderAll(); });
+window.addEventListener('asn:star', () => renderAll());
+
+renderAll();
 </script>
-
-<footer style="text-align:center;margin-top:3rem;color:var(--color-neutral);font-size:0.8rem;">
-  <p>algo-sql-notebook v3.0 · 按需增量 · 建议桌面端浏览</p>
-</footer>
-
 </body>
 </html>

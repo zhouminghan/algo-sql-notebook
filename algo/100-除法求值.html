@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/100-除法求值.html">
+<title>100. 除法求值 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/evaluate-division/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  把每个变量看成图节点，a/b=2 既是 a→b 权 2、又是 b→a 权 1/2。查询 a/c 就是图上 a 到 c 的路径权值之积，用 BFS/DFS 求路径。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定变量对数组 <code>equations</code> 和实数值数组 <code>values</code>，其中 equations[i]=[A,B] 表示 A/B=values[i]。再给定查询 queries，返回每个查询的结果，无法确定则 -1。</p>
+<p><strong>示例：</strong><br><code>[["a","b"],["b","c"]], values=[2,3], queries=[["a","c"],["b","a"]]</code> → <code>[6.0, 0.5]</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 建图：a→b 权 2，b→a 权 1/2</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② a/c = a→b→c 权值相乘 = 2×3=6</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  除法关系组成带权无向图，查询就是两点间路径权值乘积。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">from collections import defaultdict, deque
+def calcEquation(equations, values, queries):
+    g = defaultdict(dict)
+    for (a, b), v in zip(equations, values):
+        g[a][b] = v
+        g[b][a] = 1 / v
+    def bfs(s, t):
+        if s not in g or t not in g:
+            return -1.0
+        q = deque([(s, 1.0)])
+        seen = {s}
+        while q:
+            node, val = q.popleft()
+            if node == t:
+                return val
+            for nxt, w in g[node].items():
+                if nxt not in seen:
+                    seen.add(nxt)
+                    q.append((nxt, val * w))
+        return -1.0
+    return [bfs(s, t) for s, t in queries]</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public double[] calcEquation(List&lt;List&lt;String&gt;&gt; eq, double[] vals, List&lt;List&lt;String&gt;&gt; qs) {
+    Map&lt;String, Map&lt;String, Double&gt;&gt; g = new HashMap&lt;&gt;();
+    for (int i = 0; i &lt; eq.size(); i++) {
+        String a = eq.get(i).get(0), b = eq.get(i).get(1);
+        g.computeIfAbsent(a, k -&gt; new HashMap&lt;&gt;()).put(b, vals[i]);
+        g.computeIfAbsent(b, k -&gt; new HashMap&lt;&gt;()).put(a, 1 / vals[i]);
+    }
+    double[] ans = new double[qs.size()];
+    for (int i = 0; i &lt; qs.size(); i++)
+        ans[i] = bfs(g, qs.get(i).get(0), qs.get(i).get(1));
+    return ans;
+}
+double bfs(Map&lt;String, Map&lt;String, Double&gt;&gt; g, String s, String t) {
+    if (!g.containsKey(s) || !g.containsKey(t)) return -1.0;
+    Queue&lt;Object[]&gt; q = new LinkedList&lt;&gt;();
+    Set&lt;String&gt; seen = new HashSet&lt;&gt;();
+    q.offer(new Object[]{s, 1.0}); seen.add(s);
+    while (!q.isEmpty()) {
+        Object[] cur = q.poll();
+        String node = (String) cur[0]; double val = (Double) cur[1];
+        if (node.equals(t)) return val;
+        for (Map.Entry&lt;String, Double&gt; e : g.get(node).entrySet())
+            if (seen.add(e.getKey())) q.offer(new Object[]{e.getKey(), val * e.getValue()});
+    }
+    return -1.0;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(q · (V+E)) — 每个查询一次 BFS</li>
+  <li><strong>空间</strong>：O(V+E)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>反向边取倒数</strong>：a/b=v 必须同时建 b/a=1/v，否则单向不连通</li>
+  <li><strong>未知变量返回 -1</strong>：查询端点不在图中直接 -1.0</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> Floyd 预处理？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 可以预计算所有点对最短路（这里是权值积），把每个查询降到 O(1)。</p>
+    <p><strong>Q:</strong> 结果精度？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 浮点除法有精度误差，题目用容差判断，返回 double 即可。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawGraph({"vertices": [{"label": "a", "x": 100, "y": 150, "color": "active"}, {"label": "b", "x": 300, "y": 150, "color": "visited"}, {"label": "c", "x": 500, "y": 150, "color": "unvisited"}], "edges": [{"from": "a", "to": "b", "weight": "2"}, {"from": "b", "to": "c", "weight": "3"}], "width": U.frameCardWidth('frame1-svg'), "height": 220});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["查询", "路径", "结果"], "rows": [["a/c", "a→b→c", "2×3=6"], ["b/a", "b→a", "1/2=0.5"]], "width": U.frameCardWidth('frame2-svg'), "height": 140});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

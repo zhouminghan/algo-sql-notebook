@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/036-编辑距离.html">
+<title>036. 编辑距离 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/edit-distance/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  把两个串的前缀对齐：dp[i][j] 表示 word1 前 i 个字符变成 word2 前 j 个字符的最少操作数。三选一取最小——插入、删除、替换（相等则直接继承）。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定两个单词 <code>word1</code> 和 <code>word2</code>，求将 word1 转换成 word2 所需的<strong>最少操作数</strong>。可进行的操作：插入一个字符、删除一个字符、替换一个字符。</p>
+<p><strong>示例：</strong><br><code>word1="horse", word2="ros"</code> → <code>3</code>（horse→rorse→rose→ros）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① dp[i][j]：word1 前 i 个 → word2 前 j 个的最少操作</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 三选一：插入 dp[i][j-1]+1、删除 dp[i-1][j]+1、替换 dp[i-1][j-1]+1</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  字符相等就白拿对角线值，否则在插入/删除/替换里取最小并 +1，右下角即答案。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def minDistance(word1, word2):
+    m, n = len(word1), len(word2)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(m + 1): dp[i][0] = i
+    for j in range(n + 1): dp[0][j] = j
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if word1[i - 1] == word2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                dp[i][j] = min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1
+    return dp[m][n]</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int minDistance(String w1, String w2) {
+    int m = w1.length(), n = w2.length();
+    int[][] dp = new int[m + 1][n + 1];
+    for (int i = 0; i &lt;= m; i++) dp[i][0] = i;
+    for (int j = 0; j &lt;= n; j++) dp[0][j] = j;
+    for (int i = 1; i &lt;= m; i++)
+        for (int j = 1; j &lt;= n; j++) {
+            if (w1.charAt(i - 1) == w2.charAt(j - 1)) dp[i][j] = dp[i - 1][j - 1];
+            else dp[i][j] = Math.min(Math.min(dp[i - 1][j], dp[i][j - 1]), dp[i - 1][j - 1]) + 1;
+        }
+    return dp[m][n];
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(m · n)</li>
+  <li><strong>空间</strong>：O(m · n) — 可滚动优化到 O(n)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>三选一别漏</strong>：插入、删除、替换对应三个方向，忘掉任何一个都会高估操作数</li>
+  <li><strong>相等直接继承</strong>：word1[i-1]==word2[j-1] 时 dp[i][j]=dp[i-1][j-1]，不用 +1</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 两个空串？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> m=n=0，dp[0][0]=0，返回 0。</p>
+    <p><strong>Q:</strong> 「horse」→「ros」为何是 3 步？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> h→r 替换(1)、删 e(1)、替换 s→? 实际路径：删 h、r 不变、o 不变、r→s? 对照 dp 表右下角即 3，具体路径可用回溯 dp 表还原。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["", "", "r", "o", "s"], "rows": [["", "0", "1", "2", "3"], ["h", "1", "1", "2", "3"], ["o", "2", "2", "1", "2"], ["r", "3", "2", "2", "2"], ["s", "4", "3", "3", "2"], ["e", "5", "4", "4", {"val": "3", "highlight": true}]], "width": U.frameCardWidth('frame1-svg'), "height": 260});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["操作", "来自", "代价"], "rows": [["插入", "dp[i][j-1]", "+1"], ["删除", "dp[i-1][j]", "+1"], ["替换", "dp[i-1][j-1]", "相等则 +0"]], "width": U.frameCardWidth('frame2-svg'), "height": 170});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

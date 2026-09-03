@@ -15,6 +15,16 @@ function svgWrap(width, height, inner) {
     width="100%" style="max-width:${width}px; font-family:system-ui,monospace;">${inner}</svg>`;
 }
 
+/** 转义 XML 特殊字符，防止单元格/标签内容破坏 SVG 结构 */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /** 箭头 marker 定义 */
 const ARROW_MARKER = `
 <defs>
@@ -45,7 +55,7 @@ function drawLinkedList({ nodes = [], pointers = [], width = 600, height = 120 }
     // 分隔线
     svgInner += `<line x1="${x + nodeW/2}" y1="${y}" x2="${x + nodeW/2}" y2="${y + nodeH}" stroke="var(--color-border)" stroke-width="1"/>`;
     // 值
-    svgInner += `<text x="${x + nodeW/4}" y="${y + nodeH/2 + 4}" text-anchor="middle" class="node-val">${n.val}</text>`;
+    svgInner += `<text x="${x + nodeW/4}" y="${y + nodeH/2 + 4}" text-anchor="middle" class="node-val">${esc(n.val)}</text>`;
     // next 指示
     if (i < nodes.length - 1) {
       const nextX = x + nodeW;
@@ -83,9 +93,9 @@ function drawTree({ nodes = [], edges = [], width = 600, height = 300 } = {}) {
   nodes.forEach(n => {
     let cls = 'tree-node';
     if (n.highlight === 'active') cls = 'tree-active';
-    else if (n.highlight === 'done') cls = 'tree-active';
+    else if (n.highlight === 'done') cls = 'tree-done';
     svgInner += `<circle cx="${n.x}" cy="${n.y}" r="18" class="${cls}"/>`;
-    svgInner += `<text x="${n.x}" y="${n.y + 5}" text-anchor="middle" class="node-val">${n.val}</text>`;
+    svgInner += `<text x="${n.x}" y="${n.y + 5}" text-anchor="middle" class="node-val">${esc(n.val)}</text>`;
   });
   
   return svgWrap(width, height, svgInner);
@@ -185,29 +195,22 @@ function drawHashmap({ buckets = [], highlight = null, width = 600, height = 300
     svgInner += `<rect x="${bucketX}" y="${by}" width="30" height="20" fill="none" stroke="var(--color-border)" rx="3"/>`;
     svgInner += `<text x="${bucketX + 15}" y="${by + 14}" text-anchor="middle" class="node-val" font-size="10">${b.index}</text>`;
     
-    // 链表/树 节点
-    let prevX = bucketX + 35;
+    // 链表/树节点（统一渲染；树节点用 rx 全圆角示意）
+    let ex = bucketX + 35;
     b.entries.forEach((entry, ei) => {
-      const ex = prevX, ey = by;
+      const ey = by;
       const isHighlight = highlight && highlight.bucketIndex === bi && highlight.entryIndex === ei;
-      
-      if (entry.isTreeNode) {
-        // 红黑树节点：小方框 + 分叉示意
-        svgInner += `<rect x="${ex}" y="${ey}" width="44" height="${entryH}" class="${isHighlight ? 'node-active' : 'node-box'}" rx="3"/>`;
-        svgInner += `<text x="${ex + 22}" y="${ey + 16}" text-anchor="middle" class="node-val" font-size="10">${entry.key}:${entry.val}</text>`;
-      } else {
-        // 普通链表节点
-        svgInner += `<rect x="${ex}" y="${ey}" width="44" height="${entryH}" class="${isHighlight ? 'node-active' : 'node-box'}" rx="3"/>`;
-        svgInner += `<text x="${ex + 22}" y="${ey + 16}" text-anchor="middle" class="node-val" font-size="10">${entry.key}:${entry.val}</text>`;
-      }
+      const rx = entry.isTreeNode ? 10 : 3;
+      svgInner += `<rect x="${ex}" y="${ey}" width="44" height="${entryH}" class="${isHighlight ? 'node-active' : 'node-box'}" rx="${rx}"/>`;
+      svgInner += `<text x="${ex + 22}" y="${ey + 16}" text-anchor="middle" class="node-val" font-size="10">${esc(entry.key)}:${esc(entry.val)}</text>`;
       
       // 节点间箭头
       if (ei < b.entries.length - 1) {
         const arrowX = ex + 44;
         svgInner += `<line x1="${arrowX}" y1="${ey + 12}" x2="${arrowX + 16}" y2="${ey + 12}" class="ptr-arrow" marker-end="url(#arrow-red)"/>`;
-        prevX = arrowX + 20;
+        ex = arrowX + 20;
       } else {
-        prevX = ex + 50;
+        ex = ex + 50;
       }
     });
   });
@@ -270,7 +273,7 @@ function drawTwoPointers({ arr = [], left = 0, right = 0, window = null, width =
     const x = startX + i * cellW;
     const isHi = i === left || i === right;
     svgInner += `<rect x="${x}" y="${cellY}" width="${cellW}" height="${cellH}" class="${isHi ? 'cell-highlight' : 'cell'}" rx="2"/>`;
-    svgInner += `<text x="${x + cellW/2}" y="${cellY + cellH/2 + 4}" text-anchor="middle" class="node-val">${val}</text>`;
+    svgInner += `<text x="${x + cellW/2}" y="${cellY + cellH/2 + 4}" text-anchor="middle" class="node-val">${esc(val)}</text>`;
     svgInner += `<text x="${x + cellW/2}" y="${cellY - 5}" text-anchor="middle" class="idx-label">${i}</text>`;
   });
   
@@ -291,6 +294,8 @@ function drawTwoPointers({ arr = [], left = 0, right = 0, window = null, width =
 function drawBinarySearch({ arr = [], left = 0, mid = 0, right = 0, excludedRanges = [], width = 600, height = 120 } = {}) {
   const cellW = 40, cellH = 36, startX = 30, cellY = 45;
   let svgInner = ARROW_MARKER;
+  const totalW = arr.length * cellW;
+  const adjustedW = Math.max(width, startX + totalW + 30);
   
   // 排除区域变灰
   excludedRanges.forEach(r => {
@@ -304,7 +309,7 @@ function drawBinarySearch({ arr = [], left = 0, mid = 0, right = 0, excludedRang
     let cls = 'cell';
     if (i === mid) cls = 'cell-highlight';
     svgInner += `<rect x="${x}" y="${cellY}" width="${cellW}" height="${cellH}" class="${cls}" rx="2"/>`;
-    svgInner += `<text x="${x + cellW/2}" y="${cellY + cellH/2 + 4}" text-anchor="middle" class="node-val">${val}</text>`;
+    svgInner += `<text x="${x + cellW/2}" y="${cellY + cellH/2 + 4}" text-anchor="middle" class="node-val">${esc(val)}</text>`;
     svgInner += `<text x="${x + cellW/2}" y="${cellY - 5}" text-anchor="middle" class="idx-label">${i}</text>`;
   });
   
@@ -319,7 +324,7 @@ function drawBinarySearch({ arr = [], left = 0, mid = 0, right = 0, excludedRang
     svgInner += `<line x1="${px}" y1="${cellY + cellH}" x2="${px}" y2="${cellY + cellH + 10}" stroke="${color}" stroke-width="1.5"/>`;
   });
   
-  return svgWrap(width, height, svgInner);
+  return svgWrap(adjustedW, height, svgInner);
 }
 
 // ============================================================
@@ -421,7 +426,7 @@ function cellText(cell, x, y, colW, cellH) {
   else if (val === '✓') fill = 'var(--color-done)';
   else if (val === '✗') fill = 'var(--color-pointer)';
   const bold = (isObj && cell.bold) || fill ? ' font-weight="bold"' : '';
-  return `<text x="${x + colW/2}" y="${y + cellH/2 + 4}" text-anchor="middle" class="node-val" font-size="10"${fill ? ` fill="${fill}"` : ''}${bold}>${val}</text>`;
+  return `<text x="${x + colW/2}" y="${y + cellH/2 + 4}" text-anchor="middle" class="node-val" font-size="10"${fill ? ` fill="${fill}"` : ''}${bold}>${esc(val)}</text>`;
 }
 
 /** 内部表格绘制（不含 width 计算）；表头主色淡底、斑马纹、✓/✗ 着色，层次分明 */
@@ -430,7 +435,7 @@ function drawTableRaw({ headers = [], rows = [], startX = 0, startY = 0, colW = 
   headers.forEach((h, i) => {
     const x = startX + i * colW;
     svg += `<rect x="${x}" y="${startY}" width="${colW}" height="${cellH}" fill="var(--pico-primary)" opacity="0.12" stroke="var(--color-border)"/>`;
-    svg += `<text x="${x + colW/2}" y="${startY + cellH/2 + 4}" text-anchor="middle" class="node-val" font-size="10" font-weight="bold" fill="var(--pico-primary)">${h}</text>`;
+    svg += `<text x="${x + colW/2}" y="${startY + cellH/2 + 4}" text-anchor="middle" class="node-val" font-size="10" font-weight="bold" fill="var(--pico-primary)">${esc(h)}</text>`;
   });
   rows.forEach((row, ri) => {
     const y = startY + (ri + 1) * cellH;

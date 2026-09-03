@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/035-爬楼梯.html">
+<title>035. 爬楼梯 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/climbing-stairs/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  到第 n 阶，最后一步要么跨 1 阶、要么跨 2 阶，所以 f(n) = f(n-1) + f(n-2)，就是斐波那契数列。用两个变量滚动即可 O(1) 空间。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>假设你正在爬楼梯，需要 n 阶到达楼顶。每次可以爬 1 或 2 个台阶，问有多少种不同方法爬到楼顶。</p>
+<p><strong>示例：</strong><br><code>n=2</code> → <code>2</code>（1+1、2）；<code>n=3</code> → <code>3</code>（1+1+1、1+2、2+1）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 递推：f(n)=f(n-1)+f(n-2)</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 第 n 阶来自「跨 1」或「跨 2」两种来路</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  斐波那契数列，滚动两个变量不断前移。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def climbStairs(n):
+    a, b = 1, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int climbStairs(int n) {
+    int a = 1, b = 1;
+    for (int i = 0; i &lt; n; i++) {
+        int t = a + b;
+        a = b; b = t;
+    }
+    return a;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n)</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>边界 f(0)=1</strong>：把 f(0) 定义为 1 能让递推统一，n=1 返回 1</li>
+  <li><strong>别用朴素递归</strong>：朴素递归是指数级；记忆化或迭代才是线性</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> n=0 或 n=1？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 约定 f(0)=1、f(1)=1，代码里 a 初始 1 直接覆盖。</p>
+    <p><strong>Q:</strong> 如果一次能爬 1~3 阶呢？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 递推改为 f(n)=f(n-1)+f(n-2)+f(n-3)，滚动维护三个变量即可。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["n", "0", "1", "2", "3", "4", "5"], "rows": [["方法数", "1", "1", "2", "3", "5", "8"]], "width": U.frameCardWidth('frame1-svg'), "height": 120});
+document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "n", "x": 300, "y": 15, "color": "normal"}, {"val": "n-1", "x": 200, "y": 90, "color": "path"}, {"val": "n-2", "x": 400, "y": 90, "color": "path"}], "edges": [{"x1": 300, "y1": 15, "x2": 200, "y2": 90, "color": "path"}, {"x1": 300, "y1": 15, "x2": 400, "y2": 90, "color": "path"}], "width": U.frameCardWidth('frame2-svg'), "height": 150});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

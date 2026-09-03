@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/054-买卖股票的最佳时机.html">
+<title>054. 买卖股票的最佳时机 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  只能买卖一次。遍历时维护「到今天为止的最低买入价」min_price，每天用当前价减去最低价更新最大利润。一次遍历 O(n)。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>给定数组 <code>prices</code>，第 i 个元素表示股票第 i 天的价格。你只能选择<strong>某一天买入</strong>并在未来某一天卖出，求能获得的最大利润；不能获利则返回 0。</p>
+<p><strong>示例：</strong><br><code>[7,1,5,3,6,4]</code> → <code>5</code>（第 2 天 1 买入，第 5 天 6 卖出）</p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 维护历史最低价 min_price</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 每天利润 = 当天价 - min_price，取最大</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 最大利润 = 5</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  最低价只降不升，每天算一次「当前能赚多少」，全局取最大。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">def maxProfit(prices):
+    min_price = float('inf')
+    ans = 0
+    for p in prices:
+        min_price = min(min_price, p)
+        ans = max(ans, p - min_price)
+    return ans</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">public int maxProfit(int[] prices) {
+    int minPrice = Integer.MAX_VALUE, ans = 0;
+    for (int p : prices) {
+        minPrice = Math.min(minPrice, p);
+        ans = Math.max(ans, p - minPrice);
+    }
+    return ans;
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：O(n)</li>
+  <li><strong>空间</strong>：O(1)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>先更新 min 再算利润</strong>：先 min 后 ans，保证「同一天不买卖」的语义；顺序反过来不影响结果但含义易混</li>
+  <li><strong>不能获利返回 0</strong>：价格一路下跌时 ans 保持 0</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 为什么贪心是对的？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 最大利润的卖出日固定时，买入价应取它之前的历史最低；遍历时 min_price 恰好维护了这一点。</p>
+    <p><strong>Q:</strong> 可以买卖多次呢？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 那就是 122 题，把每段「上涨」的差价累加即可。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({"arr": [7, 1, 5, 3, 6, 4], "left": 1, "right": 4, "window": {"start": 1, "end": 4}, "width": U.frameCardWidth('frame1-svg'), "height": 150});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["天", "0", "1", "2", "3", "4", "5"], "rows": [["价格", "7", "1", "5", "3", "6", "4"], ["最低", "7", "1", "1", "1", "1", "1"], ["利润", "0", "0", "4", "2", "5", "3"]], "width": U.frameCardWidth('frame2-svg'), "height": 160});
+document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [7, 1, 5, 3, 6, 4], "left": 1, "right": 4, "window": {"start": 1, "end": 4}, "width": U.frameCardWidth('frame3-svg'), "height": 150});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>

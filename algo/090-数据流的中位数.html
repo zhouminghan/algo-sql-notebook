@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="asn-file" content="algo/090-数据流的中位数.html">
+<title>090. 数据流的中位数 — algo-sql-notebook</title>
+<script>
+(function () {
+  var s = localStorage.getItem('asn-theme');
+  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', d);
+})();
+</script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+</head>
+<body>
+
+<a class="origin-link" href="https://leetcode.cn/problems/find-median-from-data-stream/" target="_blank">→ LeetCode 原题</a>
+
+<div class="why-box">
+  <strong>🤔 为什么用这个思路？</strong><br>
+  用两个堆：大顶堆放较小的一半，小顶堆放较大的一半。保持两者大小差 ≤1，中位数要么是大顶堆堆顶、要么是两堆顶均值。插入 O(log n)。
+</div>
+
+<h3>📄 题目描述</h3>
+<p>实现 MedianFinder，动态插入整数并随时返回当前所有数字的中位数。</p>
+<p><strong>示例：</strong><br>依次加入 <code>1,2,3</code>，中位数分别为 <code>1, 1.5, 2</code></p>
+
+<h3>📐 图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① 大顶堆存较小一半，小顶堆存较大一半</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② 平衡：两堆大小差 ≤1</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 中位数 = 堆顶 或 两堆顶均值</div>
+  <div id="frame3-svg"></div>
+</div>
+<div class="why-box">
+  <strong>✅ 结论</strong><br>
+  两个堆把数据切成两半，中位数永远在堆顶附近。
+</div>
+
+<h3>📝 最优解代码</h3>
+
+<h4 style="margin-bottom:0.25rem;">Python</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <pre><code class="language-python" id="py-code">import heapq
+class MedianFinder:
+    def __init__(self):
+        self.small = []   # 大顶堆（存负值）
+        self.large = []   # 小顶堆
+    def addNum(self, num):
+        heapq.heappush(self.small, -num)
+        heapq.heappush(self.large, -heapq.heappop(self.small))
+        if len(self.large) &gt; len(self.small):
+            heapq.heappush(self.small, -heapq.heappop(self.large))
+    def findMedian(self):
+        if len(self.small) &gt; len(self.large):
+            return -self.small[0]
+        return (-self.small[0] + self.large[0]) / 2</code></pre>
+</div>
+
+<h4 style="margin-bottom:0.25rem;">Java</h4>
+<div class="code-block-wrapper">
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <pre><code class="language-java" id="java-code">class MedianFinder {
+    PriorityQueue&lt;Integer&gt; small = new PriorityQueue&lt;&gt;((a, b) -&gt; b - a);
+    PriorityQueue&lt;Integer&gt; large = new PriorityQueue&lt;&gt;();
+    public void addNum(int num) {
+        small.offer(num);
+        large.offer(small.poll());
+        if (large.size() &gt; small.size()) small.offer(large.poll());
+    }
+    public double findMedian() {
+        if (small.size() &gt; large.size()) return small.peek();
+        return (small.peek() + large.peek()) / 2.0;
+    }
+}</code></pre>
+</div>
+
+<h3>⏱ 复杂度分析</h3>
+<ul>
+  <li><strong>时间</strong>：addNum O(log n)，findMedian O(1)</li>
+  <li><strong>空间</strong>：O(n)</li>
+</ul>
+
+<h3>⚠️ 易错点</h3>
+<ul>
+  <li><strong>Python 大顶堆用负值</strong>：heapq 只有小顶堆，存 -num 模拟大顶堆</li>
+  <li><strong>平衡方向</strong>：插入后让 large 不超过 small，保证 small 要么等大要么多一个</li>
+</ul>
+
+<details class="selfcheck-box" open>
+  <summary><strong>🧪 自我检验</strong></summary>
+  <div style="margin-top:0.5rem;">
+    <p><strong>Q:</strong> 偶数个中位数？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 两堆等大时取两堆顶平均值。</p>
+    <p><strong>Q:</strong> 奇数个中位数？</p>
+    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> small 多一个，中位数就是 small 堆顶（较小一半的最大值）。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+function renderFrames() {
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["堆", "较小一半(大顶)", "较大一半(小顶)"], "rows": [["加入 1,2,3 后", "2,1", "3"]], "width": U.frameCardWidth('frame1-svg'), "height": 130});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["操作", "大顶堆", "小顶堆"], "rows": [["加 1", "1", ""], ["加 2", "1", "2"], ["加 3", "1", "2,3 → 平衡"]], "width": U.frameCardWidth('frame2-svg'), "height": 160});
+document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["总数", "中位数"], "rows": [["奇数", "大顶堆堆顶"], ["偶数", "(两堆顶)/2"]], "width": U.frameCardWidth('frame3-svg'), "height": 130});
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+hljs.highlightAll();
+</script>
+</body>
+</html>
