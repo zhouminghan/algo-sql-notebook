@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/unique-binary-search-trees/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   以 i 为根时，左子树有 i-1 个节点、右子树有 n-i 个节点，数量相乘再对 i 求和，即卡特兰数递推：G(n)=Σ G(i-1)·G(n-i)。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定整数 n，求由 n 个节点组成且节点值从 1 到 n 互不相同的<strong>二叉搜索树</strong>有多少种。</p>
 <p><strong>示例：</strong><br><code>n=3</code> → <code>5</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 以 i 为根：左子树 G(i-1) 种 × 右子树 G(n-i) 种</div>
   <div id="frame1-svg"></div>
@@ -44,15 +44,15 @@
   <div id="frame2-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   枚举根节点，左右子树数量相乘累加，DP 递推得到卡特兰数。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def numTrees(n):
     dp = [0] * (n + 1)
     dp[0] = dp[1] = 1
@@ -64,7 +64,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int numTrees(int n) {
     int[] dp = new int[n + 1];
     dp[0] = dp[1] = 1;
@@ -75,25 +75,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n²)</li>
   <li><strong>空间</strong>：O(n)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>G(0)=1</strong>：空树算一种，边界定义成 1 递推才成立</li>
   <li><strong>累加不是相乘整体</strong>：每个根 j 贡献 dp[j-1]*dp[i-j]，要累加所有 j</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> n=2 为什么是 2？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 以 1 为根：右子树 G(1)=1；以 2 为根：左子树 G(1)=1；合计 2。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 以 1 为根：右子树 G(1)=1；以 2 为根：左子树 G(1)=1；合计 2。</p>
     <p><strong>Q:</strong> 这题与「生成所有 BST」区别？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 本题只数个数（DP/卡特兰数）；生成所有 BST 需要递归构造左右子树并组合。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 本题只数个数（DP/卡特兰数）；生成所有 BST 需要递归构造左右子树并组合。</p>
   </div>
 </details>
 

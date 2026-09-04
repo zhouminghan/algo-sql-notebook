@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/largest-rectangle-in-histogram/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   对每根柱子，以它高度为高的最大矩形，向左右延伸到「第一个比它矮的柱子」为止。单调递增栈能在 O(n) 内同时找到每根柱子左右两侧最近更矮的位置。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定 n 个非负整数表示柱状图的高度（每个柱宽 1），求图中能勾勒出的最大矩形面积。</p>
 <p><strong>示例：</strong><br><code>heights=[2,1,5,6,2,3]</code> → <code>10</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 以高度 5 为高的矩形：左右延伸到第一个更矮处</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   单调栈维护「递增高度」，每次弹出高度 h 时，其可扩展宽度 = 当前下标 - 新栈顶下标 - 1，面积 = h × 宽。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def largestRectangleArea(heights):
     stack = []
     ans = 0
@@ -72,7 +72,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int largestRectangleArea(int[] heights) {
     int n = heights.length, ans = 0;
     int[] h = new int[n + 1];
@@ -90,25 +90,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n) — 每个下标入栈出栈一次</li>
   <li><strong>空间</strong>：O(n) — 栈</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>末尾补 0</strong>：补一个高度 0 的哨兵，循环结束时能自动弹出所有剩余柱子结算</li>
   <li><strong>宽度计算</strong>：弹出 cur 后，新栈顶就是它左边最近的更矮位置，宽 = i - left - 1</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么用单调递增栈？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 栈内高度递增意味着每个柱子的「左边界」已知；遇到更矮柱子时，它就成了右侧边界，可立即结算被弹出的柱子。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 栈内高度递增意味着每个柱子的「左边界」已知；遇到更矮柱子时，它就成了右侧边界，可立即结算被弹出的柱子。</p>
     <p><strong>Q:</strong> [2,1,2] 的最大矩形？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 高度 2 的矩形（下标 0 和 2 分别面积 2），以及高度 1 横跨全长的面积 3，答案为 3。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 高度 2 的矩形（下标 0 和 2 分别面积 2），以及高度 1 横跨全长的面积 3，答案为 3。</p>
   </div>
 </details>
 
@@ -116,9 +116,9 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({"arr": [2, 1, 5, 6, 2, 3], "left": 2, "right": 3, "window": {"start": 2, "end": 3}, "width": U.frameCardWidth('frame1-svg'), "height": 150});
-document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": [2, 1, 5, 6, 2, 3], "left": 4, "right": 5, "window": {"start": 1, "end": 5}, "width": U.frameCardWidth('frame2-svg'), "height": 150});
-document.getElementById('frame3-svg').innerHTML = U.drawStack({"items": [{"val": "2"}, {"val": "5"}, {"val": "6"}], "type": "stack", "height": 170, "width": U.frameCardWidth('frame3-svg')});
+document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({"arr": [2, 1, 5, 6, 2, 3], "left": 2, "right": 3, "window": {"start": 2, "end": 3}, "width": 0, "height": 150});
+document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": [2, 1, 5, 6, 2, 3], "left": 4, "right": 5, "window": {"start": 1, "end": 5}, "width": 0, "height": 150});
+document.getElementById('frame3-svg').innerHTML = U.drawStack({"items": [{"val": "2"}, {"val": "5"}, {"val": "6"}], "type": "stack", "height": 170});
 }
 
 renderFrames();

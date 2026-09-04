@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/decode-string/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   嵌套结构（如 3[a2[c]]）适合栈。遇到数字、字符就累积，遇到 '[' 把当前倍数和已累积串入栈，遇到 ']' 弹出倍数与前置串拼接。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定编码字符串，返回解码后的字符串。规则：<code>k[encoded_string]</code> 表示方括号内字符串重复 k 次。可以嵌套。</p>
 <p><strong>示例：</strong><br><code>"3[a]2[bc]"</code> → <code>"aaabcbc"</code>；<code>"3[a2[c]]"</code> → <code>"accaccacc"</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 遇 '[' 把倍数与已累积串压栈</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   栈保存「进入括号前的上下文」，遇到右括号就把括号内容按倍数展开拼回去。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def decodeString(s):
     stack = []
     cur = ''
@@ -77,7 +77,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public String decodeString(String s) {
     Deque&lt;String&gt; strStack = new ArrayDeque&lt;&gt;();
     Deque&lt;Integer&gt; numStack = new ArrayDeque&lt;&gt;();
@@ -93,25 +93,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(输出长度) — 每个字符处理一次</li>
   <li><strong>空间</strong>：O(嵌套深度) — 栈</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>数字可能是多位</strong>：num = num*10 + digit，不能只读一位</li>
   <li><strong>入栈保存上下文</strong>：'[' 时保存当前串与倍数，' ]' 时弹出拼接</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 嵌套 3[a2[c]] 过程？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 内层 2[c] 先解为 cc，再 a+cc=acc，最后 ×3 得 accaccacc。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 内层 2[c] 先解为 cc，再 a+cc=acc，最后 ×3 得 accaccacc。</p>
     <p><strong>Q:</strong> 递归写法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 可以用递归：读到 '[' 递归解码括号内容，读到 ']' 返回，思路对称。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 可以用递归：读到 '[' 递归解码括号内容，读到 ']' 返回，思路对称。</p>
   </div>
 </details>
 
@@ -119,7 +119,7 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawStack({"items": [{"val": "3"}, {"val": ""}], "type": "stack", "height": 140, "width": U.frameCardWidth('frame1-svg')});
+document.getElementById('frame1-svg').innerHTML = U.drawStack({"items": [{"val": "3"}, {"val": ""}], "type": "stack", "height": 140});
 document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["步骤", "栈", "结果"], "rows": [["读 3[a2[c", "3,'' ; 2,'a'", ""], ["读 ]", "3,''", "a+2c=acc"], ["读 ]", "", "acc×3"]], "width": U.frameCardWidth('frame2-svg'), "height": 170});
 document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["", "结果"], "rows": [["解码", {"val": "accaccacc", "highlight": true}]], "width": U.frameCardWidth('frame3-svg'), "height": 110});
 }

@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/min-stack/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   普通栈只能取栈顶。用「辅助栈」同步记录每个状态下的最小值：压入时把 min(当前值, 之前最小值) 一起入辅助栈，pop 时同步弹出，getMin 取辅助栈顶 O(1)。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>设计一个支持 push、pop、top 操作，并能在常数时间内检索到最小元素的栈。</p>
 <p><strong>示例：</strong><br><code>push(-2), push(0), push(-3), getMin()→-3, pop(), top()→0, getMin()→-2</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 数据栈与辅助栈同步</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   每个元素入栈时，把「当前最小值」一并存进辅助栈，弹出时同步，getMin 恒为辅助栈顶。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">class MinStack:
     def __init__(self):
         self.stack = []
@@ -75,7 +75,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">class MinStack {
     Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;(), mn = new ArrayDeque&lt;&gt;();
     public void push(int val) {
@@ -88,25 +88,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：所有操作 O(1)</li>
   <li><strong>空间</strong>：O(n) — 两个栈</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>pop 同步</strong>：数据栈与辅助栈必须同时 pop，否则 getMin 错位</li>
   <li><strong>push 的 min 判断</strong>：辅助栈为空时直接入栈，否则取 min(val, 当前最小)</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 重复的最小值怎么处理？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 每次都入栈，即使相等也入，保证栈深一致、弹出对位。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 每次都入栈，即使相等也入，保证栈深一致、弹出对位。</p>
     <p><strong>Q:</strong> 能省空间吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 可以只在新最小值 <= 当前最小才入辅助栈，弹出时相等才弹出，但实现稍复杂。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 可以只在新最小值 <= 当前最小才入辅助栈，弹出时相等才弹出，但实现稍复杂。</p>
   </div>
 </details>
 
@@ -114,9 +114,9 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawStack({"items": [{"val": "-2"}, {"val": "0"}, {"val": "-3"}], "type": "stack", "height": 180, "width": U.frameCardWidth('frame1-svg')});
-document.getElementById('frame2-svg').innerHTML = U.drawStack({"items": [{"val": "-2"}, {"val": "-2"}, {"val": "-3"}], "type": "stack", "height": 180, "width": U.frameCardWidth('frame2-svg')});
-document.getElementById('frame3-svg').innerHTML = U.drawStack({"items": [{"val": "-2"}, {"val": "-2"}], "type": "stack", "height": 150, "width": U.frameCardWidth('frame3-svg')});
+document.getElementById('frame1-svg').innerHTML = U.drawStack({"items": [{"val": "-2"}, {"val": "0"}, {"val": "-3"}], "type": "stack", "height": 180});
+document.getElementById('frame2-svg').innerHTML = U.drawStack({"items": [{"val": "-2"}, {"val": "-2"}, {"val": "-3"}], "type": "stack", "height": 180});
+document.getElementById('frame3-svg').innerHTML = U.drawStack({"items": [{"val": "-2"}, {"val": "-2"}], "type": "stack", "height": 150});
 }
 
 renderFrames();

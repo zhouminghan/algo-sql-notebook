@@ -24,21 +24,21 @@
 <body>
 
 <div class="why-box">
-  <strong>🤔 为什么用窗口函数而不是自连接？</strong><br>
+  <strong>为什么用窗口函数而不是自连接？</strong><br>
   自连接需要把同一用户的每条记录和其他记录比较（O(n²)），而且跨月/跨年边界处理麻烦。<code>row_number()</code> 差值分组法一次扫描即可完成，O(n log n) 搞定。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>有一张用户登录表 <code>user_login</code>，找出每个用户的最长连续登录天数。同一天多次登录只算一次。</p>
 
 <div class="frame-card" style="margin-bottom:1rem;">
-  <div class="frame-label">📥 user_login（源数据）</div>
+  <div class="frame-label">user_login（源数据）</div>
   <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">同一天多次登录保留全部记录（DISTINCT 去重回 frame① 处理）</div>
   <div id="desc-schema"></div>
   <div id="desc-svg"></div>
 </div>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 
 <div class="frame-card" style="margin-bottom:1.5rem;">
   <div class="frame-label">① CTE: dedup — 去重，为 ROW_NUMBER 编号做准备</div>
@@ -79,12 +79,12 @@ GROUP BY user_id ORDER BY user_id;</code></pre>
   <div id="frame4-svg"></div>
 </div>
 
-<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">⬆ 以上 4 帧的 SQL 按顺序拼接，即为完整答案。</p>
+<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">以上 4 帧的 SQL 按顺序拼接，即为完整答案。</p>
 
-<h3>📝 SQL 代码</h3>
+<h3>SQL 代码</h3>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
   <pre><code class="language-sql" id="sql-code">WITH dedup AS (
     SELECT DISTINCT user_id, login_date FROM user_login
 ),
@@ -106,7 +106,7 @@ FROM (
 GROUP BY user_id ORDER BY user_id;</code></pre>
 </div>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>必须先 DISTINCT 去重</strong>：如果同一天有两条记录，row_number 会让它们有不同编号，差值就不同了，同一天会被算成两天</li>
   <li><strong>跨月/跨年没问题</strong>：DATE_SUB(login_date, INTERVAL rn DAY) 自动处理月份和年份边界</li>
@@ -114,10 +114,10 @@ GROUP BY user_id ORDER BY user_id;</code></pre>
 </ul>
 
 <details id="ddlToggle">
-  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">📦 本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">本地复现（CREATE TABLE + INSERT + SQL）</summary>
   <div id="ddlBody" class="collapsible-body">
     <div class="code-block-wrapper">
-      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">📋 一键复制全部</button>
+      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
       <pre><code class="language-sql" id="ddl-code">CREATE TABLE user_login (
     user_id INT,
     login_date DATE
@@ -161,13 +161,13 @@ GROUP BY user_id ORDER BY user_id;
 </details>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q1:</strong> 如果不去重（不用 DISTINCT），测试数据 user_id=4 同一天登录两次，结果会是多少？为什么？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 同一天两条记录 row_number 分别为 1 和 2，差值 = 同一天 - 不同序号 → 产生两个不同的 grp 值，这两个 grp 各自只有 1 条记录，COUNT=1。最后 MAX=1——巧合结果对，但内部逻辑是错的。如果有用户连续 2 天且其中一天有重复，就会被切成多个片段，连续天数被低估。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 同一天两条记录 row_number 分别为 1 和 2，差值 = 同一天 - 不同序号 → 产生两个不同的 grp 值，这两个 grp 各自只有 1 条记录，COUNT=1。最后 MAX=1——巧合结果对，但内部逻辑是错的。如果有用户连续 2 天且其中一天有重复，就会被切成多个片段，连续天数被低估。</p>
 
     <p><strong>Q2:</strong> 题目改为「找出至少连续登录 N 天的用户」（N 可配置），SQL 怎么改？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 在最外层查询加 <code>HAVING MAX(consecutive_days) >= N</code>。如果 N 很大（如 100），可以先在 grouped 子查询后用 WHERE 提前过滤，避免对大量不可能满足条件的数据做最终聚合：<code>WHERE consecutive_days >= N</code> 放在内层子查询里即可。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 在最外层查询加 <code>HAVING MAX(consecutive_days) >= N</code>。如果 N 很大（如 100），可以先在 grouped 子查询后用 WHERE 提前过滤，避免对大量不可能满足条件的数据做最终聚合：<code>WHERE consecutive_days >= N</code> 放在内层子查询里即可。</p>
   </div>
 </details>
 

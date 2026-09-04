@@ -1,9 +1,20 @@
-"""所有算法题规格聚合。每个 batch 模块导出 PROBLEMS 列表。"""
-from .batch1 import PROBLEMS as _b1
-from .batch2 import PROBLEMS as _b2
-from .batch3 import PROBLEMS as _b3
-from .batch4 import PROBLEMS as _b4
-from .batch5 import PROBLEMS as _b5
-from .batch6 import PROBLEMS as _b6
+"""题目规格（一题一文件）。聚合导出 ALL，供脚本或工具使用。"""
+import importlib.util
+import pathlib
+import sys
 
-ALL = _b1 + _b2 + _b3 + _b4 + _b5 + _b6
+
+def _load(path):
+    name = "spec_" + path.stem
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod.PROBLEM
+
+
+ALL = []
+for _f in sorted((pathlib.Path(__file__).parent / "algo").glob("*.py")):
+    if _f.name == "__init__.py":
+        continue
+    ALL.append(_load(_f))

@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/linked-list-cycle/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   快慢指针（Floyd 判圈）：慢指针走一步、快指针走两步。若无环，快指针先到 null；若有环，快慢指针必在环内相遇。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定链表头节点，判断链表中是否有环。</p>
 <p><strong>示例：</strong><br><code>[3,2,0,-4]</code>（尾部连接到下标 1）→ <code>true</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 慢指针走 1 步、快指针走 2 步</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   若有环，fast 相对 slow 每次逼近一步，必然追及；无环则 fast 先到空。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def hasCycle(head):
     slow = fast = head
     while fast and fast.next:
@@ -69,7 +69,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public boolean hasCycle(ListNode head) {
     ListNode slow = head, fast = head;
     while (fast != null &amp;&amp; fast.next != null) {
@@ -81,25 +81,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n) — 无环走到底；有环在 O(n) 步内相遇</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>循环条件</strong>：while fast and fast.next 都要判空，否则 fast.next.next 空指针</li>
   <li><strong>相遇即判环</strong>：slow == fast 说明存在环，不需走到 null</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么快慢指针一定相遇？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 有环时快慢都进入环，fast 每次多走一步，两者距离逐步缩小到 0，必然追及。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 有环时快慢都进入环，fast 每次多走一步，两者距离逐步缩小到 0，必然追及。</p>
     <p><strong>Q:</strong> 哈希表做法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 遍历时把访问过的节点存 Set，遇到重复即说明有环，但空间 O(n)。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 遍历时把访问过的节点存 Set，遇到重复即说明有环，但空间 O(n)。</p>
   </div>
 </details>
 
@@ -107,8 +107,8 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 3, "highlight": "active"}, {"val": 2}, {"val": 0}, {"val": -4}], "pointers": [{"label": "slow", "x": 40, "y": 90, "targetX": 40, "targetY": 55, "color": "red"}, {"label": "fast", "x": 150, "y": 90, "targetX": 150, "targetY": 55, "color": "gray"}], "width": U.frameCardWidth('frame1-svg'), "height": 120});
-document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 3, "showNull": true}], "width": U.frameCardWidth('frame2-svg'), "height": 90});
+document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 3, "highlight": "active"}, {"val": 2}, {"val": 0}, {"val": -4}], "pointers": [{"label": "slow", "x": 40, "y": 90, "targetX": 40, "targetY": 55, "color": "red"}, {"label": "fast", "x": 150, "y": 90, "targetX": 150, "targetY": 55, "color": "gray"}], "width": 560, "height": 120});
+document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 3, "showNull": true}], "width": 460, "height": 90});
 document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["轮次", "slow 位置", "fast 位置"], "rows": [["0", "3", "3"], ["1", "2", "0"], ["2", "0", "2"], ["3", "-4", "-4 相遇 ✓"]], "width": U.frameCardWidth('frame3-svg'), "height": 190});
 }
 

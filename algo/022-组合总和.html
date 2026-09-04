@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/combination-sum/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   每个数可以无限次使用，本质是「无限背包」式的搜索树。回溯时用一个 start 下标保证「不重复组合」（只从当前及之后的数选），再用剩余和剪枝，及时砍掉超出的分支。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定<strong>无重复元素</strong>的数组 <code>candidates</code> 和目标数 <code>target</code>，找出所有和为 target 的组合。<code>candidates</code> 中的数字可以<strong>无限制重复</strong>选取，且解集不能包含重复组合。</p>
 <p><strong>示例：</strong><br><code>candidates=[2,3,6,7], target=7</code> → <code>[[2,2,3],[7]]</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 搜索树：从当前下标往后选，和为 target 就收集</div>
   <div id="frame1-svg"></div>
@@ -44,15 +44,15 @@
   <div id="frame2-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   「从当前下标往后选」保证组合不重复；「剩余和不足即剪枝」把指数级搜索大幅收窄。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def combinationSum(candidates, target):
     candidates.sort()          # 排序后便于剪枝
     ans = []
@@ -71,7 +71,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;List&lt;Integer&gt;&gt; combinationSum(int[] candidates, int target) {
     Arrays.sort(candidates);
     List&lt;List&lt;Integer&gt;&gt; ans = new ArrayList&lt;&gt;();
@@ -89,13 +89,13 @@ void dfs(int[] c, int rest, int start, List&lt;Integer&gt; path, List&lt;List&lt
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n^(t/min)) — 组合数级别，t 为 target，min 为最小候选</li>
   <li><strong>空间</strong>：O(target/min) — 递归深度</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>去重靠 start 下标</strong>：递归传 i 而不是 i+1 表示可重复；若从 0 开始会生成重复组合</li>
   <li><strong>回溯恢复现场</strong>：path.append 后必须 path.pop()，否则路径串到别的分支</li>
@@ -103,12 +103,12 @@ void dfs(int[] c, int rest, int start, List&lt;Integer&gt; path, List&lt;List&lt
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> candidates=[2,3,6,7], target=7 的两个答案怎么来的？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> [2,2,3] 来自一路选 2 再选 3；[7] 来自直接选 7。选 [2,3,2] 这类重复顺序被 start 下标挡掉了。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> [2,2,3] 来自一路选 2 再选 3；[7] 来自直接选 7。选 [2,3,2] 这类重复顺序被 start 下标挡掉了。</p>
     <p><strong>Q:</strong> 为什么这题不像「无重复组合」那样纠结顺序？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> start 下标保证只往「当前及之后」选，组合内部天然有序，顺序不同不会重复出现。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> start 下标保证只往「当前及之后」选，组合内部天然有序，顺序不同不会重复出现。</p>
   </div>
 </details>
 
@@ -116,8 +116,8 @@ void dfs(int[] c, int rest, int start, List&lt;Integer&gt; path, List&lt;List&lt
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "[]", "x": 300, "y": 15, "color": "normal"}, {"val": "[2]", "x": 170, "y": 80, "color": "path"}, {"val": "[2,2]", "x": 80, "y": 150, "color": "path"}, {"val": "[2,2,3]", "x": 60, "y": 225, "color": "path"}, {"val": "[7]", "x": 470, "y": 150, "color": "path"}, {"val": "[2,2,2,2]", "x": 200, "y": 225, "color": "pruned"}], "edges": [{"x1": 300, "y1": 15, "x2": 170, "y2": 80, "color": "path"}, {"x1": 170, "y1": 80, "x2": 80, "y2": 150, "color": "path"}, {"x1": 80, "y1": 150, "x2": 60, "y2": 225, "color": "path"}, {"x1": 80, "y1": 150, "x2": 200, "y2": 225, "color": "pruned"}, {"x1": 300, "y1": 15, "x2": 470, "y2": 150, "color": "path"}], "width": U.frameCardWidth('frame1-svg'), "height": 260});
-document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "rest=4", "x": 300, "y": 20, "color": "normal"}, {"val": "选 6 (rest=-2) ✗", "x": 480, "y": 100, "color": "pruned"}, {"val": "选 3 (rest=1)", "x": 200, "y": 100, "color": "path"}, {"val": "选 1 ✗", "x": 100, "y": 180, "color": "pruned"}], "edges": [{"x1": 300, "y1": 20, "x2": 480, "y2": 100, "color": "pruned"}, {"x1": 300, "y1": 20, "x2": 200, "y2": 100, "color": "path"}, {"x1": 200, "y1": 100, "x2": 100, "y2": 180, "color": "pruned"}], "width": U.frameCardWidth('frame2-svg'), "height": 220});
+document.getElementById('frame1-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "[]", "x": 300, "y": 15, "color": "normal"}, {"val": "[2]", "x": 170, "y": 80, "color": "path"}, {"val": "[2,2]", "x": 80, "y": 150, "color": "path"}, {"val": "[2,2,3]", "x": 60, "y": 225, "color": "path"}, {"val": "[7]", "x": 470, "y": 150, "color": "path"}, {"val": "[2,2,2,2]", "x": 200, "y": 225, "color": "pruned"}], "edges": [{"x1": 300, "y1": 15, "x2": 170, "y2": 80, "color": "path"}, {"x1": 170, "y1": 80, "x2": 80, "y2": 150, "color": "path"}, {"x1": 80, "y1": 150, "x2": 60, "y2": 225, "color": "path"}, {"x1": 80, "y1": 150, "x2": 200, "y2": 225, "color": "pruned"}, {"x1": 300, "y1": 15, "x2": 470, "y2": 150, "color": "path"}], "width": 560, "height": 260});
+document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "rest=4", "x": 300, "y": 20, "color": "normal"}, {"val": "选 6 (rest=-2) ✗", "x": 480, "y": 100, "color": "pruned"}, {"val": "选 3 (rest=1)", "x": 200, "y": 100, "color": "path"}, {"val": "选 1 ✗", "x": 100, "y": 180, "color": "pruned"}], "edges": [{"x1": 300, "y1": 20, "x2": 480, "y2": 100, "color": "pruned"}, {"x1": 300, "y1": 20, "x2": 200, "y2": 100, "color": "path"}, {"x1": 200, "y1": 100, "x2": 100, "y2": 180, "color": "pruned"}], "width": 560, "height": 220});
 }
 
 renderFrames();

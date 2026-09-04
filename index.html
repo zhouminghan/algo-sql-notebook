@@ -26,41 +26,47 @@
     <div class="hero-stats" id="heroStats"></div>
   </div>
 
-  <section id="algoSection">
-    <h2 class="section-title">💻 算法 <span class="section-count" id="algoCount"></span></h2>
-    <ul class="prob-grid" id="algoGrid"></ul>
-  </section>
+  <div class="index-toolbar">
+    <div class="filter-chips" id="diffChips">
+      <button type="button" class="filter-chip active" data-diff="all">全部难度</button>
+      <button type="button" class="filter-chip" data-diff="easy">简单</button>
+      <button type="button" class="filter-chip" data-diff="medium">中等</button>
+      <button type="button" class="filter-chip" data-diff="hard">困难</button>
+    </div>
+  </div>
 
-  <section id="sqlSection" style="margin-top:2.5rem;">
-    <h2 class="section-title">🗄️ SQL 高级题 <span class="section-count" id="sqlCount"></span></h2>
-    <ul class="prob-grid" id="sqlGrid"></ul>
-  </section>
-
+  <div id="sections"></div>
   <div class="empty-state" id="emptyState" style="display:none;">没有匹配的题目</div>
 </main>
 
 <script>
 const DIFF_MAP = { easy: '简单', medium: '中等', hard: '困难' };
 const DIFF_CLASS = { easy: 'tag-easy', medium: 'tag-medium', hard: 'tag-hard' };
+const CAT_ORDER = ['哈希', '双指针', '滑动窗口', '数组', '矩阵', '链表', '二叉树', '图', '回溯', '二分查找', '栈', '堆', '贪心', '动态规划', '位运算', '字符串'];
+
+let diffFilter = 'all';
 let query = '';
 
 function implemented(list) { return list.filter(p => p.file); }
 
 function matches(p) {
-  if (!query) return true;
-  const q = query.toLowerCase();
-  return (p.title + ' ' + (p.tags || []).join(' ') + ' ' + p.id).toLowerCase().indexOf(q) !== -1;
+  if (diffFilter !== 'all' && p.diff !== diffFilter) return false;
+  if (query) {
+    const q = query.toLowerCase();
+    if ((p.title + ' ' + (p.tags || []).join(' ') + ' ' + p.id).toLowerCase().indexOf(q) === -1) return false;
+  }
+  return true;
 }
 
 function renderStats() {
-  const all = implemented(ASN.PROBLEMS.algo).concat(implemented(ASN.PROBLEMS.sql));
+  const algo = implemented(ASN.PROBLEMS.algo);
+  const sql = implemented(ASN.PROBLEMS.sql);
+  const all = algo.concat(sql);
   const done = all.filter(p => ASN.isDone(p.file)).length;
-  const starred = all.filter(p => ASN.isStar(p.file)).length;
   document.getElementById('heroStats').innerHTML =
-    `<div class="hero-stat"><b>${implemented(ASN.PROBLEMS.algo).length}</b><span>算法题</span></div>` +
-    `<div class="hero-stat"><b>${implemented(ASN.PROBLEMS.sql).length}</b><span>SQL 题</span></div>` +
-    `<div class="hero-stat"><b>${done}</b><span>已阅读</span></div>` +
-    `<div class="hero-stat"><b>${starred}</b><span>已收藏</span></div>`;
+    `<div class="hero-stat"><b>${algo.length}</b><span>算法题</span></div>` +
+    `<div class="hero-stat"><b>${sql.length}</b><span>SQL 题</span></div>` +
+    `<div class="hero-stat"><b>${done}</b><span>已阅读</span></div>`;
 }
 
 function card(p) {
@@ -103,40 +109,79 @@ function card(p) {
   a.appendChild(meta);
   li.appendChild(a);
 
-  const star = document.createElement('button');
-  star.type = 'button';
-  star.className = 'prob-star' + (ASN.isStar(p.file) ? ' on' : '');
-  star.textContent = ASN.isStar(p.file) ? '★' : '☆';
-  star.setAttribute('aria-label', '收藏 ' + p.title);
-  star.addEventListener('click', () => {
-    const on = ASN.toggleStar(p.file);
-    star.textContent = on ? '★' : '☆';
-    star.classList.toggle('on', on);
-    renderStats();
-  });
-  li.appendChild(star);
   return li;
 }
 
-function renderGrid(listEl, countEl, problems) {
-  listEl.innerHTML = '';
-  const filtered = problems.filter(matches);
-  countEl.textContent = filtered.length + ' / ' + problems.length;
-  filtered.forEach(p => listEl.appendChild(card(p)));
+function grid(listEl, problems) {
+  problems.forEach(p => listEl.appendChild(card(p)));
+}
+
+function section(title, count, problems) {
+  const sec = document.createElement('details');
+  sec.className = 'cat-section';
+  const sum = document.createElement('summary');
+  const caret = document.createElement('span');
+  caret.className = 'cat-caret';
+  caret.innerHTML = ASN.ICONS.chevron;
+  const name = document.createElement('span');
+  name.className = 'cat-name';
+  name.textContent = title;
+  const c = document.createElement('span');
+  c.className = 'count';
+  c.textContent = count + ' 题';
+  sum.appendChild(caret);
+  sum.appendChild(name);
+  sum.appendChild(c);
+  sec.appendChild(sum);
+  const ul = document.createElement('ul');
+  ul.className = 'prob-grid';
+  grid(ul, problems);
+  sec.appendChild(ul);
+  if (query || diffFilter !== 'all') sec.setAttribute('open', '');
+  return sec;
 }
 
 function renderAll() {
-  const algo = implemented(ASN.PROBLEMS.algo);
-  const sql = implemented(ASN.PROBLEMS.sql);
-  renderGrid(document.getElementById('algoGrid'), document.getElementById('algoCount'), algo);
-  renderGrid(document.getElementById('sqlGrid'), document.getElementById('sqlCount'), sql);
-  const any = algo.some(matches) || sql.some(matches);
-  document.getElementById('emptyState').style.display = any ? 'none' : 'block';
+  const root = document.getElementById('sections');
+  root.innerHTML = '';
+
+  const algo = implemented(ASN.PROBLEMS.algo).filter(matches);
+  const sql = implemented(ASN.PROBLEMS.sql).filter(matches);
+
+  // 算法按分类分组
+  const byCat = {};
+  algo.forEach(p => {
+    const c = p.cat || '其他';
+    (byCat[c] = byCat[c] || []).push(p);
+  });
+  const cats = CAT_ORDER.filter(c => byCat[c]);
+  Object.keys(byCat).filter(c => !CAT_ORDER.includes(c)).forEach(c => cats.push(c));
+  cats.forEach(c => {
+    const list = byCat[c];
+    const visible = list.filter(matches);
+    if (visible.length) root.appendChild(section(c, visible.length, visible));
+  });
+
+  // SQL 区
+  if (sql.length) {
+    root.appendChild(section('SQL 高级题', sql.length, sql));
+  }
+
+  document.getElementById('emptyState').style.display = (algo.length || sql.length) ? 'none' : 'block';
   renderStats();
 }
 
+document.getElementById('diffChips').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  if (btn.dataset.diff) {
+    diffFilter = btn.dataset.diff;
+    document.querySelectorAll('#diffChips [data-diff]').forEach(b => b.classList.toggle('active', b === btn));
+  }
+  renderAll();
+});
+
 window.addEventListener('asn:search', e => { query = e.detail || ''; renderAll(); });
-window.addEventListener('asn:star', () => renderAll());
 
 renderAll();
 </script>

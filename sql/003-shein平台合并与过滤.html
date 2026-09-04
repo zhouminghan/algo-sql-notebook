@@ -24,11 +24,11 @@
 <body>
 
 <div class="why-box">
-  <strong>🤔 为什么用 CASE WHEN 合并而不是 UNION + 子查询？</strong><br>
+  <strong>为什么用 CASE WHEN 合并而不是 UNION + 子查询？</strong><br>
   直接在 SELECT 里用 CASE WHEN 把 AMZDE/AMZUK 映射为 AMZEU，单次扫描完成，无需额外 UNION 再 GROUP BY 重聚合。配合 JOIN 过滤 remote=1，逻辑一条线到底。
 </div>
 
-<h4>📖 业务术语</h4>
+<h4>业务术语</h4>
 <table>
   <tr><th>术语</th><th>含义</th></tr>
   <tr><td>market</td><td>平台编码，如 AMZ=亚马逊美国、AMZDE=亚马逊德国、AMZUK=亚马逊英国、US=美国站、WAL=沃尔玛</td></tr>
@@ -37,7 +37,7 @@
   <tr><td>qty</td><td>销量/库存量</td></tr>
 </table>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p><strong>SHEIN 机试题。</strong>有销售表 <code>shein_A</code> 和平台属性表 <code>shein_B</code>：</p>
 <ol>
   <li><strong>平台合并</strong>：AMZDE 和 AMZUK 合并为新的 <code>AMZEU</code></li>
@@ -46,20 +46,20 @@
 </ol>
 
 <div class="frame-card" style="margin-bottom:1rem;">
-  <div class="frame-label">📥 shein_A（销售表）</div>
+  <div class="frame-label">shein_A（销售表）</div>
   <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">每行 = 某平台某 SKU 的销量</div>
   <div id="desc-a-schema"></div>
   <div id="desc-a-svg"></div>
 </div>
 
 <div class="frame-card" style="margin-bottom:1rem;">
-  <div class="frame-label">📥 shein_B（平台属性表）</div>
+  <div class="frame-label">shein_B（平台属性表）</div>
   <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">remote=1 表示该平台需排除</div>
   <div id="desc-b-schema"></div>
   <div id="desc-b-svg"></div>
 </div>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 
 <div class="frame-card" style="margin-bottom:1.5rem;">
   <div class="frame-label">① CTE: merged — CASE WHEN 合并平台 + JOIN 过滤 remote</div>
@@ -86,12 +86,12 @@ ORDER BY market, sku;</code></pre>
   <div id="frame2-svg"></div>
 </div>
 
-<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">⬆ 以上 2 帧的 SQL 按顺序拼接，即为完整答案。</p>
+<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">以上 2 帧的 SQL 按顺序拼接，即为完整答案。</p>
 
-<h3>📝 SQL 代码</h3>
+<h3>SQL 代码</h3>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
   <pre><code class="language-sql" id="sql-code">WITH merged AS (
     -- ① 合并平台名 + JOIN 过滤 remote=1 的平台
     SELECT CASE a.market
@@ -109,7 +109,7 @@ WHERE qty >= 4
 ORDER BY market, sku;</code></pre>
 </div>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>合并发生在 JOIN 之前</strong>：CASE WHEN 在 SELECT 里，对 shein_A 的原始 market 做映射，映射后与 shein_B JOIN — 但 shein_B 里只有 AMZDE/AMZUK 的原始记录，合并后的 AMZEU 在 shein_B 中不存在。因此 <strong>必须用 shein_A 的原始 market 与 shein_B JOIN</strong>，再在 SELECT 中做合并。</li>
   <li><strong>remote=0 不是 remote≠1</strong>：题目说"排除 remote=1 的"，所以用 <code>WHERE b.remote = 0</code>。如果 remote 字段有其他值（如 NULL），<code>remote != 1</code> 可能漏掉 NULL，用 <code>= 0</code> 更精确。</li>
@@ -117,10 +117,10 @@ ORDER BY market, sku;</code></pre>
 </ul>
 
 <details id="ddlToggle">
-  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">📦 本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">本地复现（CREATE TABLE + INSERT + SQL）</summary>
   <div id="ddlBody" class="collapsible-body">
     <div class="code-block-wrapper">
-      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">📋 一键复制全部</button>
+      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
       <pre><code class="language-sql" id="ddl-code">CREATE TABLE shein_A (
     market VARCHAR(10), sku VARCHAR(20), qty INT
 );
@@ -161,12 +161,12 @@ ORDER BY market, sku;
 </details>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q1:</strong> 为什么 WAL/Label-4 的 qty=4 但没有出现在结果中？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> shein_B 中 WAL 的 remote=1，JOIN 时被 WHERE b.remote=0 过滤掉了。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> shein_B 中 WAL 的 remote=1，JOIN 时被 WHERE b.remote=0 过滤掉了。</p>
     <p><strong>Q2:</strong> 如果 AMZDE 和 AMZUK 各自都有 qty ≥ 4 的同 sku，DISTINCT 后结果是什么？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 合并后 AMZEU + 同 sku 出现多条，DISTINCT 只保留一行，qty 取哪条取决于数据顺序（题目没要求 SUM，用 DISTINCT 即可）。如果需求是合并后 SUM qty，应改用 <code>GROUP BY market, sku HAVING SUM(qty) >= 4</code>。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 合并后 AMZEU + 同 sku 出现多条，DISTINCT 只保留一行，qty 取哪条取决于数据顺序（题目没要求 SUM，用 DISTINCT 即可）。如果需求是合并后 SUM qty，应改用 <code>GROUP BY market, sku HAVING SUM(qty) >= 4</code>。</p>
   </div>
 </details>
 

@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/find-median-from-data-stream/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   用两个堆：大顶堆放较小的一半，小顶堆放较大的一半。保持两者大小差 ≤1，中位数要么是大顶堆堆顶、要么是两堆顶均值。插入 O(log n)。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>实现 MedianFinder，动态插入整数并随时返回当前所有数字的中位数。</p>
 <p><strong>示例：</strong><br>依次加入 <code>1,2,3</code>，中位数分别为 <code>1, 1.5, 2</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 大顶堆存较小一半，小顶堆存较大一半</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   两个堆把数据切成两半，中位数永远在堆顶附近。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">import heapq
 class MedianFinder:
     def __init__(self):
@@ -75,7 +75,7 @@ class MedianFinder:
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">class MedianFinder {
     PriorityQueue&lt;Integer&gt; small = new PriorityQueue&lt;&gt;((a, b) -&gt; b - a);
     PriorityQueue&lt;Integer&gt; large = new PriorityQueue&lt;&gt;();
@@ -91,25 +91,25 @@ class MedianFinder:
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：addNum O(log n)，findMedian O(1)</li>
   <li><strong>空间</strong>：O(n)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>Python 大顶堆用负值</strong>：heapq 只有小顶堆，存 -num 模拟大顶堆</li>
   <li><strong>平衡方向</strong>：插入后让 large 不超过 small，保证 small 要么等大要么多一个</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 偶数个中位数？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 两堆等大时取两堆顶平均值。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 两堆等大时取两堆顶平均值。</p>
     <p><strong>Q:</strong> 奇数个中位数？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> small 多一个，中位数就是 small 堆顶（较小一半的最大值）。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> small 多一个，中位数就是 small 堆顶（较小一半的最大值）。</p>
   </div>
 </details>
 

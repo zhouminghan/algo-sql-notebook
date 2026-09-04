@@ -1,0 +1,51 @@
+from scripts.algo_gen import frame
+
+PROBLEM = {
+    "id": 22,
+    "title": "组合总和",
+    "diff": "medium",
+    "tags": ["回溯"],
+    "leetcode": 39,
+    "origin": "https://leetcode.cn/problems/combination-sum/",
+    "why": "每个数可以无限次使用，本质是「无限背包」式的搜索树。回溯时用一个 start 下标保证「不重复组合」（只从当前及之后的数选），再用剩余和剪枝，及时砍掉超出的分支。",
+    "desc": """<p>给定<strong>无重复元素</strong>的数组 <code>candidates</code> 和目标数 <code>target</code>，找出所有和为 target 的组合。<code>candidates</code> 中的数字可以<strong>无限制重复</strong>选取，且解集不能包含重复组合。</p>
+<p><strong>示例：</strong><br><code>candidates=[2,3,6,7], target=7</code> → <code>[[2,2,3],[7]]</code></p>""",
+    "frames": [
+    frame("① 搜索树：从当前下标往后选，和为 target 就收集", "drawBacktrack", nodes=[{"val": "[]", "x": 300, "y": 15, "color": "normal"}, {"val": "[2]", "x": 170, "y": 80, "color": "path"}, {"val": "[2,2]", "x": 80, "y": 150, "color": "path"}, {"val": "[2,2,3]", "x": 60, "y": 225, "color": "path"}, {"val": "[7]", "x": 470, "y": 150, "color": "path"}, {"val": "[2,2,2,2]", "x": 200, "y": 225, "color": "pruned"}], edges=[{"x1": 300, "y1": 15, "x2": 170, "y2": 80, "color": "path"}, {"x1": 170, "y1": 80, "x2": 80, "y2": 150, "color": "path"}, {"x1": 80, "y1": 150, "x2": 60, "y2": 225, "color": "path"}, {"x1": 80, "y1": 150, "x2": 200, "y2": 225, "color": "pruned"}, {"x1": 300, "y1": 15, "x2": 470, "y2": 150, "color": "path"}], width=560, height=260),
+    frame("② 剪枝：剩余和 < 当前数，就不再往下搜", "drawBacktrack", nodes=[{"val": "rest=4", "x": 300, "y": 20, "color": "normal"}, {"val": "选 6 (rest=-2) ✗", "x": 480, "y": 100, "color": "pruned"}, {"val": "选 3 (rest=1)", "x": 200, "y": 100, "color": "path"}, {"val": "选 1 ✗", "x": 100, "y": 180, "color": "pruned"}], edges=[{"x1": 300, "y1": 20, "x2": 480, "y2": 100, "color": "pruned"}, {"x1": 300, "y1": 20, "x2": 200, "y2": 100, "color": "path"}, {"x1": 200, "y1": 100, "x2": 100, "y2": 180, "color": "pruned"}], width=560, height=220),
+    ],
+    "conclusion": "「从当前下标往后选」保证组合不重复；「剩余和不足即剪枝」把指数级搜索大幅收窄。",
+    "py": """def combinationSum(candidates, target):
+    candidates.sort()          # 排序后便于剪枝
+    ans = []
+    def dfs(start, path, rest):
+        if rest == 0:
+            ans.append(path[:]); return
+        for i in range(start, len(candidates)):
+            if candidates[i] > rest:   # 已排序，后面更大，剪枝
+                break
+            path.append(candidates[i])
+            dfs(i, path, rest - candidates[i])   # 可重复，i 不 +1
+            path.pop()
+    dfs(0, [], target)
+    return ans""",
+    "java": """public List<List<Integer>> combinationSum(int[] candidates, int target) {
+    Arrays.sort(candidates);
+    List<List<Integer>> ans = new ArrayList<>();
+    dfs(candidates, target, 0, new ArrayList<>(), ans);
+    return ans;
+}
+void dfs(int[] c, int rest, int start, List<Integer> path, List<List<Integer>> ans) {
+    if (rest == 0) { ans.add(new ArrayList<>(path)); return; }
+    for (int i = start; i < c.length; i++) {
+        if (c[i] > rest) break;
+        path.add(c[i]);
+        dfs(c, rest - c[i], i, path, ans);
+        path.remove(path.size() - 1);
+    }
+}""",
+    "time": "O(n^(t/min)) — 组合数级别，t 为 target，min 为最小候选",
+    "space": "O(target/min) — 递归深度",
+    "pitfalls": [["去重靠 start 下标", "递归传 i 而不是 i+1 表示可重复；若从 0 开始会生成重复组合"], ["回溯恢复现场", "path.append 后必须 path.pop()，否则路径串到别的分支"], ["先排序再剪枝", "不排序无法用 break 提前终止"]],
+    "selfcheck": [["candidates=[2,3,6,7], target=7 的两个答案怎么来的？", "[2,2,3] 来自一路选 2 再选 3；[7] 来自直接选 7。选 [2,3,2] 这类重复顺序被 start 下标挡掉了。"], ["为什么这题不像「无重复组合」那样纠结顺序？", "start 下标保证只往「当前及之后」选，组合内部天然有序，顺序不同不会重复出现。"]],
+}

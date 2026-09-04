@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/serialize-and-deserialize-binary-tree/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   用前序遍历序列化，空节点记为特殊占位符（如 '#'）。反序列化时按同样顺序递归重建——遇到 '#' 返回空，否则读值建节点再建左右子树。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>设计算法将二叉树序列化为字符串、并反序列化回原树结构，不限定序列化格式。</p>
 <p><strong>示例：</strong><br><code>[1,2,3,null,null,4,5]</code> → 序列化后能还原为同一棵树</p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 前序遍历 + '#' 占位空节点</div>
   <div id="frame1-svg"></div>
@@ -44,15 +44,15 @@
   <div id="frame2-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   前序 + 空占位能唯一确定树，反序列化按同一递归顺序重建。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">class Codec:
     def serialize(self, root):
         def dfs(node):
@@ -79,7 +79,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public class Codec {
     public String serialize(TreeNode root) {
         StringBuilder sb = new StringBuilder();
@@ -105,25 +105,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：序列化与反序列化均 O(n)</li>
   <li><strong>空间</strong>：O(n)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>空节点占位</strong>：没有 '#' 占位无法区分「左空右有」的结构，反序列化会错位</li>
   <li><strong>反序列化顺序一致</strong>：递归顺序必须与序列化完全一致（前序对前序）</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么前序+空占位能唯一还原？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 前序给定根、左右顺序，空占位标出子树边界，递归重建唯一。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 前序给定根、左右顺序，空占位标出子树边界，递归重建唯一。</p>
     <p><strong>Q:</strong> BFS 序列化可以吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 可以，按层输出并保留空节点，反序列化用队列逐层接。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 可以，按层输出并保留空节点，反序列化用队列逐层接。</p>
   </div>
 </details>
 
@@ -131,7 +131,7 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawTree({"nodes": [{"val": "1", "x": 300, "y": 25}, {"val": "2", "x": 160, "y": 110}, {"val": "3", "x": 440, "y": 110}, {"val": "4", "x": 380, "y": 200}, {"val": "5", "x": 500, "y": 200}], "edges": [{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 440, "y1": 110, "x2": 380, "y2": 200}, {"x1": 440, "y1": 110, "x2": 500, "y2": 200}], "width": U.frameCardWidth('frame1-svg'), "height": 240});
+document.getElementById('frame1-svg').innerHTML = U.drawTree({"nodes": [{"val": "1", "x": 300, "y": 25}, {"val": "2", "x": 160, "y": 110}, {"val": "3", "x": 440, "y": 110}, {"val": "4", "x": 380, "y": 200}, {"val": "5", "x": 500, "y": 200}], "edges": [{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 440, "y1": 110, "x2": 380, "y2": 200}, {"x1": 440, "y1": 110, "x2": 500, "y2": 200}], "width": 560, "height": 240});
 document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["顺序", "1", "2", "#", "#", "3", "4", "#", "#", "5", "#", "#"], "rows": [["含义", "根", "左", "空", "空", "右", "左", "空", "空", "右", "空", "空"]], "width": U.frameCardWidth('frame2-svg'), "height": 140});
 }
 

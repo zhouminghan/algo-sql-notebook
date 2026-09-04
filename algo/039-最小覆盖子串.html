@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/minimum-window-substring/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   用滑动窗口在 s 上滑：右指针扩大窗口直到「覆盖 t 所有字符」，再左指针收缩到「刚好还覆盖」为止，记录最短。用哈希表计数判断是否覆盖。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定字符串 <code>s</code> 和 <code>t</code>，返回 s 中涵盖 t 所有字符的最小子串；不存在则返回空串。</p>
 <p><strong>示例：</strong><br><code>s="ADOBECODEBANC", t="ABC"</code> → <code>"BANC"</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 右指针扩大窗口，直到覆盖 t=ABC</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   右扩到「覆盖」，左缩到「最小仍覆盖」，反复滑动取全局最短。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">from collections import Counter
 def minWindow(s, t):
     need = Counter(t)
@@ -82,7 +82,7 @@ def minWindow(s, t):
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public String minWindow(String s, String t) {
     int[] need = new int[128];
     for (char c : t.toCharArray()) need[c]++;
@@ -104,25 +104,25 @@ def minWindow(s, t):
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(|s|) — 左右指针各扫一遍</li>
   <li><strong>空间</strong>：O(字符集) — 计数表</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>覆盖判定用 have==need_cnt</strong>：只有某字符计数「恰好达到需求」时 have 才 +1，多了不重复加</li>
   <li><strong>收缩时先减再判断</strong>：移出左边界字符后，若其计数掉到需求以下，覆盖数 have 才 -1</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> t 中字符有重复呢？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> need 记录每个字符需求次数，window 计数与之比较，重复字符必须凑够数量才算覆盖。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> need 记录每个字符需求次数，window 计数与之比较，重复字符必须凑够数量才算覆盖。</p>
     <p><strong>Q:</strong> s 中不存在覆盖子串？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> have 永远达不到 needCnt，ans 保持空串，最后返回 ""。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> have 永远达不到 needCnt，ans 保持空串，最后返回 ""。</p>
   </div>
 </details>
 
@@ -130,8 +130,8 @@ def minWindow(s, t):
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({"arr": ["A", "D", "O", "B", "E", "C", "O", "D", "E", "B", "A", "N", "C"], "left": 0, "right": 5, "window": {"start": 0, "end": 5}, "width": U.frameCardWidth('frame1-svg'), "height": 150});
-document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": ["A", "D", "O", "B", "E", "C", "O", "D", "E", "B", "A", "N", "C"], "left": 9, "right": 12, "window": {"start": 9, "end": 12}, "width": U.frameCardWidth('frame2-svg'), "height": 150});
+document.getElementById('frame1-svg').innerHTML = U.drawTwoPointers({"arr": ["A", "D", "O", "B", "E", "C", "O", "D", "E", "B", "A", "N", "C"], "left": 0, "right": 5, "window": {"start": 0, "end": 5}, "width": 0, "height": 150});
+document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": ["A", "D", "O", "B", "E", "C", "O", "D", "E", "B", "A", "N", "C"], "left": 9, "right": 12, "window": {"start": 9, "end": 12}, "width": 0, "height": 150});
 document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["窗口", "值"], "rows": [["子串", "BANC"], ["长度", "4"]], "width": U.frameCardWidth('frame3-svg'), "height": 130});
 }
 

@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/burst-balloons/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   正着戳会改变邻居、子问题不独立。反过来：设 dp[i][j] 为「开区间 (i,j) 内能得到的最大硬币」，枚举最后戳的气球 k，dp[i][j] = max(dp[i][k] + dp[k][j] + nums[i]*nums[k]*nums[j])。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>有 n 个气球排成一排，每个气球上有数字 nums[i]。戳破第 i 个气球可得 <code>nums[i-1] * nums[i] * nums[i+1]</code> 枚硬币（越界处视为 1）。求最多硬币数。</p>
 <p><strong>示例：</strong><br><code>[3,1,5,8]</code> → <code>167</code>（1→5→3→8 顺序）</p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 两端补 1，dp[i][j] 为开区间 (i,j) 最大硬币</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   把「最后戳谁」当决策点，两侧区间互不影响，区间 DP 经典模型。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def maxCoins(nums):
     nums = [1] + nums + [1]
     n = len(nums)
@@ -71,7 +71,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int maxCoins(int[] nums) {
     int m = nums.length;
     int[] a = new int[m + 2];
@@ -89,25 +89,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n³)</li>
   <li><strong>空间</strong>：O(n²)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>枚举「最后戳」而非「第一个戳」</strong>：戳第一个会改变两侧邻居，子问题耦合；最后戳则两侧已固定为 i、j</li>
   <li><strong>两端补 1</strong>：越界视为 1，补 1 后公式统一</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么区间长度从 3 开始？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 开区间 (i,j) 至少要有中间一个气球 k，即 j-i≥2。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 开区间 (i,j) 至少要有中间一个气球 k，即 j-i≥2。</p>
     <p><strong>Q:</strong> 回溯思路 vs 正着贪心？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 贪心不行；区间 DP 把「最后戳谁」作为划分，保证子问题独立。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 贪心不行；区间 DP 把「最后戳谁」作为划分，保证子问题独立。</p>
   </div>
 </details>
 

@@ -1,0 +1,67 @@
+from scripts.algo_gen import frame
+
+PROBLEM = {
+    "id": 91,
+    "title": "二叉树的序列化与反序列化",
+    "diff": "hard",
+    "tags": ["树"],
+    "leetcode": 297,
+    "origin": "https://leetcode.cn/problems/serialize-and-deserialize-binary-tree/",
+    "why": "用前序遍历序列化，空节点记为特殊占位符（如 '#'）。反序列化时按同样顺序递归重建——遇到 '#' 返回空，否则读值建节点再建左右子树。",
+    "desc": """<p>设计算法将二叉树序列化为字符串、并反序列化回原树结构，不限定序列化格式。</p>
+<p><strong>示例：</strong><br><code>[1,2,3,null,null,4,5]</code> → 序列化后能还原为同一棵树</p>""",
+    "frames": [
+    frame("① 前序遍历 + '#' 占位空节点", "drawTree", nodes=[{"val": "1", "x": 300, "y": 25}, {"val": "2", "x": 160, "y": 110}, {"val": "3", "x": 440, "y": 110}, {"val": "4", "x": 380, "y": 200}, {"val": "5", "x": 500, "y": 200}], edges=[{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 440, "y1": 110, "x2": 380, "y2": 200}, {"x1": 440, "y1": 110, "x2": 500, "y2": 200}], width=560, height=240),
+    frame("② 序列化串：1,2,#,#,3,4,#,#,5,#,#", "drawTable", headers=["顺序", "1", "2", "#", "#", "3", "4", "#", "#", "5", "#", "#"], rows=[["含义", "根", "左", "空", "空", "右", "左", "空", "空", "右", "空", "空"]], width=720, height=140),
+    ],
+    "conclusion": "前序 + 空占位能唯一确定树，反序列化按同一递归顺序重建。",
+    "py": """class Codec:
+    def serialize(self, root):
+        def dfs(node):
+            if not node:
+                vals.append('#')
+                return
+            vals.append(str(node.val))
+            dfs(node.left); dfs(node.right)
+        vals = []
+        dfs(root)
+        return ','.join(vals)
+    def deserialize(self, data):
+        it = iter(data.split(','))
+        def build():
+            v = next(it)
+            if v == '#':
+                return None
+            node = TreeNode(int(v))
+            node.left = build()
+            node.right = build()
+            return node
+        return build()""",
+    "java": """public class Codec {
+    public String serialize(TreeNode root) {
+        StringBuilder sb = new StringBuilder();
+        s(root, sb);
+        return sb.toString();
+    }
+    void s(TreeNode n, StringBuilder sb) {
+        if (n == null) { sb.append("#,"); return; }
+        sb.append(n.val).append(",");
+        s(n.left, sb); s(n.right, sb);
+    }
+    int i = 0;
+    public TreeNode deserialize(String data) {
+        String[] a = data.split(",");
+        return d(a);
+    }
+    TreeNode d(String[] a) {
+        if (a[i].equals("#")) { i++; return null; }
+        TreeNode n = new TreeNode(Integer.parseInt(a[i++])); 
+        n.left = d(a); n.right = d(a);
+        return n;
+    }
+}""",
+    "time": "序列化与反序列化均 O(n)",
+    "space": "O(n)",
+    "pitfalls": [["空节点占位", "没有 '#' 占位无法区分「左空右有」的结构，反序列化会错位"], ["反序列化顺序一致", "递归顺序必须与序列化完全一致（前序对前序）"]],
+    "selfcheck": [["为什么前序+空占位能唯一还原？", "前序给定根、左右顺序，空占位标出子树边界，递归重建唯一。"], ["BFS 序列化可以吗？", "可以，按层输出并保留空节点，反序列化用队列逐层接。"]],
+}

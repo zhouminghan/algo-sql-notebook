@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/generate-parentheses/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   生成所有合法括号组合，本质是一棵决策树：每一步要么放 '(' 要么放 ')'。两条剪枝规则保证结果合法——左括号数量不超过 n，右括号数量不超过当前左括号数（否则会「先右后左」不匹配）。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>数字 <code>n</code> 代表生成括号的对数，设计一个函数，返回所有可能的并且<strong>有效的</strong>括号组合。</p>
 <p><strong>示例：</strong><br><code>n = 3</code> → <code>["((()))","(()())","(())()","()(())","()()()"]</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 决策树：每步放 '(' 或 ')'，剪掉非法分支</div>
   <div id="frame1-svg"></div>
@@ -44,15 +44,15 @@
   <div id="frame2-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   「左括号数 ≤ n」与「右括号数 ≤ 左括号数」两条约束贯穿整棵树，走到 2n 长度就收集一个答案。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def generateParenthesis(n):
     ans = []
     def dfs(s, left, right):
@@ -68,7 +68,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;String&gt; generateParenthesis(int n) {
     List&lt;String&gt; ans = new ArrayList&lt;&gt;();
     dfs(new StringBuilder(), 0, 0, n, ans);
@@ -81,25 +81,25 @@ void dfs(StringBuilder sb, int left, int right, int n, List&lt;String&gt; ans) {
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(C(2n,n)/(n+1) · n) — 卡特兰数个答案，每个答案长 2n</li>
   <li><strong>空间</strong>：O(n) — 递归栈深度 2n</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>剪枝条件写反</strong>：右括号条件是 right < left 而非 right < n，否则会生成 ")(" 这种非法开头</li>
   <li><strong>回溯要恢复现场</strong>：用可变字符串（StringBuilder）时，递归返回后要 deleteCharAt 撤销本次选择</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么第二个条件不是 right < n 而是 right < left？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> right < n 只限制总量，无法阻止右括号出现在左括号之前（如 ')(('）；right < left 保证任意前缀里右括号都不多于左括号，这正是合法的充要条件。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> right < n 只限制总量，无法阻止右括号出现在左括号之前（如 ')(('）；right < left 保证任意前缀里右括号都不多于左括号，这正是合法的充要条件。</p>
     <p><strong>Q:</strong> n=1 会生成什么？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 先放 '('，此时 right(0) < left(1) 可放 ')'，得 '()'；没有其他分支，结果唯一。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 先放 '('，此时 right(0) < left(1) 可放 ')'，得 '()'；没有其他分支，结果唯一。</p>
   </div>
 </details>
 
@@ -107,8 +107,8 @@ void dfs(StringBuilder sb, int left, int right, int n, List&lt;String&gt; ans) {
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "", "x": 300, "y": 20, "color": "normal"}, {"val": "(", "x": 160, "y": 80, "color": "path"}, {"val": "((", "x": 60, "y": 150, "color": "path"}, {"val": "(((", "x": 30, "y": 220, "color": "path"}, {"val": "((()", "x": 140, "y": 290, "color": "path"}, {"val": "()", "x": 480, "y": 150, "color": "path"}, {"val": "())", "x": 540, "y": 220, "color": "pruned"}], "edges": [{"x1": 300, "y1": 20, "x2": 160, "y2": 80, "color": "path"}, {"x1": 300, "y1": 20, "x2": 480, "y2": 150, "color": "path"}, {"x1": 160, "y1": 80, "x2": 60, "y2": 150, "color": "path"}, {"x1": 60, "y1": 150, "x2": 30, "y2": 220, "color": "path"}, {"x1": 30, "y1": 220, "x2": 140, "y2": 290, "color": "path"}, {"x1": 480, "y1": 150, "x2": 540, "y2": 220, "color": "pruned"}], "width": U.frameCardWidth('frame1-svg'), "height": 320});
-document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "", "x": 300, "y": 20, "color": "normal"}, {"val": "(", "x": 220, "y": 90, "color": "path"}, {"val": "()", "x": 220, "y": 170, "color": "path"}], "edges": [{"x1": 300, "y1": 20, "x2": 220, "y2": 90, "color": "path"}, {"x1": 220, "y1": 90, "x2": 220, "y2": 170, "color": "path"}], "width": U.frameCardWidth('frame2-svg'), "height": 220});
+document.getElementById('frame1-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "", "x": 300, "y": 20, "color": "normal"}, {"val": "(", "x": 160, "y": 80, "color": "path"}, {"val": "((", "x": 60, "y": 150, "color": "path"}, {"val": "(((", "x": 30, "y": 220, "color": "path"}, {"val": "((()", "x": 140, "y": 290, "color": "path"}, {"val": "()", "x": 480, "y": 150, "color": "path"}, {"val": "())", "x": 540, "y": 220, "color": "pruned"}], "edges": [{"x1": 300, "y1": 20, "x2": 160, "y2": 80, "color": "path"}, {"x1": 300, "y1": 20, "x2": 480, "y2": 150, "color": "path"}, {"x1": 160, "y1": 80, "x2": 60, "y2": 150, "color": "path"}, {"x1": 60, "y1": 150, "x2": 30, "y2": 220, "color": "path"}, {"x1": 30, "y1": 220, "x2": 140, "y2": 290, "color": "path"}, {"x1": 480, "y1": 150, "x2": 540, "y2": 220, "color": "pruned"}], "width": 620, "height": 320});
+document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({"nodes": [{"val": "", "x": 300, "y": 20, "color": "normal"}, {"val": "(", "x": 220, "y": 90, "color": "path"}, {"val": "()", "x": 220, "y": 170, "color": "path"}], "edges": [{"x1": 300, "y1": 20, "x2": 220, "y2": 90, "color": "path"}, {"x1": 220, "y1": 90, "x2": 220, "y2": 170, "color": "path"}], "width": 620, "height": 220});
 }
 
 renderFrames();

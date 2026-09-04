@@ -24,11 +24,11 @@
 <body>
 
 <div class="why-box">
-  <strong>🤔 为什么用自连接而不两次查询拼起来？</strong><br>
+  <strong>为什么用自连接而不两次查询拼起来？</strong><br>
   自连接 <code>a.from_id = b.to_id AND a.to_id = b.from_id</code> 一次扫表，JOIN 条件是「A→B 且 B→A」的精确对称匹配。加 <code>a.from_id &lt; a.to_id</code> 去重保证每对只出一行，避免 (1,2) 和 (2,1) 重复输出。
 </div>
 
-<h4>📖 业务术语</h4>
+<h4>业务术语</h4>
 <table>
   <tr><th>术语</th><th>含义</th></tr>
   <tr><td>from_id</td><td>关注发起方用户 ID</td></tr>
@@ -36,17 +36,17 @@
   <tr><td>互相关注（互关）</td><td>A 关注 B 且 B 也关注 A，即双向关注关系</td></tr>
 </table>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p><strong>字节跳动面试题。</strong>表 <code>c22_follow</code> 每行表示"用户 from_id 关注了 to_id"。找出所有互相关注的用户对（A 关注 B 且 B 关注 A）。每对只输出一次（小 id 作为 user_a 在前），按 user_a、user_b 升序排列。</p>
 
 <div class="frame-card" style="margin-bottom:1rem;">
-  <div class="frame-label">📥 c22_follow（关注关系表）</div>
+  <div class="frame-label">c22_follow（关注关系表）</div>
   <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">每行 = 一条关注关系。互关需要在表中存在对称的两行</div>
   <div id="desc-schema"></div>
   <div id="desc-svg"></div>
 </div>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 
 <div class="frame-card" style="margin-bottom:1.5rem;">
   <div class="frame-label">① 自连接 — A→B 且 B→A 的对称匹配</div>
@@ -69,12 +69,12 @@ ORDER BY user_a, user_b;</code></pre>
   <div id="frame2-svg"></div>
 </div>
 
-<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">⬆ 以上 2 帧的 SQL 按顺序拼接，即为完整答案。</p>
+<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">以上 2 帧的 SQL 按顺序拼接，即为完整答案。</p>
 
-<h3>📝 SQL 代码</h3>
+<h3>SQL 代码</h3>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
   <pre><code class="language-sql" id="sql-code">SELECT a.from_id AS user_a, a.to_id AS user_b
 FROM c22_follow a
 JOIN c22_follow b
@@ -83,7 +83,7 @@ WHERE a.from_id < a.to_id
 ORDER BY user_a, user_b;</code></pre>
 </div>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>去重用 &lt; 而非 &lt;&gt;</strong>：<code>a.from_id &lt; a.to_id</code> 保证每对互关只输出一行（小 id 在前）。如果不用 &lt; 直接用自连接结果，(1,2) 和 (2,1) 都会输出 — 违反了"每对只输出一次"的要求。</li>
   <li><strong>JOIN 条件必须双向对称</strong>：<code>ON a.from_id=b.to_id AND a.to_id=b.from_id</code> 不能只写一个方向只匹配一半。</li>
@@ -91,10 +91,10 @@ ORDER BY user_a, user_b;</code></pre>
 </ul>
 
 <details id="ddlToggle">
-  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">📦 本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">本地复现（CREATE TABLE + INSERT + SQL）</summary>
   <div id="ddlBody" class="collapsible-body">
     <div class="code-block-wrapper">
-      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">📋 一键复制全部</button>
+      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
       <pre><code class="language-sql" id="ddl-code">CREATE TABLE c22_follow (
     from_id INT,
     to_id INT
@@ -122,13 +122,13 @@ ORDER BY user_a, user_b;
 </details>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q1:</strong> 如果表里只有 (1,2)、(2,3)、(3,1) 三条，有互关吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 没有。三条组成单向环（1→2→3→1），但没有任何一对是双向的。自连接匹配不到任何行。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 没有。三条组成单向环（1→2→3→1），但没有任何一对是双向的。自连接匹配不到任何行。</p>
 <p><strong>Q2:</strong> 如果改成「找出被至少 2 人关注的用户」，SQL 怎么改？</p>
     <div style="color:var(--color-done);margin-left:1rem;">
-      <p>✅ <strong>答：</strong> 不需要自连接，直接 GROUP BY + COUNT 即可。</p>
+      <p><strong>答：</strong> 不需要自连接，直接 GROUP BY + COUNT 即可。</p>
       <pre><code class="language-sql">SELECT to_id, COUNT(*) AS fan_cnt
 FROM c22_follow
 GROUP BY to_id

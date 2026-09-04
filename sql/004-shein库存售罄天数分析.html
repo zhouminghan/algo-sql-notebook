@@ -24,12 +24,12 @@
 <body>
 
 <div class="why-box">
-  <strong>🤔 为什么用 ROW_NUMBER + 日期窗口而不是自连接？</strong><br>
+  <strong>为什么用 ROW_NUMBER + 日期窗口而不是自连接？</strong><br>
   4.1 取最后一次有 qty 的记录：ROW_NUMBER DESC 一次扫描搞定，比 MAX(date) 再 JOIN 回来取 qty 简洁。<br>
   4.2 售罄天数 = 数据段总天数 − 有库存天数：用 <code>DATEDIFF(MAX, MIN) + 1</code> 减 <code>COUNT(DISTINCT date)</code>，无需生成日历表逐天判断。
 </div>
 
-<h4>📖 业务术语</h4>
+<h4>业务术语</h4>
 <table>
   <tr><th>术语</th><th>含义</th></tr>
   <tr><td>market</td><td>平台编码，如 AMZ=亚马逊美国、US=美国站、WAL=沃尔玛</td></tr>
@@ -38,11 +38,11 @@
   <tr><td>售罄天数</td><td>数据段内没有库存记录的天数 = 总天数 − 有库存天数</td></tr>
 </table>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p><strong>SHEIN 机试题。</strong>表 <code>shein_C</code> 记录每个 market 每个 sku 每天的 qty：</p>
 
 <div class="frame-card" style="margin-bottom:1rem;">
-  <div class="frame-label">📥 shein_C（库存流水表）</div>
+  <div class="frame-label">shein_C（库存流水表）</div>
   <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">每行 = 某平台某 SKU 某天的库存量</div>
   <div id="desc-schema"></div>
   <div id="desc-svg"></div>
@@ -52,7 +52,7 @@
 
 <h4>4.2 售罄天数 = 数据段总天数 − 有库存天数</h4>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 
 <div class="frame-card" style="margin-bottom:1.5rem;">
   <div class="frame-label">① CTE: ranked — ROW_NUMBER 按日期倒序，rn=1 即最后一天</div>
@@ -98,12 +98,12 @@ ORDER BY market, sku;</code></pre>
   <div id="frame4-svg"></div>
 </div>
 
-<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">⬆ 以上 4 帧的 SQL 按顺序拼接（4.1 和 4.2 各为独立查询），即为完整答案。</p>
+<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">以上 4 帧的 SQL 按顺序拼接（4.1 和 4.2 各为独立查询），即为完整答案。</p>
 
-<h3>📝 SQL 代码</h3>
+<h3>SQL 代码</h3>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-41')">📋 复制 4.1</button>
+  <button class="copy-btn" onclick="copyCode(this, 'sql-41')">复制 4.1</button>
   <pre><code class="language-sql" id="sql-41">-- 4.1 每个 market 每个 sku 最后一次有 qty 的时间及 qty
 WITH ranked AS (
     SELECT market, sku, qty, date,
@@ -117,7 +117,7 @@ ORDER BY market, sku;</code></pre>
 </div>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-42')">📋 复制 4.2</button>
+  <button class="copy-btn" onclick="copyCode(this, 'sql-42')">复制 4.2</button>
   <pre><code class="language-sql" id="sql-42">-- 4.2 每个 market 每个 sku 的售罄天数
 WITH stats AS (
     SELECT market, sku,
@@ -134,7 +134,7 @@ FROM stats
 ORDER BY market, sku;</code></pre>
 </div>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>4.1 不能直接用 MAX(date) + JOIN</strong>：MAX(date) 找到日期后还要 JOIN 回来取 qty，如果同一天有多条 qty（不同时间），MAX 后再 JOIN 会取到多条。ROW_NUMBER DESC 按日期分区精确取最后一条，避免歧义。</li>
   <li><strong>4.2 总天数 = DATEDIFF + 1 而非直接 DATEDIFF</strong>：比如 2/1 ~ 2/3 是 3 天，DATEDIFF('2023-02-03','2023-02-01') = 2，需要 +1。</li>
@@ -142,10 +142,10 @@ ORDER BY market, sku;</code></pre>
 </ul>
 
 <details id="ddlToggle">
-  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">📦 本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">本地复现（CREATE TABLE + INSERT + SQL）</summary>
   <div id="ddlBody" class="collapsible-body">
     <div class="code-block-wrapper">
-      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">📋 一键复制全部</button>
+      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
       <pre><code class="language-sql" id="ddl-code">CREATE TABLE shein_C (
     market VARCHAR(10), sku VARCHAR(20), qty INT, date DATE
 );
@@ -201,12 +201,12 @@ ORDER BY market, sku;
 </details>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q1:</strong> 如果 AMZ/Label-1 在 2/2 有两条 qty 记录（不同时间），ROW_NUMBER DESC 取到哪条？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 取 rn=1 的那条。如果 ORDER BY 只有 date DESC 没有 tie-breaker，同一天多条记录顺序不确定。如需精确控制，可加第二个排序列如 <code>ORDER BY date DESC, qty DESC</code>。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 取 rn=1 的那条。如果 ORDER BY 只有 date DESC 没有 tie-breaker，同一天多条记录顺序不确定。如需精确控制，可加第二个排序列如 <code>ORDER BY date DESC, qty DESC</code>。</p>
     <p><strong>Q2:</strong> 示例数据中所有 sku 售罄天数都是 0，什么情况下会 &gt; 0？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 当某个 sku 在数据段中间某天没有记录时。比如 AMZ/Label-1 有 2/1 和 2/3 但没有 2/2 → total_days=3, stock_days=2 → sold_out_days=1。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 当某个 sku 在数据段中间某天没有记录时。比如 AMZ/Label-1 有 2/1 和 2/3 但没有 2/2 → total_days=3, stock_days=2 → sold_out_days=1。</p>
   </div>
 </details>
 

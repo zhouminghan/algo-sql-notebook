@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/coin-change/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   凑出金额 i 的最少硬币数 dp[i] = min(dp[i - coin]) + 1。完全背包模型，硬币可无限用，逐金额填表，无法凑出则 -1。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定不同面额的硬币 <code>coins</code> 和一个总金额 <code>amount</code>，计算凑出该金额所需的最少硬币个数。无解返回 -1。</p>
 <p><strong>示例：</strong><br><code>coins=[1,2,5], amount=11</code> → <code>3</code>（5+5+1）；<code>coins=[2], amount=3</code> → <code>-1</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① dp[i] = min(dp[i-coin]) + 1</div>
   <div id="frame1-svg"></div>
@@ -44,15 +44,15 @@
   <div id="frame2-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   每种硬币都试一遍，取「剩余金额最优 + 1」的最小值。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def coinChange(coins, amount):
     dp = [float('inf')] * (amount + 1)
     dp[0] = 0
@@ -65,7 +65,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int coinChange(int[] coins, int amount) {
     int[] dp = new int[amount + 1];
     Arrays.fill(dp, amount + 1);
@@ -77,25 +77,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(amount · len(coins))</li>
   <li><strong>空间</strong>：O(amount)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>无解返回 -1</strong>：用 amount+1 或 inf 初始化，最后判断是否被更新</li>
   <li><strong>硬币可重复使用</strong>：内层是金额循环，每个金额重新遍历所有硬币，等价完全背包</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> coins=[2], amount=3？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> dp[3] 一直无法更新（3-2=1 无解），返回 -1。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> dp[3] 一直无法更新（3-2=1 无解），返回 -1。</p>
     <p><strong>Q:</strong> 最少个数 vs 组合总数？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 本题求最少（取 min）；组合总数是另一个经典 DP，求累加和。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 本题求最少（取 min）；组合总数是另一个经典 DP，求累加和。</p>
   </div>
 </details>
 

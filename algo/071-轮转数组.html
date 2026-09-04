@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/rotate-array/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   把数组向右轮转 k 位，等价于「整体反转 → 前 k 个反转 → 后 n-k 个反转」三步，原地 O(1) 空间。k 要先对 n 取模。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定整数数组，将数组中的元素向右轮转 <code>k</code> 个位置。</p>
 <p><strong>示例：</strong><br><code>nums=[1,2,3,4,5,6,7], k=3</code> → <code>[5,6,7,1,2,3,4]</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 整体反转 [7,6,5,4,3,2,1]</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   三次反转组合出「循环右移」效果，且完全原地。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def rotate(nums, k):
     n = len(nums)
     k %= n
@@ -71,7 +71,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public void rotate(int[] nums, int k) {
     int n = nums.length; k %= n;
     rev(nums, 0, n - 1);
@@ -83,25 +83,25 @@ void rev(int[] a, int l, int r) {
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>k 取模</strong>：k 可能大于 n，先 k %= n，否则反转区间越界</li>
   <li><strong>三步顺序</strong>：先整体、再前 k、再后 n-k，顺序不能乱</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> k=0 或 k=n？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> k%=n 后为 0，三次反转互相抵消，数组不变。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> k%=n 后为 0，三次反转互相抵消，数组不变。</p>
     <p><strong>Q:</strong> 左轮转怎么做？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 同理先整体反转，再反转「前 n-k」和「后 k」即可。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 同理先整体反转，再反转「前 n-k」和「后 k」即可。</p>
   </div>
 </details>
 

@@ -5,12 +5,15 @@
 规格字段见 algo_spec 示例。运行：python3 scripts/algo_gen.py
 """
 import html
+import importlib.util
 import json
 import pathlib
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ALGO_DIR = ROOT / "algo"
 PROBLEMS_JS = ROOT / "assets" / "js" / "problems.js"
+SPECS_DIR = ROOT / "scripts" / "specs" / "algo"
 
 
 def esc_text(s: str) -> str:
@@ -60,12 +63,28 @@ def _frame_html(idx: int, f: dict) -> str:
     )
 
 
+# 只让「表格类」图解撑满卡片宽度；栈/链表/双指针等窄图保持自然宽度
+FILL_FNS = {
+    "drawTable", "drawDPTable", "drawWindowFunc", "diffTable",
+    "drawGroupBy", "drawJoin", "drawSubquery", "drawCTE", "drawSetOp",
+    "drawPivot", "drawStringFunc", "drawDateFunc", "drawConditionFunc",
+}
+# 这类函数会按内容自动贴合宽度，传 0 让它们自适应（去掉右侧大片空白）
+AUTO_FIT_FNS = {"drawTwoPointers", "drawBinarySearch"}
+
+
 def _frame_js(idx: int, f: dict) -> str:
     args = dict(f["args"])
-    marker = f"__WIDTH_{idx}__"
-    args["width"] = marker
-    s = json.dumps(args, ensure_ascii=False)
-    s = s.replace(f'"{marker}"', f"U.frameCardWidth('frame{idx}-svg')")
+    if f["fn"] in FILL_FNS:
+        marker = f"__WIDTH_{idx}__"
+        args["width"] = marker
+        s = json.dumps(args, ensure_ascii=False)
+        s = s.replace(f'"{marker}"', f"U.frameCardWidth('frame{idx}-svg')")
+    elif f["fn"] in AUTO_FIT_FNS:
+        args["width"] = 0
+        s = json.dumps(args, ensure_ascii=False)
+    else:
+        s = json.dumps(args, ensure_ascii=False)
     return f"document.getElementById('frame{idx}-svg').innerHTML = U.{f['fn']}({s});"
 
 
@@ -82,49 +101,49 @@ def render(prob: dict) -> str:
     )
 
     parts.append('<div class="why-box">\n')
-    parts.append(f'  <strong>🤔 为什么用这个思路？</strong><br>\n  {prob["why"]}\n')
+    parts.append(f'  <strong>为什么用这个思路？</strong><br>\n  {prob["why"]}\n')
     parts.append('</div>\n\n')
 
-    parts.append('<h3>📄 题目描述</h3>\n')
+    parts.append('<h3>题目描述</h3>\n')
     parts.append(prob["desc"].strip() + '\n\n')
 
-    parts.append('<h3>📐 图解即思路</h3>\n')
+    parts.append('<h3>图解即思路</h3>\n')
     if prob.get("concept"):
         parts.append('<div class="why-box">\n  ' + prob["concept"].strip() + '\n</div>\n')
     for i, f in enumerate(prob["frames"], start=1):
         parts.append(_frame_html(i, f))
     if prob.get("conclusion"):
-        parts.append('<div class="why-box">\n  <strong>✅ 结论</strong><br>\n  ' + prob["conclusion"].strip() + '\n</div>\n')
+        parts.append('<div class="why-box">\n  <strong>结论</strong><br>\n  ' + prob["conclusion"].strip() + '\n</div>\n')
     parts.append('\n')
 
-    parts.append('<h3>📝 最优解代码</h3>\n\n')
+    parts.append('<h3>最优解代码</h3>\n\n')
     parts.append('<h4 style="margin-bottom:0.25rem;">Python</h4>\n')
     parts.append('<div class="code-block-wrapper">\n')
-    parts.append('  <button class="copy-btn" onclick="copyCode(this, \'py-code\')">📋 复制</button>\n')
+    parts.append('  <button class="copy-btn" onclick="copyCode(this, \'py-code\')">复制</button>\n')
     parts.append(f'  <pre><code class="language-python" id="py-code">{esc_text(prob["py"].strip())}</code></pre>\n')
     parts.append('</div>\n\n')
     parts.append('<h4 style="margin-bottom:0.25rem;">Java</h4>\n')
     parts.append('<div class="code-block-wrapper">\n')
-    parts.append('  <button class="copy-btn" onclick="copyCode(this, \'java-code\')">📋 复制</button>\n')
+    parts.append('  <button class="copy-btn" onclick="copyCode(this, \'java-code\')">复制</button>\n')
     parts.append(f'  <pre><code class="language-java" id="java-code">{esc_text(prob["java"].strip())}</code></pre>\n')
     parts.append('</div>\n\n')
 
-    parts.append('<h3>⏱ 复杂度分析</h3>\n<ul>\n')
+    parts.append('<h3>复杂度分析</h3>\n<ul>\n')
     parts.append(f'  <li><strong>时间</strong>：{prob["time"]}</li>\n')
     parts.append(f'  <li><strong>空间</strong>：{prob["space"]}</li>\n')
     parts.append('</ul>\n\n')
 
-    parts.append('<h3>⚠️ 易错点</h3>\n<ul>\n')
+    parts.append('<h3>易错点</h3>\n<ul>\n')
     for bold, text in prob["pitfalls"]:
         parts.append(f'  <li><strong>{bold}</strong>：{text}</li>\n')
     parts.append('</ul>\n\n')
 
     parts.append('<details class="selfcheck-box" open>\n')
-    parts.append('  <summary><strong>🧪 自我检验</strong></summary>\n')
+    parts.append('  <summary><strong>自我检验</strong></summary>\n')
     parts.append('  <div style="margin-top:0.5rem;">\n')
     for q, a in prob["selfcheck"]:
         parts.append(f'    <p><strong>Q:</strong> {q}</p>\n')
-        parts.append(f'    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> {a}</p>\n')
+        parts.append(f'    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> {a}</p>\n')
     parts.append('  </div>\n</details>\n\n')
 
     parts.append('<script>\nconst U = window.DrawUtils;\n\nfunction renderFrames() {\n')
@@ -164,7 +183,38 @@ def sync_problems(problems):
     print("synced problems.js")
 
 
+def load_spec(path: pathlib.Path) -> dict:
+    """加载单个 spec 文件（每文件一个 PROBLEM）。"""
+    name = "spec_" + path.stem
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
+    spec.loader.exec_module(mod)
+    return mod.PROBLEM
+
+
+def load_problems(only_id: int = None):
+    """扫描 specs/algo/*.py，返回题目列表（可按 id 只取一个）。"""
+    problems = []
+    for f in sorted(SPECS_DIR.glob("*.py")):
+        if f.name == "__init__.py":
+            continue
+        p = load_spec(f)
+        if only_id is not None and p["id"] != only_id:
+            continue
+        problems.append(p)
+    return problems
+
+
 if __name__ == "__main__":
-    from scripts.specs import ALL  # noqa
-    generate(ALL)
-    sync_problems(ALL)
+    only_id = None
+    args = sys.argv[1:]
+    for i, a in enumerate(args):
+        if a == "--id" and i + 1 < len(args):
+            only_id = int(args[i + 1])
+    problems = load_problems(only_id)
+    if not problems:
+        print("未找到题目", f"(id={only_id})" if only_id else "")
+        sys.exit(1)
+    generate(problems)
+    sync_problems(problems)

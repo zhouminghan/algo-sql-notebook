@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/reverse-linked-list/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   用 prev、cur 两个指针，每次把 cur.next 指回 prev，再双双前移。迭代 O(n) O(1)，是最基础的链表操作。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定单链表的头节点，反转链表并返回反转后的头节点。</p>
 <p><strong>示例：</strong><br><code>[1,2,3,4,5]</code> → <code>[5,4,3,2,1]</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 原链表 1→2→3→4→5</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   先存下一个节点，再把当前指回前驱，循环到链表尾。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def reverseList(head):
     prev, cur = None, head
     while cur:
@@ -68,7 +68,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public ListNode reverseList(ListNode head) {
     ListNode prev = null, cur = head;
     while (cur != null) {
@@ -80,25 +80,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>先存 nxt</strong>：改指针前必须先保存 cur.next，否则断链</li>
   <li><strong>返回 prev</strong>：循环结束 cur 为 null，prev 才是新头</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 空链表 / 单节点？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 分别返回 None / 原节点，逻辑天然覆盖。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 分别返回 None / 原节点，逻辑天然覆盖。</p>
     <p><strong>Q:</strong> 递归写法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> newHead = reverseList(head.next)，再 head.next.next = head、head.next = None。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> newHead = reverseList(head.next)，再 head.next.next = head、head.next = None。</p>
   </div>
 </details>
 
@@ -106,9 +106,9 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 3}, {"val": 4}, {"val": 5}], "width": U.frameCardWidth('frame1-svg'), "height": 90});
-document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1, "highlight": "active"}, {"val": 2, "highlight": "active"}, {"val": 3, "highlight": "active"}, {"val": 4, "highlight": "active"}, {"val": 5, "highlight": "active"}], "width": U.frameCardWidth('frame2-svg'), "height": 90});
-document.getElementById('frame3-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 5, "highlight": "done"}, {"val": 4, "highlight": "done"}, {"val": 3, "highlight": "done"}, {"val": 2, "highlight": "done"}, {"val": 1, "highlight": "done"}], "width": U.frameCardWidth('frame3-svg'), "height": 90});
+document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 3}, {"val": 4}, {"val": 5}], "width": 560, "height": 90});
+document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1, "highlight": "active"}, {"val": 2, "highlight": "active"}, {"val": 3, "highlight": "active"}, {"val": 4, "highlight": "active"}, {"val": 5, "highlight": "active"}], "width": 560, "height": 90});
+document.getElementById('frame3-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 5, "highlight": "done"}, {"val": 4, "highlight": "done"}, {"val": 3, "highlight": "done"}, {"val": 2, "highlight": "done"}, {"val": 1, "highlight": "done"}], "width": 560, "height": 90});
 }
 
 renderFrames();

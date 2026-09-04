@@ -25,6 +25,21 @@ function esc(s) {
     .replace(/'/g, '&#39;');
 }
 
+/** 指针标签重叠时自动错行：给每个标签分配一个 row（0/1/2…），横向距离过近则下移一行 */
+function staggerPointers(labels, xOf) {
+  const minGap = 50; // px，足够放下 "right=99" 这类标签
+  const sorted = labels.slice().sort((a, b) => xOf(a.idx) - xOf(b.idx));
+  const rowLast = [];
+  sorted.forEach(l => {
+    const x = xOf(l.idx);
+    let row = 0;
+    while (rowLast[row] !== undefined && x - rowLast[row] < minGap) row++;
+    rowLast[row] = x;
+    l.row = row;
+  });
+  return sorted;
+}
+
 /** 箭头 marker 定义 */
 const ARROW_MARKER = `
 <defs>
@@ -277,14 +292,23 @@ function drawTwoPointers({ arr = [], left = 0, right = 0, window = null, width =
     svgInner += `<text x="${x + cellW/2}" y="${cellY - 5}" text-anchor="middle" class="idx-label">${i}</text>`;
   });
   
-  // 指针箭头
-  [['left', left, 'var(--color-done)'], ['right', right, 'var(--color-pointer)']].forEach(([label, idx, color]) => {
-    const px = startX + idx * cellW + cellW / 2;
-    svgInner += `<text x="${px}" y="${cellY + cellH + 20}" text-anchor="middle" class="ptr-label" fill="${color}">${label}=${idx}</text>`;
-    svgInner += `<line x1="${px}" y1="${cellY + cellH}" x2="${px}" y2="${cellY + cellH + 10}" stroke="${color}" stroke-width="1.5"/>`;
+  // 指针箭头（标签重叠时自动错行）
+  const labels = [
+    { label: 'left', idx: left, color: 'var(--color-done)' },
+    { label: 'right', idx: right, color: 'var(--color-pointer)' }
+  ];
+  staggerPointers(labels, idx => startX + idx * cellW + cellW / 2);
+  let maxRow = 0;
+  labels.forEach(l => {
+    const px = startX + l.idx * cellW + cellW / 2;
+    const ty = cellY + cellH + 20 + l.row * 16;
+    maxRow = Math.max(maxRow, l.row);
+    svgInner += `<text x="${px}" y="${ty}" text-anchor="middle" class="ptr-label" fill="${l.color}">${l.label}=${l.idx}</text>`;
+    svgInner += `<line x1="${px}" y1="${cellY + cellH}" x2="${px}" y2="${cellY + cellH + 10}" stroke="${l.color}" stroke-width="1.5"/>`;
   });
   
-  return svgWrap(adjustedW, height, svgInner);
+  const realH = Math.max(height, cellY + cellH + 20 + maxRow * 16 + 14);
+  return svgWrap(adjustedW, realH, svgInner);
 }
 
 // ============================================================
@@ -313,18 +337,24 @@ function drawBinarySearch({ arr = [], left = 0, mid = 0, right = 0, excludedRang
     svgInner += `<text x="${x + cellW/2}" y="${cellY - 5}" text-anchor="middle" class="idx-label">${i}</text>`;
   });
   
-  // L / M / R 指针
-  [
-    ['L', left, 'var(--color-done)'],
-    ['M', mid, 'var(--color-highlight)'],
-    ['R', right, 'var(--color-pointer)']
-  ].forEach(([label, idx, color]) => {
-    const px = startX + idx * cellW + cellW / 2;
-    svgInner += `<text x="${px}" y="${cellY + cellH + 20}" text-anchor="middle" class="ptr-label" fill="${color}">${label}=${idx}</text>`;
-    svgInner += `<line x1="${px}" y1="${cellY + cellH}" x2="${px}" y2="${cellY + cellH + 10}" stroke="${color}" stroke-width="1.5"/>`;
+  // L / M / R 指针（标签重叠时自动错行）
+  const labels = [
+    { label: 'L', idx: left, color: 'var(--color-done)' },
+    { label: 'M', idx: mid, color: 'var(--color-highlight)' },
+    { label: 'R', idx: right, color: 'var(--color-pointer)' }
+  ];
+  staggerPointers(labels, idx => startX + idx * cellW + cellW / 2);
+  let maxRow = 0;
+  labels.forEach(l => {
+    const px = startX + l.idx * cellW + cellW / 2;
+    const ty = cellY + cellH + 20 + l.row * 16;
+    maxRow = Math.max(maxRow, l.row);
+    svgInner += `<text x="${px}" y="${ty}" text-anchor="middle" class="ptr-label" fill="${l.color}">${l.label}=${l.idx}</text>`;
+    svgInner += `<line x1="${px}" y1="${cellY + cellH}" x2="${px}" y2="${cellY + cellH + 10}" stroke="${l.color}" stroke-width="1.5"/>`;
   });
   
-  return svgWrap(adjustedW, height, svgInner);
+  const realH = Math.max(height, cellY + cellH + 20 + maxRow * 16 + 14);
+  return svgWrap(adjustedW, realH, svgInner);
 }
 
 // ============================================================
@@ -401,12 +431,12 @@ function diffTable({ before = {}, after = {}, width = 600, height = 0 } = {}) {
   const totalH = Math.max(height, Math.max(beforeH, afterH));
   
   // 左：执行前
-  svgInner += `<text x="${10}" y="18" class="idx-label" font-weight="bold">📥 执行前</text>`;
+  svgInner += `<text x="${10}" y="18" class="idx-label" font-weight="bold">执行前</text>`;
   svgInner += drawTableRaw({ headers: before.headers || [], rows: before.rows || [], startX: 10, startY: 25, colW: Math.max(60, halfW / Math.max(before.headers ? before.headers.length : 1, 1)), cellH: 28 });
   
   // 右：执行后
   const rightX = halfW + 20;
-  svgInner += `<text x="${rightX}" y="18" class="idx-label" font-weight="bold">📤 执行后</text>`;
+  svgInner += `<text x="${rightX}" y="18" class="idx-label" font-weight="bold">执行后</text>`;
   svgInner += drawTableRaw({ headers: after.headers || [], rows: after.rows || [], startX: rightX, startY: 25, colW: Math.max(60, halfW / Math.max(after.headers ? after.headers.length : 1, 1)), cellH: 28 });
   
   // 中间箭头
@@ -461,7 +491,7 @@ function drawGroupBy({ before = {}, after = {}, groups = [], width = 600, height
   // 原始表
   const headers = before.headers || [];
   const rows = before.rows || [];
-  svgInner += `<text x="${startX}" y="18" class="idx-label" font-weight="bold">📥 原始表</text>`;
+  svgInner += `<text x="${startX}" y="18" class="idx-label" font-weight="bold">原始表</text>`;
   
   // 分组框选（用不同颜色框）
   groups.forEach((g, gi) => {
@@ -479,7 +509,7 @@ function drawGroupBy({ before = {}, after = {}, groups = [], width = 600, height
   
   // 结果表
   const resY = startY + (rows.length + 1) * cellH + 40;
-  svgInner += `<text x="${startX}" y="${resY - 7}" class="idx-label" font-weight="bold">📤 聚合结果</text>`;
+  svgInner += `<text x="${startX}" y="${resY - 7}" class="idx-label" font-weight="bold">聚合结果</text>`;
   svgInner += drawTableRaw({ headers: after.headers || [], rows: after.rows || [], startX, startY: resY, colW, cellH });
   
   const totalH = Math.max(height, resY + (after.rows ? after.rows.length + 1 : 1) * cellH + 20);
@@ -572,7 +602,7 @@ function drawJoin({ mode = 'inner', left = {}, right = {}, matches = [], result 
   
   // 结果表
   const resY = startY + Math.max(left.rows.length, right.rows.length) * cellH + cellH + 40;
-  svgInner += `<text x="${leftX}" y="${resY - 7}" class="idx-label" font-weight="bold">📤 ${mode.toUpperCase()} JOIN 结果</text>`;
+  svgInner += `<text x="${leftX}" y="${resY - 7}" class="idx-label" font-weight="bold">${mode.toUpperCase()} JOIN 结果</text>`;
   const resCols = (result.headers || []).length;
   const resColW = Math.min(80, (width - 20) / Math.max(resCols, 1));
   svgInner += drawTableRaw({ headers: result.headers || [], rows: result.rows || [], startX: leftX, startY: resY, colW: resColW, cellH });
@@ -634,8 +664,8 @@ function drawCTE({ frames = [], width = 600, height = 0 } = {}) {
 function drawStringFunc({ input = {}, output = {}, colIndex = 0, funcName = 'string_func', width = 600, height = 0 } = {}) {
   return simpleTransform({ input, output, colIndex, funcName, width, height, 
     desc: '字符串变换',
-    beforeLabel: '📥 原始表',
-    afterLabel: `📤 ${funcName} 结果` });
+    beforeLabel: '原始表',
+    afterLabel: `${funcName} 结果` });
 }
 
 // ============================================================
@@ -644,8 +674,8 @@ function drawStringFunc({ input = {}, output = {}, colIndex = 0, funcName = 'str
 function drawDateFunc({ input = {}, output = {}, colIndex = 0, funcName = 'date_func', width = 600, height = 0 } = {}) {
   return simpleTransform({ input, output, colIndex, funcName, width, height,
     desc: '日期变换',
-    beforeLabel: '📥 原始表',
-    afterLabel: `📤 ${funcName} 结果` });
+    beforeLabel: '原始表',
+    afterLabel: `${funcName} 结果` });
 }
 
 // ============================================================
@@ -656,12 +686,12 @@ function drawDateFunc({ input = {}, output = {}, colIndex = 0, funcName = 'date_
 function drawConditionFunc({ input = {}, output = {}, width = 600, height = 0 } = {}) {
   return simpleTransform({ input, output, width, height,
     desc: '条件分支',
-    beforeLabel: '📥 原始表',
-    afterLabel: '📤 CASE WHEN 结果' });
+    beforeLabel: '原始表',
+    afterLabel: 'CASE WHEN 结果' });
 }
 
 /** 简单前后变换通用函数 */
-function simpleTransform({ input = {}, output = {}, width = 600, height = 0, beforeLabel = '📥 Before', afterLabel = '📤 After' } = {}) {
+function simpleTransform({ input = {}, output = {}, width = 600, height = 0, beforeLabel = 'Before', afterLabel = 'After' } = {}) {
   let svgInner = ARROW_MARKER;
   const colW = 80, cellH = 28;
   const inRows = (input.rows || []).length + 1;
@@ -706,7 +736,7 @@ function drawSetOp({ mode = 'union', tables = [], result = {}, width = 600, heig
   });
   
   const resY = startY + 80;
-  svgInner += `<text x="${startX}" y="${resY - 7}" class="idx-label" font-weight="bold">📤 ${mode.toUpperCase()} 结果 (${result.rows ? result.rows.length : 0}行)</text>`;
+  svgInner += `<text x="${startX}" y="${resY - 7}" class="idx-label" font-weight="bold">${mode.toUpperCase()} 结果 (${result.rows ? result.rows.length : 0}行)</text>`;
   svgInner += drawTableRaw({ headers: result.headers || [], rows: result.rows || [], startX, startY: resY, colW, cellH });
   
   const totalH = Math.max(height, resY + (result.rows ? result.rows.length + 1 : 1) * cellH + 20);
@@ -719,8 +749,8 @@ function drawSetOp({ mode = 'union', tables = [], result = {}, width = 600, heig
 // ============================================================
 function drawPivot({ direction = 'to_wide', input = {}, output = {}, width = 600, height = 0 } = {}) {
   return simpleTransform({ input, output, width, height,
-    beforeLabel: `📥 ${direction === 'to_wide' ? '长表' : '宽表'}`,
-    afterLabel: `📤 ${direction === 'to_wide' ? '宽表 (PIVOT)' : '长表 (UNPIVOT)'}` });
+    beforeLabel: `${direction === 'to_wide' ? '长表' : '宽表'}`,
+    afterLabel: `${direction === 'to_wide' ? '宽表 (PIVOT)' : '长表 (UNPIVOT)'}` });
 }
 
 // ============================================================

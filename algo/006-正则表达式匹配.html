@@ -6,13 +6,6 @@
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/006-正则表达式匹配.html">
 <title>006. 正则表达式匹配 — algo-sql-notebook</title>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
-<link rel="stylesheet" href="../assets/css/style.css">
-<link rel="stylesheet" href="../assets/vendor/github.min.css">
-<script src="../assets/js/problems.js"></script>
-<script src="../assets/js/common.js"></script>
-<script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
 <script>
 (function () {
   var s = localStorage.getItem('asn-theme');
@@ -20,151 +13,104 @@
   document.documentElement.setAttribute('data-theme', d);
 })();
 </script>
+<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/vendor/github.min.css">
+<script src="../assets/js/problems.js"></script>
+<script src="../assets/js/common.js"></script>
+<script src="../assets/js/draw-utils.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
 
 <a class="origin-link" href="https://leetcode.cn/problems/regular-expression-matching/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用 DP？</strong><br>
-  匹配问题天然有子结构：s[0..i] 是否匹配 p[0..j] 取决于更短的子串匹配结果。<code>*</code> 可以匹配零次或多次前一个字符，产生分支选择。DP 表 O(mn) 穷举所有子问题。
+  <strong>为什么用这个思路？</strong><br>
+  '.' 匹配任意字符，'*' 匹配前一个字符零次或多次。dp[i][j] 表示 s 前 i 个与 p 前 j 个是否匹配，按 p[j-1] 是不是 '*' 分两种情况递推。
 </div>
 
-<h3>📄 题目描述</h3>
-<p>给你一个字符串 <code>s</code> 和一个字符规律 <code>p</code>，请你来实现一个支持 <code>'.'</code> 和 <code>'*'</code> 的正则表达式匹配。</p>
-<ul>
-  <li><code>'.'</code> 匹配任意单个字符</li>
-  <li><code>'*'</code> 匹配零个或多个前面的那一个元素</li>
-</ul>
+<h3>题目描述</h3>
+<p>给定字符串 <code>s</code> 和字符规律 <code>p</code>，实现支持 <code>.</code> 和 <code>*</code> 的正则匹配。<code>.</code> 匹配任意单个字符；<code>*</code> 匹配零个或多个前面的那个元素。</p><p><strong>示例：</strong><br><code>s="aab", p="c*a*b"</code> → <code>true</code>（c 重复 0 次，a 重复 2 次）</p>
 
-<p><strong>示例：</strong></p>
-<pre><code>输入：s = "aab", p = "c*a*b"
-输出：true
-解释：'c' 出现 0 次，'a' 出现 2 次，'b' 匹配</code></pre>
-
-<h3>📐 图解即思路</h3>
-
+<h3>图解即思路</h3>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">① dp[i][j]：s 前 i 个与 p 前 j 个是否匹配</div>
+  <div id="frame1-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">② p[j-1]=='*'：看前一个字符匹配几次</div>
+  <div id="frame2-svg"></div>
+</div>
+<div class="frame-card" style="margin-bottom:1.25rem;">
+  <div class="frame-label">③ 普通字符/'.'：直接比对</div>
+  <div id="frame3-svg"></div>
+</div>
 <div class="why-box">
-  <strong>📊 DP 填表</strong><br>
-  dp[i][j] = s 的前 i 个字符 与 p 的前 j 个字符是否匹配。<br>
-  - 普通字符 / '.'：dp[i][j] = dp[i-1][j-1]（字符匹配）<br>
-  - '*'：看前一个字符 x，匹配 0 次 dp[i][j] = dp[i][j-2]，或匹配 ≥1 次 dp[i][j] = dp[i-1][j]（当 x 匹配 s[i-1]）
+  <strong>结论</strong><br>
+  按 '是否 *' 分支递推，右下角 dp[m][n] 即答案。
 </div>
 
-<div class="frame-grid" id="frame1">
-  <div class="frame-card">
-    <div class="frame-label">① 初始化：dp[0][0]=true，空串可匹配空模式</div>
-    <div id="frame1-svg"></div>
-  </div>
-</div>
-
-<div class="frame-grid" id="frame2">
-  <div class="frame-card">
-    <div class="frame-label">② 处理 p 中 '*'：c* 匹配 0 次 → dp[0][2]=true</div>
-    <div id="frame2-svg"></div>
-  </div>
-</div>
-
-<div class="frame-grid" id="frame3">
-  <div class="frame-card">
-    <div class="frame-label">③ 填表：a* 匹配 'aa' → dp[2][4]=true</div>
-    <div id="frame3-svg"></div>
-  </div>
-</div>
-
-<div class="frame-grid" id="frame4">
-  <div class="frame-card">
-    <div class="frame-label">④ 最终 dp[3][5]=true：s="aab" 匹配 p="c*a*b"</div>
-    <div id="frame4-svg"></div>
-  </div>
-</div>
-
-<div class="why-box">
-  <strong>✅ 结论</strong><br>
-  DP 表 O(mn) 格，每格 O(1) 转移。'*' 是关键：可以匹配 0 次（跳过）或多次（依赖上一行）。初始化需处理空串与 a*b* 型模式的匹配。
-</div>
-
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
-  <pre><code class="language-python" id="py-code">def isMatch(s: str, p: str) -> bool:
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <pre><code class="language-python" id="py-code">def isMatch(s, p):
     m, n = len(s), len(p)
-    dp = [[False] * (n + 1) for _ in range(m + 1)]
+    dp = [[False]*(n+1) for _ in range(m+1)]
     dp[0][0] = True
-
-    # 空串与 a*b* 型模式
-    for j in range(2, n + 1):
+    for j in range(1, n+1):
         if p[j-1] == '*':
             dp[0][j] = dp[0][j-2]
-
-    for i in range(1, m + 1):
-        for j in range(1, n + 1):
+    for i in range(1, m+1):
+        for j in range(1, n+1):
             if p[j-1] == '*':
-                # 匹配 0 次：跳过 x*
-                dp[i][j] = dp[i][j-2]
-                # 匹配 1+ 次：x 匹配 s[i-1]
-                if p[j-2] == '.' or p[j-2] == s[i-1]:
-                    dp[i][j] |= dp[i-1][j]
-            elif p[j-1] == '.' or p[j-1] == s[i-1]:
-                dp[i][j] = dp[i-1][j-1]
-
+                dp[i][j] = dp[i][j-2] or (dp[i-1][j] and (s[i-1] == p[j-2] or p[j-2] == '.'))
+            else:
+                dp[i][j] = dp[i-1][j-1] and (s[i-1] == p[j-1] or p[j-1] == '.')
     return dp[m][n]</code></pre>
 </div>
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public boolean isMatch(String s, String p) {
     int m = s.length(), n = p.length();
     boolean[][] dp = new boolean[m+1][n+1];
     dp[0][0] = true;
-
-    for (int j = 2; j <= n; j++) {
-        if (p.charAt(j-1) == '*') {
-            dp[0][j] = dp[0][j-2];
-        }
-    }
-
-    for (int i = 1; i <= m; i++) {
-        for (int j = 1; j <= n; j++) {
-            char pc = p.charAt(j-1);
-            if (pc == '*') {
-                dp[i][j] = dp[i][j-2];
-                if (p.charAt(j-2) == '.' || p.charAt(j-2) == s.charAt(i-1)) {
-                    dp[i][j] |= dp[i-1][j];
-                }
-            } else if (pc == '.' || pc == s.charAt(i-1)) {
-                dp[i][j] = dp[i-1][j-1];
+    for (int j = 1; j &lt;= n; j++) if (p.charAt(j-1) == '*') dp[0][j] = dp[0][j-2];
+    for (int i = 1; i &lt;= m; i++)
+        for (int j = 1; j &lt;= n; j++) {
+            if (p.charAt(j-1) == '*') {
+                dp[i][j] = dp[i][j-2] || (dp[i-1][j] &amp;&amp; (s.charAt(i-1) == p.charAt(j-2) || p.charAt(j-2) == '.'));
+            } else {
+                dp[i][j] = dp[i-1][j-1] &amp;&amp; (s.charAt(i-1) == p.charAt(j-1) || p.charAt(j-1) == '.');
             }
         }
-    }
     return dp[m][n];
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
-  <li><strong>时间</strong>：O(mn) — 填满 DP 表</li>
-  <li><strong>空间</strong>：O(mn) — 可优化到 O(n) 滚动数组</li>
+  <li><strong>时间</strong>：O(m·n)</li>
+  <li><strong>空间</strong>：O(m·n)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
-  <li><strong>'*' 的两种语义</strong>：匹配 0 次 dp[i][j-2]，匹配 1+ 次 dp[i-1][j]，两者取或</li>
-  <li><strong>初始化空串</strong>：dp[0][j] 对 a*b*c* 型模式为 true，需要预先处理</li>
-  <li><strong>索引偏移</strong>：dp[i][j] 对应 s[i-1] 和 p[j-1]，容易搞混</li>
+  <li><strong>dp[0][j] 初始化</strong>：s 为空但 p 形如 a*b* 时可能匹配，要单独处理 '前缀'</li>
+  <li><strong>'*' 两个来源</strong>：当 0 个（dp[i][j-2]）和当多个（dp[i-1][j]），漏一个会错</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
-    <p><strong>Q1:</strong> s="aa", p="a*"，dp 表如何填？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：全部为 true。</strong> dp[0][0]=T, dp[0][2]=T（a*匹配0次）。dp[1][1]=T（a匹配a），dp[1][2]=dp[1][0]|dp[0][2]=F|T=T。同理 dp[2][2]=T。最终 true。</p>
-
-    <p><strong>Q2:</strong> s="ab", p=".*"，为什么匹配？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：'.' 匹配任意字符，'*' 重复任意次。</strong> ".*" 等价于 "零个或多个任意字符"，可以匹配任何字符串。dp 表中所有格都为 true。</p>
+    <p><strong>Q:</strong> "aab" 与 "c*a*b" 为何匹配？</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> c* 匹配 0 个 c，a* 匹配 2 个 a，最后 b 匹配 b。</p>
+    <p><strong>Q:</strong> '.*' 匹配什么？</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 任意字符重复任意次，等价匹配任意字符串。</p>
   </div>
 </details>
 
@@ -172,16 +118,14 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-  document.getElementById('frame1-svg').innerHTML = U.drawDPTable({headers:['','c','*','a','*','b'], rows:[[{val:'T'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}]], width:U.frameCardWidth('frame1-svg'), height:200});
-  document.getElementById('frame2-svg').innerHTML = U.drawDPTable({headers:['','c','*','a','*','b'], rows:[[{val:'T',highlight:true},{val:'F'},{val:'T',highlight:true},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}]], width:U.frameCardWidth('frame2-svg'), height:200});
-  document.getElementById('frame3-svg').innerHTML = U.drawDPTable({headers:['','c','*','a','*','b'], rows:[[{val:'T'},{val:'F'},{val:'T'},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'T'},{val:'T',highlight:true},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'T',highlight:true},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'}]], width:U.frameCardWidth('frame3-svg'), height:200});
-  document.getElementById('frame4-svg').innerHTML = U.drawDPTable({headers:['','c','*','a','*','b'], rows:[[{val:'T'},{val:'F'},{val:'T'},{val:'F'},{val:'F'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'T'},{val:'T'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'T'},{val:'F'}],[{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'F'},{val:'T',highlight:true}]], width:U.frameCardWidth('frame4-svg'), height:200});
+document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["", "", "c", "*", "a", "*", "b"], "rows": [["", "T", "T", "F", "F", "F", "F"], ["a", "F", "F", "F", "T", "T", "F"], ["a", "F", "F", "F", "T", "T", "F"], ["b", "F", "F", "F", "F", "T", "T"]], "width": U.frameCardWidth('frame1-svg'), "height": 200});
+document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["情况", "转移"], "rows": [["* 当 0 个", "dp[i][j-2]"], ["* 当多个", "dp[i-1][j] 且 s[i-1] 匹配 p[j-2]"]], "height": 100, "width": U.frameCardWidth('frame2-svg')});
+document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["p[j-1]", "条件"], "rows": [["普通字符", "s[i-1]==p[j-1]"], ["'.'", "恒成立"]], "height": 100, "width": U.frameCardWidth('frame3-svg')});
 }
 
 renderFrames();
 U.autoFitResize(renderFrames);
 hljs.highlightAll();
-
 </script>
 </body>
 </html>

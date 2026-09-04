@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/maximal-rectangle/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   把矩阵每一行看成「柱状图」：以当前行为底，向上连续 1 的个数就是柱子高度。逐行构造 heights，对每行跑一次「柱状图最大矩形」的单调栈，取全局最大。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定一个仅包含 0 和 1、大小为 m×n 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积。</p>
 <p><strong>示例：</strong><br><code>[["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]]</code> → <code>6</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 以第 2 行为底，向上连续 1 构成柱状图</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   把二维问题拆成「每一行作为底的柱状图问题」，复用单调栈模板，O(m·n) 求解。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def maximalRectangle(matrix):
     if not matrix or not matrix[0]:
         return 0
@@ -84,7 +84,7 @@ def largestRectangleArea(heights):
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int maximalRectangle(char[][] matrix) {
     if (matrix.length == 0 || matrix[0].length == 0) return 0;
     int n = matrix[0].length, ans = 0;
@@ -112,25 +112,25 @@ int largestRectangleArea(int[] heights) {
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(m · n) — 每行一次单调栈</li>
   <li><strong>空间</strong>：O(n) — 高度数组 + 栈</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>heights 遇 0 归零</strong>：row[j]=='0' 时该列高度直接清零，不是保持原值</li>
   <li><strong>复用 84 题</strong>：先把「柱状图最大矩形」写对，本行逻辑只是逐行喂 heights</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么不是 O(m·n²)？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 每行单调栈 O(n)，共 m 行，总计 O(m·n)。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 每行单调栈 O(n)，共 m 行，总计 O(m·n)。</p>
     <p><strong>Q:</strong> 第一行怎么算？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> heights 初始全 0，第一行遇到 1 就为 1、遇到 0 就为 0，自然形成柱状图。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> heights 初始全 0，第一行遇到 1 就为 1、遇到 0 就为 0，自然形成柱状图。</p>
   </div>
 </details>
 
@@ -139,7 +139,7 @@ const U = window.DrawUtils;
 
 function renderFrames() {
 document.getElementById('frame1-svg').innerHTML = U.drawTable({"headers": ["", "0", "1", "2", "3", "4"], "rows": [["矩阵", "1", "0", "1", "0", "0"], ["1", "1", "0", "1", "1", "1"], ["2", "1", "1", "1", "1", "1"], ["heights", "3", "1", "3", "2", "2"]], "width": U.frameCardWidth('frame1-svg'), "height": 200});
-document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": [3, 1, 3, 2, 2], "left": 0, "right": 4, "width": U.frameCardWidth('frame2-svg'), "height": 140});
+document.getElementById('frame2-svg').innerHTML = U.drawTwoPointers({"arr": [3, 1, 3, 2, 2], "left": 0, "right": 4, "width": 0, "height": 140});
 document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["行", "heights", "最大矩形"], "rows": [["0", "1,0,1,0,0", "1"], ["1", "2,0,2,1,1", "3"], ["2", "3,1,3,2,2", {"val": "6", "highlight": true}]], "width": U.frameCardWidth('frame3-svg'), "height": 170});
 }
 

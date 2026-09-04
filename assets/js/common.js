@@ -8,7 +8,6 @@
 
   var LS_THEME = 'asn-theme';
   var LS_DONE = 'asn-done';
-  var LS_STAR = 'asn-star';
 
   var PROBLEMS = window.PROBLEMS || { algo: [], sql: [] };
   var ALL = PROBLEMS.algo.concat(PROBLEMS.sql);
@@ -18,24 +17,28 @@
   var DIFF_MAP = { easy: '简单', medium: '中等', hard: '困难' };
   var DIFF_CLASS = { easy: 'tag-easy', medium: 'tag-medium', hard: 'tag-hard' };
 
+  // ---------------- SVG 图标（替代 emoji） ----------------
+  function icon(inner, extra) {
+    return '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"' + (extra ? ' ' + extra : '') + '>' + inner + '</svg>';
+  }
+  var ICONS = {
+    brand: icon('<path d="M8 7l-5 5 5 5"/><path d="M16 7l5 5-5 5"/>'),
+    moon: icon('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'),
+    sun: icon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>'),
+    search: icon('<circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>'),
+    chevron: icon('<path d="M9 18l6-6-6-6"/>'),
+    check: icon('<path d="M20 6 9 17l-5-5"/>'),
+  };
+
   // ---------------- 本地存储 ----------------
   function readList(key) { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; } }
   function writeList(key, list) { try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {} }
   function getDone() { return readList(LS_DONE); }
-  function getStar() { return readList(LS_STAR); }
   function isDone(file) { return getDone().indexOf(file) !== -1; }
-  function isStar(file) { return getStar().indexOf(file) !== -1; }
   function setDone(file) {
     var list = getDone();
     if (!file || list.indexOf(file) !== -1) return;
     list.push(file); writeList(LS_DONE, list);
-  }
-  function toggleStar(file) {
-    var list = getStar();
-    var i = list.indexOf(file);
-    if (i === -1) list.push(file); else list.splice(i, 1);
-    writeList(LS_STAR, list);
-    return i === -1;
   }
 
   // ---------------- 复制 ----------------
@@ -58,10 +61,10 @@
     copyText(node.textContent).then(function () {
       if (!btn) return;
       var old = btn.textContent;
-      btn.textContent = '✅ 已复制'; btn.classList.add('copied');
+      btn.textContent = '已复制'; btn.classList.add('copied');
       setTimeout(function () { btn.textContent = old; btn.classList.remove('copied'); }, 1500);
     }).catch(function () {
-      if (btn) { btn.textContent = '⚠️ 复制失败'; setTimeout(function () { btn.textContent = '📋 复制'; }, 1500); }
+      if (btn) { btn.textContent = '复制失败'; setTimeout(function () { btn.textContent = '复制'; }, 1500); }
     });
   }
 
@@ -71,8 +74,9 @@
     document.documentElement.setAttribute('data-theme', theme);
     if (persist) { try { localStorage.setItem(LS_THEME, theme); } catch (e) {} }
     document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
-      btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+      btn.innerHTML = theme === 'dark' ? ICONS.sun : ICONS.moon;
       btn.setAttribute('aria-label', theme === 'dark' ? '切换到亮色' : '切换到暗色');
+      btn.title = theme === 'dark' ? '切换到亮色' : '切换到暗色';
     });
   }
   function initTheme() {
@@ -103,8 +107,9 @@
   function buildTopbar(isIndex) {
     var bar = el('header', 'topbar');
     var brandWrap = el('div', 'tb-brand');
-    var brand = el('a', 'brand', 'algo-sql-notebook');
+    var brand = el('a', 'brand');
     brand.href = isIndex ? 'index.html' : '../index.html';
+    brand.innerHTML = ICONS.brand + '<span class="brand-name">algo-sql-notebook</span>';
     brandWrap.appendChild(brand);
     brandWrap.appendChild(el('div', 'brand-sub', '算法 + SQL 图解题库'));
     bar.appendChild(brandWrap);
@@ -131,92 +136,50 @@
     return bar;
   }
 
-  // ---------------- 目录树 ----------------
+  // ---------------- 目录列表（按题号平铺 + 分类标签） ----------------
   function lessonLink(p, currentFile, isIndex) {
-    var a = el('a', 'lesson-link', String(p.id).padStart(3, '0') + '  ' + p.title);
-    // 首页在根目录，需带 algo/ 或 sql/ 前缀；题目页在同目录，只需文件名
-    a.href = isIndex ? p.file : p.file.split('/').pop();
+    var a = el('a', 'lesson-link');
+    // 相对路径：首页→完整路径；同目录→文件名；跨目录→../algo/ 或 ../sql/
+    if (isIndex) {
+      a.href = p.file;
+    } else {
+      var curDir = currentFile.split('/')[0];
+      var t = p.file.split('/');
+      a.href = (t[0] === curDir) ? t[1] : '../' + p.file;
+    }
+    a.appendChild(el('span', 'lesson-num', String(p.id).padStart(3, '0')));
+    a.appendChild(el('span', 'lesson-title', p.title));
+    var cat = p.cat || (p.tags && p.tags[0]) || '';
+    if (cat) a.appendChild(el('span', 'lesson-tag', cat));
     if (p.file === currentFile) a.classList.add('active');
     if (isDone(p.file)) a.classList.add('done');
     return a;
   }
 
-  function topicBlock(title, lessons, currentFile, defaultOpen, isIndex) {
-    var block = el('div', 'topic-block');
-    if (!defaultOpen) block.classList.add('collapsed');
-    var head = el('button', 'topic-head');
-    head.type = 'button';
-    head.appendChild(el('span', 'topic-caret', '▸'));
-    head.appendChild(el('span', 'topic-name', title));
-    head.appendChild(el('span', 'topic-count', String(lessons.length)));
-    block.appendChild(head);
-    var list = el('div', 'lesson-list');
-    lessons.forEach(function (p) { list.appendChild(lessonLink(p, currentFile, isIndex)); });
-    block.appendChild(list);
-    head.addEventListener('click', function () { block.classList.toggle('collapsed'); });
-    return block;
-  }
-
-  function buildNavTree(currentFile) {
+  function buildNavList(currentFile) {
     var nav = el('nav', 'nav-tree');
     var isIndex = !currentFile;
-
-    // 算法：按分类分组
-    var algoGroup = el('div', 'nav-group');
-    var algoHead = el('button', 'nav-group-head');
-    algoHead.type = 'button';
-    algoHead.appendChild(el('span', 'topic-caret', '▸'));
-    algoHead.appendChild(el('span', 'topic-name', '💻 算法'));
-    algoGroup.appendChild(algoHead);
-    var algoBody = el('div', 'nav-group-body');
-    var byCat = {};
-    PROBLEMS.algo.forEach(function (p) {
-      if (!p.file) return;
-      var c = p.cat || '其他';
-      (byCat[c] = byCat[c] || []).push(p);
-    });
-    Object.keys(byCat).forEach(function (c) {
-      var containsCurrent = byCat[c].some(function (p) { return p.file === currentFile; });
-      algoBody.appendChild(topicBlock(c, byCat[c], currentFile, containsCurrent || isIndex, isIndex));
-    });
-    algoGroup.appendChild(algoBody);
-    algoHead.addEventListener('click', function () { algoGroup.classList.toggle('collapsed'); });
-    nav.appendChild(algoGroup);
-
-    // SQL：单组
-    var sqlGroup = el('div', 'nav-group');
-    var sqlHead = el('button', 'nav-group-head');
-    sqlHead.type = 'button';
-    sqlHead.appendChild(el('span', 'topic-caret', '▸'));
-    sqlHead.appendChild(el('span', 'topic-name', '🗄️ SQL 高级题'));
-    sqlGroup.appendChild(sqlHead);
-    var sqlBody = el('div', 'nav-group-body');
-    var sqlList = PROBLEMS.sql.filter(function (p) { return p.file; });
-    var sqlContains = sqlList.some(function (p) { return p.file === currentFile; });
-    sqlBody.appendChild(topicBlock('全部', sqlList, currentFile, sqlContains || isIndex, isIndex));
-    sqlGroup.appendChild(sqlBody);
-    sqlHead.addEventListener('click', function () { sqlGroup.classList.toggle('collapsed'); });
-    if (currentFile && currentFile.indexOf('algo/') === 0) sqlGroup.classList.add('collapsed');
-    nav.appendChild(sqlGroup);
-
+    nav.appendChild(el('div', 'nav-section-head', '算法'));
+    PROBLEMS.algo.forEach(function (p) { if (p.file) nav.appendChild(lessonLink(p, currentFile, isIndex)); });
+    nav.appendChild(el('div', 'nav-section-head', 'SQL 高级题'));
+    PROBLEMS.sql.forEach(function (p) { if (p.file) nav.appendChild(lessonLink(p, currentFile, isIndex)); });
     return nav;
   }
 
   function buildSidebar(currentFile) {
     var aside = el('aside', 'sidebar');
     var searchWrap = el('div', 'search-wrap');
+    var searchIcon = el('span', 'search-icon');
+    searchIcon.innerHTML = ICONS.search;
     var input = el('input', 'nav-search');
     input.type = 'search';
-    input.placeholder = '搜索题目…';
+    input.placeholder = '搜索题目';
     input.setAttribute('aria-label', '搜索题目');
+    searchWrap.appendChild(searchIcon);
     searchWrap.appendChild(input);
     aside.appendChild(searchWrap);
 
-    var route = el('div', 'route-wrap');
-    route.appendChild(el('span', 'route-label', '题库导航'));
-    aside.appendChild(route);
-
-    aside.appendChild(buildNavTree(currentFile));
+    aside.appendChild(buildNavList(currentFile));
 
     input.addEventListener('input', function () {
       filterTree(input.value.trim().toLowerCase());
@@ -229,17 +192,15 @@
     document.querySelectorAll('.nav-tree .lesson-link').forEach(function (a) {
       var hit = !q || a.textContent.toLowerCase().indexOf(q) !== -1;
       a.style.display = hit ? '' : 'none';
-      var block = a.closest('.topic-block');
-      if (block) {
-        var anyVisible = Array.prototype.some.call(block.querySelectorAll('.lesson-link'), function (x) { return x.style.display !== 'none'; });
-        block.style.display = anyVisible ? '' : 'none';
-        if (q && hit) block.classList.remove('collapsed');
+    });
+    document.querySelectorAll('.nav-tree .nav-section-head').forEach(function (h) {
+      var any = false;
+      var next = h.nextElementSibling;
+      while (next && next.classList && next.classList.contains('lesson-link')) {
+        if (next.style.display !== 'none') { any = true; break; }
+        next = next.nextElementSibling;
       }
-      var group = a.closest('.nav-group');
-      if (group) {
-        var anyGroup = Array.prototype.some.call(group.querySelectorAll('.lesson-link'), function (x) { return x.style.display !== 'none'; });
-        group.style.display = anyGroup ? '' : 'none';
-      }
+      h.style.display = any ? '' : 'none';
     });
   }
 
@@ -271,14 +232,52 @@
     var list = PROBLEMS[p.dir].filter(function (x) { return x.file; });
     var idx = list.findIndex(function (x) { return x.file === p.file; });
     foot.appendChild(footBtn('prev', list[idx - 1], '← 上一题'));
-    var star = el('button', 'lf-star');
-    star.type = 'button';
-    star.setAttribute('data-star-file', p.file);
-    star.textContent = isStar(p.file) ? '★ 已收藏' : '☆ 收藏';
-    if (isStar(p.file)) star.classList.add('on');
-    foot.appendChild(star);
     foot.appendChild(footBtn('next', list[idx + 1], '下一题 →'));
     return foot;
+  }
+
+  // ---------------- Python/Java 代码标签页 ----------------
+  function enhanceCodeTabs(root) {
+    var groups = [];
+    var cur = [];
+    function flush() { if (cur.length >= 2) groups.push(cur); cur = []; }
+    root.querySelectorAll('h4').forEach(function (h4) {
+      var lang = h4.textContent.trim().toLowerCase();
+      if (lang === 'python' || lang === 'java') {
+        var w = h4.nextElementSibling;
+        if (w && w.classList && w.classList.contains('code-block-wrapper')) {
+          cur.push({ h4: h4, w: w, lang: lang });
+          return;
+        }
+      }
+      flush();
+    });
+    flush();
+
+    groups.forEach(function (g) {
+      var container = document.createElement('div');
+      container.className = 'code-tabs';
+      var head = document.createElement('div');
+      head.className = 'code-tabs-head';
+      g.forEach(function (item, i) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = item.lang === 'python' ? 'Python' : 'Java';
+        btn.setAttribute('data-lang', item.lang);
+        head.appendChild(btn);
+        item.w.classList.add('code-pane');
+        item.w.setAttribute('data-lang', item.lang);
+        if (i !== 0) item.w.classList.add('hidden');
+      });
+      container.appendChild(head);
+      var anchor = g[0].h4;
+      anchor.parentNode.insertBefore(container, anchor);
+      g.forEach(function (item) {
+        item.h4.remove();
+        container.appendChild(item.w);
+      });
+    });
   }
 
   // ---------------- 挂载 ----------------
@@ -317,6 +316,7 @@
     if (active && active.scrollIntoView) active.scrollIntoView({ block: 'center' });
 
     applyTheme(currentTheme(), false);
+    enhanceCodeTabs(document.body);
   }
 
   // ---------------- 事件 ----------------
@@ -324,20 +324,25 @@
     document.addEventListener('click', function (e) {
       var themeBtn = e.target.closest ? e.target.closest('[data-theme-toggle]') : null;
       if (themeBtn) { applyTheme(currentTheme() === 'dark' ? 'light' : 'dark', true); return; }
-      var starBtn = e.target.closest ? e.target.closest('[data-star-file]') : null;
-      if (starBtn) {
-        var on = toggleStar(starBtn.getAttribute('data-star-file'));
-        starBtn.textContent = on ? '★ 已收藏' : '☆ 收藏';
-        starBtn.classList.toggle('on', on);
-        try { window.dispatchEvent(new CustomEvent('asn:star')); } catch (e) {}
+      var tabBtn = e.target.closest ? e.target.closest('.tab-btn') : null;
+      if (tabBtn) {
+        var container = tabBtn.closest('.code-tabs');
+        if (!container) return;
+        var lang = tabBtn.getAttribute('data-lang');
+        container.querySelectorAll('.tab-btn').forEach(function (b) {
+          b.classList.toggle('active', b === tabBtn);
+        });
+        container.querySelectorAll('.code-pane').forEach(function (p) {
+          p.classList.toggle('hidden', p.getAttribute('data-lang') !== lang);
+        });
       }
     });
   }
 
   window.ASN = {
     PROBLEMS: PROBLEMS, getDone: getDone, isDone: isDone,
-    getStar: getStar, isStar: isStar, toggleStar: toggleStar,
-    applyTheme: applyTheme, currentTheme: currentTheme
+    applyTheme: applyTheme, currentTheme: currentTheme,
+    ICONS: ICONS
   };
   window.copyCode = copyCode;
 

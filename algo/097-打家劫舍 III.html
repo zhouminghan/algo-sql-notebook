@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/house-robber-iii/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   房屋排成二叉树，父子不能同时偷。每个节点返回 (偷它, 不偷它) 两个值：偷 = 自己 + 左右「不偷」，不偷 = max(左偷/不偷) + max(右偷/不偷)。自底向上。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>所有房屋排成一棵二叉树，相邻（直接相连）房屋被同时闯入会报警。求能偷到的最高金额。</p>
 <p><strong>示例：</strong><br><code>[3,2,3,null,3,null,1]</code> → <code>7</code>（偷 3+3+1）</p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 每个节点返回 (偷, 不偷)</div>
   <div id="frame1-svg"></div>
@@ -44,15 +44,15 @@
   <div id="frame2-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   树形 DP 自底向上，每个节点维护「偷/不偷」两个状态，根取较大者。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def rob(root):
     def dfs(node):
         if not node:
@@ -67,7 +67,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int rob(TreeNode root) {
     int[] res = dfs(root);
     return Math.max(res[0], res[1]);
@@ -81,25 +81,25 @@ int[] dfs(TreeNode n) {
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(h)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>偷必须跳过孩子</strong>：take = 自己 + 左右「不偷」值，不是 max(左右)</li>
   <li><strong>不偷时孩子可偷可不偷</strong>：skip 对每个孩子取 max(偷, 不偷)</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么自底向上？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 父节点的决策依赖孩子两个状态，必须先把子树算完。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 父节点的决策依赖孩子两个状态，必须先把子树算完。</p>
     <p><strong>Q:</strong> 根节点答案？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 返回 max(根偷, 根不偷)。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 返回 max(根偷, 根不偷)。</p>
   </div>
 </details>
 
@@ -107,7 +107,7 @@ int[] dfs(TreeNode n) {
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawTree({"nodes": [{"val": "3", "x": 300, "y": 25, "highlight": "active"}, {"val": "2", "x": 160, "y": 110}, {"val": "3", "x": 440, "y": 110, "highlight": "done"}, {"val": "3", "x": 210, "y": 200, "highlight": "done"}, {"val": "1", "x": 480, "y": 200}], "edges": [{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 160, "y1": 110, "x2": 210, "y2": 200}, {"x1": 440, "y1": 110, "x2": 480, "y2": 200}], "width": U.frameCardWidth('frame1-svg'), "height": 240});
+document.getElementById('frame1-svg').innerHTML = U.drawTree({"nodes": [{"val": "3", "x": 300, "y": 25, "highlight": "active"}, {"val": "2", "x": 160, "y": 110}, {"val": "3", "x": 440, "y": 110, "highlight": "done"}, {"val": "3", "x": 210, "y": 200, "highlight": "done"}, {"val": "1", "x": 480, "y": 200}], "edges": [{"x1": 300, "y1": 25, "x2": 160, "y2": 110}, {"x1": 300, "y1": 25, "x2": 440, "y2": 110}, {"x1": 160, "y1": 110, "x2": 210, "y2": 200}, {"x1": 440, "y1": 110, "x2": 480, "y2": 200}], "width": 560, "height": 240});
 document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["节点", "偷", "不偷"], "rows": [["叶 3", "3", "0"], ["节点 2", "2+3=5", "3"], ["根 3", "3+0+? 看子树", "…"]], "width": U.frameCardWidth('frame2-svg'), "height": 170});
 }
 

@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/top-k-frequent-elements/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   先统计频率，再用大小为 k 的最小堆维护「频率最高的 k 个」：堆满且新频率更高就替换。最后堆里就是答案，时间 O(n log k)。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定整数数组和整数 <code>k</code>，返回出现频率<strong>前 k 高</strong>的元素。</p>
 <p><strong>示例：</strong><br><code>[1,1,1,2,2,3], k=2</code> → <code>[1,2]</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 统计频率</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   最小堆按频率排序，堆顶是「前 k 高里最低的」，低于它的直接淘汰。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">import heapq
 from collections import Counter
 def topKFrequent(nums, k):
@@ -71,7 +71,7 @@ def topKFrequent(nums, k):
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int[] topKFrequent(int[] nums, int k) {
     Map&lt;Integer, Integer&gt; freq = new HashMap&lt;&gt;();
     for (int x : nums) freq.merge(x, 1, Integer::sum);
@@ -86,25 +86,25 @@ def topKFrequent(nums, k):
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n log k)</li>
   <li><strong>空间</strong>：O(n)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>堆按频率比较</strong>：堆元素是 (cnt, num) 或自定义比较器，别按元素值比较</li>
   <li><strong>堆满即弹最小</strong>：维护 k 个最高频，弹掉堆顶（频率最低者）</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 桶排序做法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 按频率分桶（下标=频率），从高到低收集，O(n)，适合频率范围小的情况。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 按频率分桶（下标=频率），从高到低收集，O(n)，适合频率范围小的情况。</p>
     <p><strong>Q:</strong> 频率相同怎么排序？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 顺序无所谓，题目不要求同频元素的具体次序。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 顺序无所谓，题目不要求同频元素的具体次序。</p>
   </div>
 </details>
 

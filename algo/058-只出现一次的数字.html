@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/single-number/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   异或 XOR 的两个性质：a⊕a=0、a⊕0=a，且满足交换律结合律。把数组所有数异或起来，成对出现的数两两抵消为 0，剩下的就是只出现一次的那个数。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定一个<strong>非空</strong>整数数组，除某个元素只出现一次外，其余每个元素均出现<strong>两次</strong>。找出那个只出现一次的元素。要求线性时间 + 常数空间。</p>
 <p><strong>示例：</strong><br><code>[2,2,1]</code> → <code>1</code>；<code>[4,1,2,1,2]</code> → <code>4</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① XOR：a⊕a=0，成对相消</div>
   <div id="frame1-svg"></div>
@@ -44,15 +44,15 @@
   <div id="frame2-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   全部异或一遍，重复数字抵消，唯一数字保留。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def singleNumber(nums):
     ans = 0
     for x in nums:
@@ -62,7 +62,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int singleNumber(int[] nums) {
     int ans = 0;
     for (int x : nums) ans ^= x;
@@ -70,25 +70,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>初始化为 0</strong>：0⊕x=x，初始化 0 不影响结果</li>
   <li><strong>XOR 性质</strong>：成对元素必抵消，顺序无关，交换律结合律保证</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> 为什么 XOR 天然适用？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 相同数异或为 0，且异或满足交换结合律，遍历顺序无所谓，成对项全部归零。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 相同数异或为 0，且异或满足交换结合律，遍历顺序无所谓，成对项全部归零。</p>
     <p><strong>Q:</strong> 有三个数只出现一次呢？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 那是「只出现一次的数字 III / 数组」变体，需要分组或按位统计，单靠整体 XOR 不够。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 那是「只出现一次的数字 III / 数组」变体，需要分组或按位统计，单靠整体 XOR 不够。</p>
   </div>
 </details>
 

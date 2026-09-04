@@ -26,15 +26,15 @@
 <a class="origin-link" href="https://leetcode.cn/problems/palindrome-linked-list/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
-  <strong>🤔 为什么用这个思路？</strong><br>
+  <strong>为什么用这个思路？</strong><br>
   快慢指针找中点 → 反转后半段 → 与前半段逐个比较。O(n) 时间 + O(1) 空间，比转数组更省空间。
 </div>
 
-<h3>📄 题目描述</h3>
+<h3>题目描述</h3>
 <p>给定单链表的头节点，判断它是否是回文链表。</p>
 <p><strong>示例：</strong><br><code>[1,2,2,1]</code> → <code>true</code>；<code>[1,2]</code> → <code>false</code></p>
 
-<h3>📐 图解即思路</h3>
+<h3>图解即思路</h3>
 <div class="frame-card" style="margin-bottom:1.25rem;">
   <div class="frame-label">① 找中点，反转后半段</div>
   <div id="frame1-svg"></div>
@@ -48,15 +48,15 @@
   <div id="frame3-svg"></div>
 </div>
 <div class="why-box">
-  <strong>✅ 结论</strong><br>
+  <strong>结论</strong><br>
   反转后半段后，与前半段逐节点比对，全部相等即回文。
 </div>
 
-<h3>📝 最优解代码</h3>
+<h3>最优解代码</h3>
 
 <h4 style="margin-bottom:0.25rem;">Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def isPalindrome(head):
     slow = fast = head
     while fast and fast.next:
@@ -75,7 +75,7 @@
 
 <h4 style="margin-bottom:0.25rem;">Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">📋 复制</button>
+  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public boolean isPalindrome(ListNode head) {
     ListNode slow = head, fast = head;
     while (fast != null &amp;&amp; fast.next != null) { slow = slow.next; fast = fast.next.next; }
@@ -90,25 +90,25 @@
 }</code></pre>
 </div>
 
-<h3>⏱ 复杂度分析</h3>
+<h3>复杂度分析</h3>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>⚠️ 易错点</h3>
+<h3>易错点</h3>
 <ul>
   <li><strong>只比较后半段长度</strong>：while b 以后半段为准，奇数长度时中间节点不参与比较</li>
   <li><strong>反转从 slow 开始</strong>：slow 是后半段起点，反转后 prev 是后半段新头</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>🧪 自我检验</strong></summary>
+  <summary><strong>自我检验</strong></summary>
   <div style="margin-top:0.5rem;">
     <p><strong>Q:</strong> [1,2] 为何 false？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 中点 slow=2，反转后半还是 2，比较 1 vs 2 不等。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 中点 slow=2，反转后半还是 2，比较 1 vs 2 不等。</p>
     <p><strong>Q:</strong> 转数组做法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;">✅ <strong>答：</strong> 把值收集到数组用双指针比较，空间 O(n)，简单但非 O(1)。</p>
+    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 把值收集到数组用双指针比较，空间 O(n)，简单但非 O(1)。</p>
   </div>
 </details>
 
@@ -116,8 +116,8 @@
 const U = window.DrawUtils;
 
 function renderFrames() {
-document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2, "highlight": "active"}, {"val": 2}, {"val": 1}], "width": U.frameCardWidth('frame1-svg'), "height": 90});
-document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 1, "highlight": "done"}, {"val": 2, "highlight": "done"}], "width": U.frameCardWidth('frame2-svg'), "height": 90});
+document.getElementById('frame1-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2, "highlight": "active"}, {"val": 2}, {"val": 1}], "width": 520, "height": 90});
+document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"val": 1}, {"val": 2}, {"val": 1, "highlight": "done"}, {"val": 2, "highlight": "done"}], "width": 520, "height": 90});
 document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["位置", "前段", "后段", "相等?"], "rows": [["0", "1", "1", "✓"], ["1", "2", "2", "✓"]], "width": U.frameCardWidth('frame3-svg'), "height": 140});
 }
 
