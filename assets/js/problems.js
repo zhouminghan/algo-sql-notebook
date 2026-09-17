@@ -1165,6 +1165,17 @@ window.PROBLEMS = {
     "字节"
    ],
    "file": "sql/005-字节互相关注用户对.html"
+  },
+  {
+   "id": 6,
+   "title": "B站大会员续费率",
+   "diff": "medium",
+   "tags": [
+    "窗口函数",
+    "日期",
+    "条件聚合"
+   ],
+   "file": "sql/006-b站大会员续费率.html"
   }
  ]
 };

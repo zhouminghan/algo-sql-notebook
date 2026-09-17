@@ -20,8 +20,8 @@ output/
 # Node (if any)
 node_modules/
 
-# CodeBuddy
-.codebuddy/
+# Codex（项目级 skill / 本地状态，不入库）
+.codex/
 
 # Playwright CLI artifacts
 .playwright-cli/
