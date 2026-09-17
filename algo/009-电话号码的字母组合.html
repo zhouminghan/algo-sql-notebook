@@ -5,57 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/009-电话号码的字母组合.html">
+<meta name="description" content="009. 电话号码的字母组合 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>009. 电话号码的字母组合 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="009. 电话号码的字母组合">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/letter-combinations-of-a-phone-number/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   每个数字对应几个字母，组合就是「每个位置选一个字母」的决策树。回溯逐位枚举，到底收集一个组合，再撤销换下一个。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定仅含数字 2-9 的字符串，返回它能表示的所有字母组合。数字到字母的映射与电话按键相同。</p><p><strong>示例：</strong><br><code>"23"</code> → <code>["ad","ae","af","bd","be","bf","cd","ce","cf"]</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 数字到字母的映射</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 决策树：每位选一个字母</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 3×3=9 种组合</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   每位枚举字母，深度等于数字个数，到底即收集。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def letterCombinations(digits):
     if not digits:
         return []
@@ -72,9 +77,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;String&gt; letterCombinations(String digits) {
     if (digits.isEmpty()) return new ArrayList&lt;&gt;();
     String[] mp = {"","","abc","def","ghi","jkl","mno","pqrs","tuv","wxyz"};
@@ -90,25 +95,25 @@ void dfs(String d, int i, StringBuilder sb, String[] mp, List&lt;String&gt; ans)
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(3^m·4^n) — 组合数级别</li>
   <li><strong>空间</strong>：O(组合数长度)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>空串返回 []</strong>：digits 为空直接返回空列表，不能返回 [""]</li>
   <li><strong>回溯撤销</strong>：path.append 后要 pop，否则路径串到别的分支</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> "23" 为什么是 9 种？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 2 有 3 个字母、3 有 3 个字母，3×3=9。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 2 有 3 个字母、3 有 3 个字母，3×3=9。</p>
     <p><strong>Q:</strong> 7 和 9 有几个字母？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 都是 4 个（pqrs / wxyz），其余是 3 个。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 都是 4 个（pqrs / wxyz），其余是 3 个。</p>
   </div>
 </details>
 
@@ -123,7 +128,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["组�
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

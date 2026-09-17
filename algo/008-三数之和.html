@@ -5,57 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/008-三数之和.html">
+<meta name="description" content="008. 三数之和 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>008. 三数之和 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="008. 三数之和">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/3sum/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   固定一个数，剩下的两个数用双指针在有序数组里夹逼，把 O(n³) 降到 O(n²)。排序 + 去重（跳过相同值）避免重复三元组。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定整数数组，找出所有和为 0 且<strong>不重复</strong>的三元组 <code>[nums[i], nums[j], nums[k]]</code>。</p><p><strong>示例：</strong><br><code>[-1,0,1,2,-1,-4]</code> → <code>[[-1,-1,2],[-1,0,1]]</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 排序后固定第一个数 -1</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 双指针夹逼，和为 0 收集</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 跳过重复值去重</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   排序 → 固定一个 → 双指针找两数和，去重全靠跳过相同值。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def threeSum(nums):
     nums.sort()
     n = len(nums)
@@ -76,9 +81,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;List&lt;Integer&gt;&gt; threeSum(int[] nums) {
     Arrays.sort(nums);
     List&lt;List&lt;Integer&gt;&gt; ans = new ArrayList&lt;&gt;();
@@ -102,25 +107,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n²)</li>
   <li><strong>空间</strong>：O(1)（不算结果）</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>三处去重</strong>：外层固定值、内层左右指针都要跳过重复，缺一处就出重复三元组</li>
   <li><strong>先排序</strong>：双指针夹逼的前提是数组有序</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> [-1,0,1,2,-1,-4] 的两个答案？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> [-1,-1,2] 和 [-1,0,1]。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> [-1,-1,2] 和 [-1,0,1]。</p>
     <p><strong>Q:</strong> 为什么 O(n²) 不是 O(n³)？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 固定一数 O(n)，双指针 O(n)，相乘 O(n²)。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 固定一数 O(n)，双指针 O(n)，相乘 O(n²)。</p>
   </div>
 </details>
 
@@ -135,7 +140,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [-4,
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

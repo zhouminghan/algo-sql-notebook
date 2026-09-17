@@ -5,21 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="sql/005-字节互相关注用户对.html">
-<title>005. 字节互相关注用户对 — algo-sql-notebook</title>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<meta name="description" content="005. 互相关注用户对 — SQL 机试题图解：源数据 + CTE 分帧 + 完整答案 + 易错点 + 自我检验。">
+<title>005. 互相关注用户对 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="005. 互相关注用户对">
+<meta property="og:description" content="SQL 机试题图解：源数据 + CTE 分帧 + 完整答案 + 易错点 + 自我检验。">
+<script>
+(function () {
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
+})();
+</script>
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
-<script>
-(function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
-})();
-</script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
 
@@ -28,7 +35,7 @@
   自连接 <code>a.from_id = b.to_id AND a.to_id = b.from_id</code> 一次扫表，JOIN 条件是「A→B 且 B→A」的精确对称匹配。加 <code>a.from_id &lt; a.to_id</code> 去重保证每对只出一行，避免 (1,2) 和 (2,1) 重复输出。
 </div>
 
-<h4>业务术语</h4>
+<h2>业务术语</h2>
 <table>
   <tr><th>术语</th><th>含义</th></tr>
   <tr><td>from_id</td><td>关注发起方用户 ID</td></tr>
@@ -36,29 +43,29 @@
   <tr><td>互相关注（互关）</td><td>A 关注 B 且 B 也关注 A，即双向关注关系</td></tr>
 </table>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p><strong>字节跳动面试题。</strong>表 <code>c22_follow</code> 每行表示"用户 from_id 关注了 to_id"。找出所有互相关注的用户对（A 关注 B 且 B 关注 A）。每对只输出一次（小 id 作为 user_a 在前），按 user_a、user_b 升序排列。</p>
 
-<div class="frame-card" style="margin-bottom:1rem;">
+<div class="frame-card">
   <div class="frame-label">c22_follow（关注关系表）</div>
-  <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">每行 = 一条关注关系。互关需要在表中存在对称的两行</div>
-  <div id="desc-schema"></div>
-  <div id="desc-svg"></div>
+  <div class="frame-caption">每行 = 一条关注关系。互关需要在表中存在对称的两行</div>
+  <div class="frame-canvas" id="desc-schema"></div>
+  <div class="frame-canvas" id="desc-svg"></div>
 </div>
 
-<h3>图解即思路</h3>
+<h2>图解即思路</h2>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">① 自连接 — A→B 且 B→A 的对称匹配</div>
   <pre><code class="language-sql">SELECT a.from_id, a.to_id, b.from_id, b.to_id
 FROM c22_follow a
 JOIN c22_follow b
   ON a.from_id = b.to_id AND a.to_id = b.from_id
 -- 此时 (1,2) 和 (2,1) 各出现一次，需要去重</code></pre>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">② 最终输出 — WHERE a.from_id &lt; a.to_id 去重，小 id 在前</div>
   <pre><code class="language-sql">SELECT a.from_id AS user_a, a.to_id AS user_b
 FROM c22_follow a
@@ -66,15 +73,15 @@ JOIN c22_follow b
   ON a.from_id = b.to_id AND a.to_id = b.from_id
 WHERE a.from_id < a.to_id
 ORDER BY user_a, user_b;</code></pre>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 
-<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">以上 2 帧的 SQL 按顺序拼接，即为完整答案。</p>
+<p class="frame-note">以上 2 帧的 SQL 按顺序拼接，即为完整答案。</p>
 
-<h3>SQL 代码</h3>
+<h2>SQL 代码</h2>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
   <pre><code class="language-sql" id="sql-code">SELECT a.from_id AS user_a, a.to_id AS user_b
 FROM c22_follow a
 JOIN c22_follow b
@@ -83,18 +90,18 @@ WHERE a.from_id < a.to_id
 ORDER BY user_a, user_b;</code></pre>
 </div>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>去重用 &lt; 而非 &lt;&gt;</strong>：<code>a.from_id &lt; a.to_id</code> 保证每对互关只输出一行（小 id 在前）。如果不用 &lt; 直接用自连接结果，(1,2) 和 (2,1) 都会输出 — 违反了"每对只输出一次"的要求。</li>
   <li><strong>JOIN 条件必须双向对称</strong>：<code>ON a.from_id=b.to_id AND a.to_id=b.from_id</code> 不能只写一个方向只匹配一半。</li>
   <li><strong>不需要 DISTINCT</strong>：由于 <code>a.from_id &lt; a.to_id</code> 且互关在表中是唯一的对称对，自连接 + &lt; 已经天然去重，无需额外 DISTINCT。</li>
 </ul>
 
-<details id="ddlToggle">
-  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">本地复现（CREATE TABLE + INSERT + SQL）</summary>
-  <div id="ddlBody" class="collapsible-body">
+<details class="collapsible">
+  <summary>本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <div class="collapsible-body">
     <div class="code-block-wrapper">
-      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
+      <button type="button" id="ddlAllCopy" class="copy-btn copy-btn--block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
       <pre><code class="language-sql" id="ddl-code">CREATE TABLE c22_follow (
     from_id INT,
     to_id INT
@@ -122,13 +129,13 @@ ORDER BY user_a, user_b;
 </details>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q1:</strong> 如果表里只有 (1,2)、(2,3)、(3,1) 三条，有互关吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 没有。三条组成单向环（1→2→3→1），但没有任何一对是双向的。自连接匹配不到任何行。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 没有。三条组成单向环（1→2→3→1），但没有任何一对是双向的。自连接匹配不到任何行。</p>
 <p><strong>Q2:</strong> 如果改成「找出被至少 2 人关注的用户」，SQL 怎么改？</p>
-    <div style="color:var(--color-done);margin-left:1rem;">
-      <p><strong>答：</strong> 不需要自连接，直接 GROUP BY + COUNT 即可。</p>
+    <div>
+      <p class="selfcheck-answer"><strong>答：</strong> 不需要自连接，直接 GROUP BY + COUNT 即可。</p>
       <pre><code class="language-sql">SELECT to_id, COUNT(*) AS fan_cnt
 FROM c22_follow
 GROUP BY to_id
@@ -218,8 +225,12 @@ document.getElementById('frame2-svg').innerHTML = U.drawWindowFunc({
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+// highlight.js 以 defer 加载，等它执行完再高亮（避免 121KB 阻塞首屏）
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 
 </script>
+
 </body>
 </html>

@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/022-组合总和.html">
+<meta name="description" content="022. 组合总和 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>022. 组合总和 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="022. 组合总和">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/combination-sum/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   每个数可以无限次使用，本质是「无限背包」式的搜索树。回溯时用一个 start 下标保证「不重复组合」（只从当前及之后的数选），再用剩余和剪枝，及时砍掉超出的分支。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定<strong>无重复元素</strong>的数组 <code>candidates</code> 和目标数 <code>target</code>，找出所有和为 target 的组合。<code>candidates</code> 中的数字可以<strong>无限制重复</strong>选取，且解集不能包含重复组合。</p>
 <p><strong>示例：</strong><br><code>candidates=[2,3,6,7], target=7</code> → <code>[[2,2,3],[7]]</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 搜索树：从当前下标往后选，和为 target 就收集</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 剪枝：剩余和 &lt; 当前数，就不再往下搜</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   「从当前下标往后选」保证组合不重复；「剩余和不足即剪枝」把指数级搜索大幅收窄。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def combinationSum(candidates, target):
     candidates.sort()          # 排序后便于剪枝
     ans = []
@@ -69,9 +74,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;List&lt;Integer&gt;&gt; combinationSum(int[] candidates, int target) {
     Arrays.sort(candidates);
     List&lt;List&lt;Integer&gt;&gt; ans = new ArrayList&lt;&gt;();
@@ -89,13 +94,13 @@ void dfs(int[] c, int rest, int start, List&lt;Integer&gt; path, List&lt;List&lt
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n^(t/min)) — 组合数级别，t 为 target，min 为最小候选</li>
   <li><strong>空间</strong>：O(target/min) — 递归深度</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>去重靠 start 下标</strong>：递归传 i 而不是 i+1 表示可重复；若从 0 开始会生成重复组合</li>
   <li><strong>回溯恢复现场</strong>：path.append 后必须 path.pop()，否则路径串到别的分支</li>
@@ -103,12 +108,12 @@ void dfs(int[] c, int rest, int start, List&lt;Integer&gt; path, List&lt;List&lt
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> candidates=[2,3,6,7], target=7 的两个答案怎么来的？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> [2,2,3] 来自一路选 2 再选 3；[7] 来自直接选 7。选 [2,3,2] 这类重复顺序被 start 下标挡掉了。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> [2,2,3] 来自一路选 2 再选 3；[7] 来自直接选 7。选 [2,3,2] 这类重复顺序被 start 下标挡掉了。</p>
     <p><strong>Q:</strong> 为什么这题不像「无重复组合」那样纠结顺序？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> start 下标保证只往「当前及之后」选，组合内部天然有序，顺序不同不会重复出现。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> start 下标保证只往「当前及之后」选，组合内部天然有序，顺序不同不会重复出现。</p>
   </div>
 </details>
 
@@ -122,7 +127,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({"nodes": [{"v
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

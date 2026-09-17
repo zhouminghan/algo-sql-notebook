@@ -5,58 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/024-接雨水.html">
+<meta name="description" content="024. 接雨水 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>024. 接雨水 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="024. 接雨水">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/trapping-rain-water/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   每根柱子上能接多少水，由「左右两边最高柱子中的较矮者」决定。用左右双指针维护 leftMax / rightMax，谁小就结算谁，一次遍历 O(n)，无需提前建两个数组。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定 <code>n</code> 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。</p>
 <p><strong>示例：</strong><br><code>height=[0,1,0,2,1,0,1,3,2,1,2,1]</code> → <code>6</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 左指针在 0，右指针在末尾，维护 leftMax/rightMax</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② leftMax &lt; rightMax 时结算左指针，并右移</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 直到两指针相遇，累计雨水 = 6</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   每步只结算「较矮那侧」的柱子：它能接的水 = 该侧当前最高 - 自身高度，指针向中间推进直到相遇。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def trap(height):
     l, r = 0, len(height) - 1
     left_max = right_max = 0
@@ -73,9 +78,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int trap(int[] height) {
     int l = 0, r = height.length - 1, leftMax = 0, rightMax = 0, ans = 0;
     while (l &lt; r) {
@@ -88,25 +93,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n) — 每个柱子访问一次</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>结算哪一侧</strong>：leftMax < rightMax 时，左柱的水量由 leftMax 决定，与更远的右墙无关——这是双指针正确的关键</li>
   <li><strong>先更新 max 再结算</strong>：height[l] 可能比 leftMax 高，此时 leftMax - height[l] = 0，不会减出负数</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 为什么 leftMax < rightMax 时可以直接结算左柱？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 因为右边一定存在一根 >= rightMax > leftMax 的墙，左柱的水只受 leftMax 限制，右墙具体多高不再重要。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 因为右边一定存在一根 >= rightMax > leftMax 的墙，左柱的水只受 leftMax 限制，右墙具体多高不再重要。</p>
     <p><strong>Q:</strong> 单调递增的数组能接水吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 不能。leftMax 永远 <= 右侧，每次 leftMax-height[l] 在更新后都为 0，答案为 0。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 不能。leftMax 永远 <= 右侧，每次 leftMax-height[l] 在更新后都为 0，答案为 0。</p>
   </div>
 </details>
 
@@ -121,7 +126,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [0, 
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

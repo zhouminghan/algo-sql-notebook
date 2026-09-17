@@ -5,58 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/078-数组中的第K个最大元素.html">
+<meta name="description" content="078. 数组中的第K个最大元素 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>078. 数组中的第K个最大元素 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="078. 数组中的第K个最大元素">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/kth-largest-element-in-an-array/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   维护一个大小为 k 的最小堆，遍历数组：堆不满就进，满了且当前值大于堆顶则替换。堆顶就是第 k 大。时间 O(n log k)，比全排序 O(n log n) 更优。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定整数数组和整数 <code>k</code>，返回数组中第 <code>k</code> 个<strong>最大</strong>元素（排序后倒数第 k 个，而非第 k 个不同元素）。</p>
 <p><strong>示例：</strong><br><code>[3,2,1,5,6,4], k=2</code> → <code>5</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 维护大小为 k=2 的最小堆</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 遍历：比堆顶大就替换，堆顶始终是「当前前 k 大里最小的」</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 堆顶 5 即第 2 大</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   小顶堆的堆顶是「前 k 大元素的最小者」，即第 k 大。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">import heapq
 def findKthLargest(nums, k):
     heap = []
@@ -67,9 +72,9 @@ def findKthLargest(nums, k):
     return heap[0]</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int findKthLargest(int[] nums, int k) {
     PriorityQueue&lt;Integer&gt; pq = new PriorityQueue&lt;&gt;();
     for (int x : nums) {
@@ -80,25 +85,25 @@ def findKthLargest(nums, k):
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n log k)</li>
   <li><strong>空间</strong>：O(k)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>最小堆维护第 k 大</strong>：堆顶是「最小的那个大值」，别用最大堆（那要找第 k 小）</li>
   <li><strong>k 大小</strong>：堆满 k 后每次 push 都要 pop 一个，保持规模 k</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 快速选择做法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 基于快排 partition，平均 O(n)，最坏 O(n²)，适合大数据量。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 基于快排 partition，平均 O(n)，最坏 O(n²)，适合大数据量。</p>
     <p><strong>Q:</strong> 第 k 大与第 k 小？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 第 k 大 = 第 (n-k+1) 小；求第 k 小则用最大堆。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 第 k 大 = 第 (n-k+1) 小；求第 k 小则用最大堆。</p>
   </div>
 </details>
 
@@ -113,7 +118,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["", "
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

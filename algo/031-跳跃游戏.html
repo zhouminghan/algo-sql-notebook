@@ -5,58 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/031-跳跃游戏.html">
+<meta name="description" content="031. 跳跃游戏 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>031. 跳跃游戏 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="031. 跳跃游戏">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/jump-game/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   只要「能到达的最远下标」不断推进并最终 ≥ 末尾，就一定可达。贪心维护 farthest，比 DP 更简单，O(n) 即可。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定非负整数数组 <code>nums</code>，最初位于第一个下标。每个元素表示在该位置可跳跃的最大长度。判断能否到达最后一个下标。</p>
 <p><strong>示例：</strong><br><code>[2,3,1,1,4]</code> → <code>true</code><br><code>[3,2,1,0,4]</code> → <code>false</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 从 0 跳最远到 2</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 途中更新最远：1→2、2→4、3→4</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ farthest=4 覆盖末尾 → 可达</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   只要当前位置还在「最远可达」范围内，就不断把最远可达向前推进；越过末尾即成功。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def canJump(nums):
     farthest = 0
     for i, x in enumerate(nums):
@@ -68,9 +73,9 @@
     return True</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public boolean canJump(int[] nums) {
     int farthest = 0;
     for (int i = 0; i &lt; nums.length; i++) {
@@ -82,25 +87,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>i > farthest 判不可达</strong>：中间一旦出现「当前位置已超出最远可达」，后面全是死区，直接返回 false</li>
   <li><strong>提前返回 true</strong>：farthest >= n-1 即可提前结束，不用遍历到底</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> [3,2,1,0,4] 为什么 false？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 最远只能到 3，而 nums[3]=0 无法前进到 4，卡死在 0。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 最远只能到 3，而 nums[3]=0 无法前进到 4，卡死在 0。</p>
     <p><strong>Q:</strong> 和「跳跃游戏 II」区别？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> I 只判断可达性（贪心维护 farthest）；II 求最少步数（需维护当前步边界 end）。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> I 只判断可达性（贪心维护 farthest）；II 求最少步数（需维护当前步边界 end）。</p>
   </div>
 </details>
 
@@ -115,7 +120,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [2, 
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

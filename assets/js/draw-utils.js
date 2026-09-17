@@ -11,8 +11,11 @@
 
 /** 创建一个带 viewBox 的 SVG 容器 */
 function svgWrap(width, height, inner) {
+  // width 用具体像素值而不是 100%：这样 .frame-canvas 的 width:fit-content 才能
+  // 让底纹贴合图形（表格类图解自然铺满卡片，节点类不再拖一大块空底纹）。
+  // 窄屏由 .frame-card svg{max-width:100%;height:auto} 等比缩放，resize 后还会重绘。
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" 
-    width="100%" style="max-width:${width}px; font-family:system-ui,monospace;">${inner}</svg>`;
+    width="${width}" height="${height}" style="font-family:system-ui,monospace;">${inner}</svg>`;
 }
 
 /** 转义 XML 特殊字符，防止单元格/标签内容破坏 SVG 结构 */
@@ -464,8 +467,8 @@ function drawTableRaw({ headers = [], rows = [], startX = 0, startY = 0, colW = 
   let svg = '';
   headers.forEach((h, i) => {
     const x = startX + i * colW;
-    svg += `<rect x="${x}" y="${startY}" width="${colW}" height="${cellH}" fill="var(--pico-primary)" opacity="0.12" stroke="var(--color-border)"/>`;
-    svg += `<text x="${x + colW/2}" y="${startY + cellH/2 + 4}" text-anchor="middle" class="node-val" font-size="10" font-weight="bold" fill="var(--pico-primary)">${esc(h)}</text>`;
+    svg += `<rect x="${x}" y="${startY}" width="${colW}" height="${cellH}" fill="var(--accent)" opacity="0.12" stroke="var(--color-border)"/>`;
+    svg += `<text x="${x + colW/2}" y="${startY + cellH/2 + 4}" text-anchor="middle" class="node-val" font-size="10" font-weight="bold" fill="var(--accent)">${esc(h)}</text>`;
   });
   rows.forEach((row, ri) => {
     const y = startY + (ri + 1) * cellH;
@@ -826,11 +829,19 @@ function drawTwoSumMap({ arr = [], map = [], highlight = null, currentIdx = -1, 
 // 表格因此填满卡片容器，随窗口宽度变化
 // ============================================================
 function frameCardWidth(el) {
-  const card = (typeof el === 'string' ? document.getElementById(el) : el).closest('.frame-card');
+  const node = typeof el === 'string' ? document.getElementById(el) : el;
+  const card = node.closest('.frame-card');
   if (!card) return 600;
   const padL = parseFloat(getComputedStyle(card).paddingLeft) || 0;
   const padR = parseFloat(getComputedStyle(card).paddingRight) || 0;
-  return Math.max(320, Math.round(card.clientWidth - padL - padR - 2)); // -2 边框
+  let avail = card.clientWidth - padL - padR - 2; // -2 边框
+  // 图解画布自带内边距，把图形按「画布可用宽度」绘制，避免被 CSS 再等比缩一次
+  const canvas = node.closest('.frame-canvas');
+  if (canvas) {
+    const cs = getComputedStyle(canvas);
+    avail -= (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  }
+  return Math.max(280, Math.round(avail));
 }
 
 /** 窗口 resize 防抖重绘：表格随网页宽度自适应 */

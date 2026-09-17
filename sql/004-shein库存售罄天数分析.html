@@ -5,21 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="sql/004-shein库存售罄天数分析.html">
+<meta name="description" content="004. SHEIN库存售罄天数分析 — SQL 机试题图解：源数据 + CTE 分帧 + 完整答案 + 易错点 + 自我检验。">
 <title>004. SHEIN库存售罄天数分析 — algo-sql-notebook</title>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="004. SHEIN库存售罄天数分析">
+<meta property="og:description" content="SQL 机试题图解：源数据 + CTE 分帧 + 完整答案 + 易错点 + 自我检验。">
+<script>
+(function () {
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
+})();
+</script>
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
-<script>
-(function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
-})();
-</script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
 
@@ -29,7 +36,7 @@
   4.2 售罄天数 = 数据段总天数 − 有库存天数：用 <code>DATEDIFF(MAX, MIN) + 1</code> 减 <code>COUNT(DISTINCT date)</code>，无需生成日历表逐天判断。
 </div>
 
-<h4>业务术语</h4>
+<h2>业务术语</h2>
 <table>
   <tr><th>术语</th><th>含义</th></tr>
   <tr><td>market</td><td>平台编码，如 AMZ=亚马逊美国、US=美国站、WAL=沃尔玛</td></tr>
@@ -38,23 +45,23 @@
   <tr><td>售罄天数</td><td>数据段内没有库存记录的天数 = 总天数 − 有库存天数</td></tr>
 </table>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p><strong>SHEIN 机试题。</strong>表 <code>shein_C</code> 记录每个 market 每个 sku 每天的 qty：</p>
 
-<div class="frame-card" style="margin-bottom:1rem;">
+<div class="frame-card">
   <div class="frame-label">shein_C（库存流水表）</div>
-  <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">每行 = 某平台某 SKU 某天的库存量</div>
-  <div id="desc-schema"></div>
-  <div id="desc-svg"></div>
+  <div class="frame-caption">每行 = 某平台某 SKU 某天的库存量</div>
+  <div class="frame-canvas" id="desc-schema"></div>
+  <div class="frame-canvas" id="desc-svg"></div>
 </div>
 
-<h4>4.1 每个 market 每个 sku 最后一次有 qty 的时间及 qty</h4>
+<h3>4.1 每个 market 每个 sku 最后一次有 qty 的时间及 qty</h3>
 
-<h4>4.2 售罄天数 = 数据段总天数 − 有库存天数</h4>
+<h3>4.2 售罄天数 = 数据段总天数 − 有库存天数</h3>
 
-<h3>图解即思路</h3>
+<h2>图解即思路</h2>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">① CTE: ranked — ROW_NUMBER 按日期倒序，rn=1 即最后一天</div>
   <pre><code class="language-sql">WITH ranked AS (
     -- ① 按 market+sku 分区，日期倒序编号
@@ -62,19 +69,19 @@
            ROW_NUMBER() OVER (PARTITION BY market, sku ORDER BY date DESC) AS rn
     FROM shein_C
 ),</code></pre>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">② 4.1 答案 — 取 rn=1 即最后一次有 qty 的记录</div>
   <pre><code class="language-sql">SELECT market, sku, date AS last_date, qty AS last_qty
 FROM ranked
 WHERE rn = 1
 ORDER BY market, sku;</code></pre>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">③ CTE: stats — 按 market+sku 聚合日期范围与有库存天数</div>
   <pre><code class="language-sql">stats AS (
     -- ③ 计算数据段总天数 DATEDIFF(MAX,MIN)+1 与有库存天数 COUNT(DISTINCT date)
@@ -84,10 +91,10 @@ ORDER BY market, sku;</code></pre>
     FROM shein_C
     GROUP BY market, sku
 )</code></pre>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">④ 4.2 答案 — 售罄天数 = 总天数 − 有库存天数</div>
   <pre><code class="language-sql">SELECT market, sku,
        total_days,
@@ -95,15 +102,15 @@ ORDER BY market, sku;</code></pre>
        total_days - stock_days AS sold_out_days
 FROM stats
 ORDER BY market, sku;</code></pre>
-  <div id="frame4-svg"></div>
+  <div class="frame-canvas" id="frame4-svg"></div>
 </div>
 
-<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">以上 4 帧的 SQL 按顺序拼接（4.1 和 4.2 各为独立查询），即为完整答案。</p>
+<p class="frame-note">以上 4 帧的 SQL 按顺序拼接（4.1 和 4.2 各为独立查询），即为完整答案。</p>
 
-<h3>SQL 代码</h3>
+<h2>SQL 代码</h2>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-41')">复制 4.1</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'sql-41')">复制 4.1</button>
   <pre><code class="language-sql" id="sql-41">-- 4.1 每个 market 每个 sku 最后一次有 qty 的时间及 qty
 WITH ranked AS (
     SELECT market, sku, qty, date,
@@ -117,7 +124,7 @@ ORDER BY market, sku;</code></pre>
 </div>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-42')">复制 4.2</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'sql-42')">复制 4.2</button>
   <pre><code class="language-sql" id="sql-42">-- 4.2 每个 market 每个 sku 的售罄天数
 WITH stats AS (
     SELECT market, sku,
@@ -134,18 +141,18 @@ FROM stats
 ORDER BY market, sku;</code></pre>
 </div>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>4.1 不能直接用 MAX(date) + JOIN</strong>：MAX(date) 找到日期后还要 JOIN 回来取 qty，如果同一天有多条 qty（不同时间），MAX 后再 JOIN 会取到多条。ROW_NUMBER DESC 按日期分区精确取最后一条，避免歧义。</li>
   <li><strong>4.2 总天数 = DATEDIFF + 1 而非直接 DATEDIFF</strong>：比如 2/1 ~ 2/3 是 3 天，DATEDIFF('2023-02-03','2023-02-01') = 2，需要 +1。</li>
   <li><strong>有库存天数用 COUNT(DISTINCT date) 而非 COUNT(*)</strong>：同一天同 sku 可能有重复记录，用 DISTINCT 避免重复计数。</li>
 </ul>
 
-<details id="ddlToggle">
-  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">本地复现（CREATE TABLE + INSERT + SQL）</summary>
-  <div id="ddlBody" class="collapsible-body">
+<details class="collapsible">
+  <summary>本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <div class="collapsible-body">
     <div class="code-block-wrapper">
-      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
+      <button type="button" id="ddlAllCopy" class="copy-btn copy-btn--block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
       <pre><code class="language-sql" id="ddl-code">CREATE TABLE shein_C (
     market VARCHAR(10), sku VARCHAR(20), qty INT, date DATE
 );
@@ -201,12 +208,12 @@ ORDER BY market, sku;
 </details>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q1:</strong> 如果 AMZ/Label-1 在 2/2 有两条 qty 记录（不同时间），ROW_NUMBER DESC 取到哪条？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 取 rn=1 的那条。如果 ORDER BY 只有 date DESC 没有 tie-breaker，同一天多条记录顺序不确定。如需精确控制，可加第二个排序列如 <code>ORDER BY date DESC, qty DESC</code>。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 取 rn=1 的那条。如果 ORDER BY 只有 date DESC 没有 tie-breaker，同一天多条记录顺序不确定。如需精确控制，可加第二个排序列如 <code>ORDER BY date DESC, qty DESC</code>。</p>
     <p><strong>Q2:</strong> 示例数据中所有 sku 售罄天数都是 0，什么情况下会 &gt; 0？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 当某个 sku 在数据段中间某天没有记录时。比如 AMZ/Label-1 有 2/1 和 2/3 但没有 2/2 → total_days=3, stock_days=2 → sold_out_days=1。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 当某个 sku 在数据段中间某天没有记录时。比如 AMZ/Label-1 有 2/1 和 2/3 但没有 2/2 → total_days=3, stock_days=2 → sold_out_days=1。</p>
   </div>
 </details>
 
@@ -343,8 +350,12 @@ document.getElementById('frame4-svg').innerHTML = U.drawWindowFunc({
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+// highlight.js 以 defer 加载，等它执行完再高亮（避免 121KB 阻塞首屏）
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 
 </script>
+
 </body>
 </html>

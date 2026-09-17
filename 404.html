@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>404 · 没有这一页 — algo-sql-notebook</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="404 · 没有这一页">
+<meta property="og:description" content="这个地址不对应 algo-sql-notebook 里的任何题目。">
+<script>
+/*
+ * GitHub Pages 会把 404.html 渲染到任意深度的 URL 上（如 /repo/a/b），
+ * 那样相对路径 assets/... 就会解析错。这里先算出站点根目录再补 <base>，
+ * 本地预览（localhost / file://）则退回 ./。
+ */
+(function () {
+  var host = location.hostname;
+  var local = host === 'localhost' || host === '127.0.0.1' || host === '';
+  var root = local ? './' : '/' + (location.pathname.split('/')[1] || '') + '/';
+  document.write('<base href="' + root + '">');
+})();
+</script>
+<script>
+(function () {
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
+})();
+</script>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="assets/js/problems.js"></script>
+<script src="assets/js/common.js"></script>
+</head>
+<body>
+
+<main class="index-body">
+  <section class="index-hero">
+    <h1>404 · 没有这一页</h1>
+    <p>这个地址不对应任何题目 —— 可能是链接过期、题目改名，或者 URL 少了一段。</p>
+  </section>
+
+  <div class="why-box">
+    <strong>怎么找回题目？</strong><br>
+    左侧导航按分类列出了全部 106 题（算法 100 + SQL 6）；也可以直接按 <kbd>/</kbd> 唤起搜索框，
+    输入题号（如 <code>001</code>）或关键词（如 <code>滑动窗口</code>）。
+  </div>
+
+  <div class="btn-row">
+    <a class="link-btn" href="index.html">← 回题库总览</a>
+    <a class="link-btn ghost" href="algo/001-两数之和.html">从第一题开始</a>
+  </div>
+</main>
+
+</body>
+</html>

@@ -5,58 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/069-相交链表.html">
+<meta name="description" content="069. 相交链表 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>069. 相交链表 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="069. 相交链表">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/intersection-of-two-linked-lists/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   两个指针分别从 A、B 出发，走到头就换到另一条链继续走。若相交，两指针走的总路程相等，必在交点相遇；若不相交，最后同时为 null。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定两个单链表的头节点，找出并返回它们相交的起始节点；不相交则返回 null。</p>
 <p><strong>示例：</strong><br>listA=[4,1,8,4,5], listB=[5,6,1,8,4,5]（在 8 相交）→ 返回节点 8</p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 两条链长度不同，直接同步走会错过交点</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 指针走到头就换到另一条链，路程对齐</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 相交点 8；不相交则最终同到 null</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   「走完自己再走对方」让两指针总路程相等，交点必然相遇。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def getIntersectionNode(headA, headB):
     a, b = headA, headB
     while a != b:
@@ -65,9 +70,9 @@
     return a</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
     ListNode a = headA, b = headB;
     while (a != b) {
@@ -78,25 +83,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(m + n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>走到头换链</strong>：a 到 null 后跳 headB，而不是停在 null</li>
   <li><strong>终止条件</strong>：循环 a != b；不相交时二者最终都为 null，自然退出</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 不相交会死循环吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 不会。两指针各走 m+n 步后同时到达 null，a==b 退出。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 不会。两指针各走 m+n 步后同时到达 null，a==b 退出。</p>
     <p><strong>Q:</strong> 哈希表做法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 把 A 的节点存 Set，遍历 B 找第一个在 Set 中的节点，空间 O(m)。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 把 A 的节点存 Set，遍历 B 找第一个在 Set 中的节点，空间 O(m)。</p>
   </div>
 </details>
 
@@ -111,7 +116,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawLinkedList({"nodes": [{"
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

@@ -5,57 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/006-正则表达式匹配.html">
+<meta name="description" content="006. 正则表达式匹配 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>006. 正则表达式匹配 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="006. 正则表达式匹配">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/regular-expression-matching/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   '.' 匹配任意字符，'*' 匹配前一个字符零次或多次。dp[i][j] 表示 s 前 i 个与 p 前 j 个是否匹配，按 p[j-1] 是不是 '*' 分两种情况递推。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定字符串 <code>s</code> 和字符规律 <code>p</code>，实现支持 <code>.</code> 和 <code>*</code> 的正则匹配。<code>.</code> 匹配任意单个字符；<code>*</code> 匹配零个或多个前面的那个元素。</p><p><strong>示例：</strong><br><code>s="aab", p="c*a*b"</code> → <code>true</code>（c 重复 0 次，a 重复 2 次）</p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① dp[i][j]：s 前 i 个与 p 前 j 个是否匹配</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② p[j-1]=='*'：看前一个字符匹配几次</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 普通字符/'.'：直接比对</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   按 '是否 *' 分支递推，右下角 dp[m][n] 即答案。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def isMatch(s, p):
     m, n = len(s), len(p)
     dp = [[False]*(n+1) for _ in range(m+1)]
@@ -72,9 +77,9 @@
     return dp[m][n]</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public boolean isMatch(String s, String p) {
     int m = s.length(), n = p.length();
     boolean[][] dp = new boolean[m+1][n+1];
@@ -92,25 +97,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(m·n)</li>
   <li><strong>空间</strong>：O(m·n)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>dp[0][j] 初始化</strong>：s 为空但 p 形如 a*b* 时可能匹配，要单独处理 '前缀'</li>
   <li><strong>'*' 两个来源</strong>：当 0 个（dp[i][j-2]）和当多个（dp[i-1][j]），漏一个会错</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> "aab" 与 "c*a*b" 为何匹配？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> c* 匹配 0 个 c，a* 匹配 2 个 a，最后 b 匹配 b。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> c* 匹配 0 个 c，a* 匹配 2 个 a，最后 b 匹配 b。</p>
     <p><strong>Q:</strong> '.*' 匹配什么？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 任意字符重复任意次，等价匹配任意字符串。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 任意字符重复任意次，等价匹配任意字符串。</p>
   </div>
 </details>
 
@@ -125,7 +130,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTable({"headers": ["p[j-
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

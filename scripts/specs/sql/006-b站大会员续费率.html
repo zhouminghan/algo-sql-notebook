@@ -1,0 +1,302 @@
+<div class="why-box">
+  <strong>为什么用 CTE 分步拆解？</strong><br>
+  LEAD 补全下一次订阅 → DATEDIFF 判定续费窗口 → 按月 DISTINCT 聚合，三件事独立成块。<code>with_next</code> → <code>renew_flag</code> → 最终聚合，像搭积木一样层层递进，每一步的输出都能单独验证。
+</div>
+
+<h2>业务术语</h2>
+<table>
+  <tr><th>术语</th><th>含义</th></tr>
+  <tr><td>大会员</td><td>B 站付费会员，本题泛指付费订阅用户</td></tr>
+  <tr><td>到期用户数</td><td>end_date 落在该月的去重用户数（分母）</td></tr>
+  <tr><td>30 天内续费</td><td>下一条订阅 start_date 与当前 end_date 间隔 ≤ 30 天</td></tr>
+  <tr><td>续费率</td><td>30 天内续费用户数 ÷ 到期用户数</td></tr>
+  <tr><td>LEAD</td><td>窗口函数，取同分组内「下一条」记录的某列值，本题用于补全下次订阅时间</td></tr>
+  <tr><td>DATEDIFF</td><td>MySQL 日期差函数，返回两个日期的天数差</td></tr>
+</table>
+
+<h2>题目描述</h2>
+<p>B 站大会员业务分析：现有一张订阅表 <code>t7_vip_subscription</code>，记录用户每次订阅的起止时间。请<strong>按到期月份</strong>统计：<strong>到期用户数</strong>、<strong>30 天内续费用户数</strong>、<strong>续费率</strong>。续费行为复杂：有的当天续、有的拖几周、有的中途改续费方式、有的到期后再也没回来——需要在窗口判定里把这些场景都覆盖到。</p>
+
+<div class="frame-card">
+  <div class="frame-label">t7_vip_subscription（大会员订阅表）</div>
+  <div class="frame-caption">每个用户每次订阅一行；同一用户可有多条订阅记录（续费产生新记录）</div>
+  <div class="frame-canvas" id="desc-schema"></div>
+  <div class="frame-canvas" id="desc-data"></div>
+</div>
+
+<h2>图解即思路</h2>
+
+<div class="frame-card">
+  <div class="frame-label">① CTE: with_next — LEAD 补全每个用户下一次订阅的开始时间</div>
+  <pre><code class="language-sql">WITH with_next AS (
+    -- ① 用 LEAD 补全每个用户下一次订阅的开始时间
+    SELECT user_id, start_date, end_date,
+           SUBSTR(end_date, 1, 7) AS expire_month,
+           LEAD(start_date) OVER (PARTITION BY user_id ORDER BY start_date) AS next_start
+    FROM t7_vip_subscription
+),</code></pre>
+  <div class="frame-canvas" id="frame1-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">② CTE: renew_flag — 计算续费间隔，标记是否 30 天内续费</div>
+  <pre><code class="language-sql">renew_flag AS (
+    -- ② 计算续费间隔，标记是否 30 天内续费
+    SELECT user_id, expire_month,
+           DATEDIFF(next_start, end_date) AS gap_days,
+           CASE WHEN DATEDIFF(next_start, end_date) &lt;= 30 THEN 1 ELSE 0 END AS is_renew
+    FROM with_next
+)</code></pre>
+  <div class="frame-canvas" id="frame2-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">③ 最终聚合 — 按月 DISTINCT 统计到期 / 续费人数与续费率</div>
+  <pre><code class="language-sql">-- ③ 按月聚合：到期人数 / 续费人数 / 续费率
+SELECT expire_month AS 到期月份,
+       COUNT(DISTINCT user_id) AS 到期用户数,
+       COUNT(DISTINCT CASE WHEN is_renew = 1 THEN user_id END) AS 续费用户数,
+       ROUND(COUNT(DISTINCT CASE WHEN is_renew = 1 THEN user_id END) / COUNT(DISTINCT user_id), 4) AS 续费率
+FROM renew_flag
+GROUP BY expire_month
+ORDER BY expire_month;</code></pre>
+  <div class="frame-canvas" id="frame3-svg"></div>
+</div>
+
+<p class="frame-note">以上 3 帧的 SQL 按顺序拼接（两个 CTE + 最终 SELECT），即为完整答案。</p>
+
+<h2>SQL 代码</h2>
+
+<div class="code-block-wrapper">
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
+  <pre><code class="language-sql" id="sql-code">WITH with_next AS (
+    -- ① 用 LEAD 补全每个用户下一次订阅的开始时间
+    SELECT user_id, start_date, end_date,
+           SUBSTR(end_date, 1, 7) AS expire_month,
+           LEAD(start_date) OVER (PARTITION BY user_id ORDER BY start_date) AS next_start
+    FROM t7_vip_subscription
+),
+renew_flag AS (
+    -- ② 计算续费间隔，标记是否 30 天内续费
+    SELECT user_id, expire_month,
+           DATEDIFF(next_start, end_date) AS gap_days,
+           CASE WHEN DATEDIFF(next_start, end_date) &lt;= 30 THEN 1 ELSE 0 END AS is_renew
+    FROM with_next
+)
+-- ③ 按月聚合：到期人数 / 续费人数 / 续费率
+SELECT expire_month AS 到期月份,
+       COUNT(DISTINCT user_id) AS 到期用户数,
+       COUNT(DISTINCT CASE WHEN is_renew = 1 THEN user_id END) AS 续费用户数,
+       ROUND(COUNT(DISTINCT CASE WHEN is_renew = 1 THEN user_id END) / COUNT(DISTINCT user_id), 4) AS 续费率
+FROM renew_flag
+GROUP BY expire_month
+ORDER BY expire_month;</code></pre>
+</div>
+
+<h2>易错点</h2>
+<ul>
+  <li><strong>COUNT(DISTINCT user_id) 不能省</strong>：同一用户可能有多条订阅记录（不同月份各有一条到期），<code>COUNT(*)</code> 会重复计数。这里 DISTINCT 确保每月内同一用户只算一人</li>
+  <li><strong>DATEDIFF 结果可能是 0 或负数</strong>：当天续费（u04 首尾相接）间隔为 0，提前续费甚至为负。<code>&lt;= 30</code> 会把当天续和提前续都算作「30 天内」；若业务只想统计「到期后 30 天」，改成 <code>DATEDIFF(next_start, end_date) BETWEEN 0 AND 30</code></li>
+  <li><strong>最后一条记录的 next_start 为 NULL</strong>：LEAD 没有「下一条」，DATEDIFF(NULL, end_date) 结果为 NULL，CASE 条件不成立 → 不计入续费人数，但仍计入到期人数分母。这是正确的（无法判断最后一条是否续费），但会把续费率整体拉低；业务上可加 <code>WHERE next_start IS NOT NULL</code> 只统计「有机会续费」的记录，需权衡</li>
+  <li><strong>LEAD 必须按 start_date 排序</strong>：<code>ORDER BY start_date</code> 保证「下一条」是时间上的下一次订阅；漏排会导致 next_start 取值错乱</li>
+  <li><strong>按月截断的写法</strong>：字符串日期用 <code>SUBSTR(end_date, 1, 7)</code>；若列是 DATE 类型，MySQL 用 <code>DATE_FORMAT(end_date, '%Y-%m')</code>，Hive/Spark 用 <code>substr(date_format(end_date,'yyyy-MM-dd'),1,7)</code> 或 <code>date_format</code></li>
+</ul>
+
+<h2>举一反三</h2>
+<ul>
+  <li><strong>按订阅时长分析续费率</strong>：先算 <code>DATEDIFF(end_date, start_date)</code> 分月卡/季卡/年卡，再看各时长的续费率差异——年卡用户续费率通常更高，指导月卡用户升档</li>
+  <li><strong>续费间隔分布（续费漏斗）</strong>：把 <code>DATEDIFF(next_start, end_date)</code> 分段——0 天(立即续) / 1-7 天(快速续) / 8-30 天(正常续) / 31-90 天(回流) / &gt;90 天或未续(流失)</li>
+  <li><strong>最长连续续费月数</strong>：用 LEAD 链式追踪「每次续费间隔 ≤ 30 天」的连续段，识别连续续费 12 个月以上的超级会员——本质是「最长连续登录」问题的变体</li>
+</ul>
+
+<details class="collapsible">
+  <summary>本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <div class="collapsible-body">
+    <div class="code-block-wrapper">
+      <button type="button" id="ddlAllCopy" class="copy-btn copy-btn--block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
+      <pre><code class="language-sql" id="ddl-code">CREATE TABLE t7_vip_subscription (
+    user_id    VARCHAR(10),
+    start_date VARCHAR(20),
+    end_date   VARCHAR(20)
+);
+INSERT INTO t7_vip_subscription VALUES
+('u01','2023-01-01','2023-02-01'),
+('u01','2023-02-05','2023-03-05'),
+('u02','2023-01-01','2023-02-01'),
+('u03','2023-01-15','2023-02-15'),
+('u03','2023-04-01','2023-05-01'),
+('u04','2023-01-01','2023-02-01'),
+('u04','2023-02-01','2023-03-01'),
+('u04','2023-03-01','2023-04-01'),
+('u05','2023-01-10','2023-02-10'),
+('u05','2023-02-28','2023-03-28'),
+('u06','2023-02-01','2023-03-01'),
+('u06','2023-03-01','2023-04-01'),
+('u07','2023-12-01','2024-01-01'),
+('u07','2024-01-10','2024-02-10');
+
+-- 然后执行上方 SQL 代码</code></pre>
+    </div>
+  </div>
+</details>
+
+<details class="selfcheck-box" open>
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
+    <p><strong>Q1:</strong> 为什么续费人数用 <code>COUNT(DISTINCT CASE WHEN is_renew = 1 THEN user_id END)</code> 而不是 <code>COUNT(*) WHERE is_renew = 1</code>？</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 防御同一用户同月多条到期记录被重复计数——DISTINCT 保证每月内同一用户只算一人，这也是「按月分组 + 同一用户多订阅周期」场景的标准写法。</p>
+    <p><strong>Q2:</strong> u07 在 2024-01 的续费间隔是多少？为什么计入续费？</p>
+    <p class="selfcheck-answer"><strong>答：9 天。</strong> 2024-01-01 到期、2024-01-10 开始下一条订阅（跨年），DATEDIFF = 9 ≤ 30，所以计入 2024-01 的续费人数，该月续费率 100%（样本量仅 1，注意可信度）。</p>
+    <p><strong>Q3:</strong> 如果只想统计「到期后 30 天内续费」（不含当天/提前），怎么改？</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 把判定条件改成 <code>DATEDIFF(next_start, end_date) BETWEEN 1 AND 30</code>（或 <code>BETWEEN 0 AND 30</code>，视当天续是否算「到期后」的业务口径而定）。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+// 表格随网页宽度自适应：宽度取 frame-card 容器宽，resize 时重绘
+function renderFrames() {
+
+// ---- 题目描述：源数据表 ----
+document.getElementById('desc-schema').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['列名','类型','说明'],
+      rows: [
+        ['user_id','VARCHAR(10)','用户ID'],
+        ['start_date','VARCHAR(20)','订阅开始日期'],
+        ['end_date','VARCHAR(20)','订阅到期日期'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('desc-schema'), height: 0
+});
+document.getElementById('desc-data').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['user_id','start_date','end_date'],
+      rows: [
+        ['u01','2023-01-01','2023-02-01'],
+        ['u01','2023-02-05','2023-03-05'],
+        ['u02','2023-01-01','2023-02-01'],
+        ['u03','2023-01-15','2023-02-15'],
+        ['u03','2023-04-01','2023-05-01'],
+        ['u04','2023-01-01','2023-02-01'],
+        ['u04','2023-02-01','2023-03-01'],
+        ['u04','2023-03-01','2023-04-01'],
+        ['u05','2023-01-10','2023-02-10'],
+        ['u05','2023-02-28','2023-03-28'],
+        ['u06','2023-02-01','2023-03-01'],
+        ['u06','2023-03-01','2023-04-01'],
+        ['u07','2023-12-01','2024-01-01'],
+        ['u07','2024-01-10','2024-02-10'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('desc-data'), height: 0
+});
+
+// ---- 图解帧 ----
+// 帧①: with_next — user_id, start_date, end_date, expire_month, next_start
+document.getElementById('frame1-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','start_date','end_date','expire_month','next_start'],
+      rows: [
+        ['u01','2023-01-01','2023-02-01','2023-02','2023-02-05'],
+        ['u01','2023-02-05','2023-03-05','2023-03','—'],
+        ['u02','2023-01-01','2023-02-01','2023-02','—'],
+        ['u03','2023-01-15','2023-02-15','2023-02','2023-04-01'],
+        ['u03','2023-04-01','2023-05-01','2023-05','—'],
+        ['u04','2023-01-01','2023-02-01','2023-02','2023-02-01'],
+        ['u04','2023-02-01','2023-03-01','2023-03','2023-03-01'],
+        ['u04','2023-03-01','2023-04-01','2023-04','—'],
+        ['u05','2023-01-10','2023-02-10','2023-02','2023-02-28'],
+        ['u05','2023-02-28','2023-03-28','2023-03','—'],
+        ['u06','2023-02-01','2023-03-01','2023-03','2023-03-01'],
+        ['u06','2023-03-01','2023-04-01','2023-04','—'],
+        ['u07','2023-12-01','2024-01-01','2024-01','2024-01-10'],
+        ['u07','2024-01-10','2024-02-10','2024-02','—'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 2, label: 'u01' },
+      { startRow: 2, count: 1, label: 'u02' },
+      { startRow: 3, count: 2, label: 'u03' },
+      { startRow: 5, count: 3, label: 'u04' },
+      { startRow: 8, count: 2, label: 'u05' },
+      { startRow: 10, count: 2, label: 'u06' },
+      { startRow: 12, count: 2, label: 'u07' },
+    ]
+  }],
+  width: U.frameCardWidth('frame1-svg'), height: 0
+});
+
+// 帧②: renew_flag — user_id, expire_month, gap_days, is_renew
+document.getElementById('frame2-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','expire_month','gap_days','is_renew'],
+      rows: [
+        ['u01','2023-02','4','✓'],
+        ['u02','2023-02','—','✗'],
+        ['u03','2023-02','45','✗'],
+        ['u04','2023-02','0','✓'],
+        ['u05','2023-02','18','✓'],
+        ['u01','2023-03','—','✗'],
+        ['u04','2023-03','0','✓'],
+        ['u05','2023-03','—','✗'],
+        ['u06','2023-03','0','✓'],
+        ['u04','2023-04','—','✗'],
+        ['u06','2023-04','—','✗'],
+        ['u03','2023-05','—','✗'],
+        ['u07','2024-01','9','✓'],
+        ['u07','2024-02','—','✗'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 5, label: '2023-02' },
+      { startRow: 5, count: 4, label: '2023-03' },
+      { startRow: 9, count: 2, label: '2023-04' },
+      { startRow: 11, count: 1, label: '2023-05' },
+      { startRow: 12, count: 1, label: '2024-01' },
+      { startRow: 13, count: 1, label: '2024-02' },
+    ]
+  }],
+  width: U.frameCardWidth('frame2-svg'), height: 0
+});
+
+// 帧③: 最终输出
+document.getElementById('frame3-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['到期月份','到期用户数','续费用户数','续费率'],
+      rows: [
+        ['2023-02','5','3','0.6'],
+        ['2023-03','4','2','0.5'],
+        ['2023-04','2','0','0.0'],
+        ['2023-05','1','0','0.0'],
+        ['2024-01','1','1','1.0'],
+        ['2024-02','1','0','0.0'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('frame3-svg'), height: 0
+});
+
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+// highlight.js 以 defer 加载，等它执行完再高亮（避免 121KB 阻塞首屏）
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
+
+</script>

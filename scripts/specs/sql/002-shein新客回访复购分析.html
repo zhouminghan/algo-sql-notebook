@@ -1,0 +1,596 @@
+<div class="why-box">
+  <strong>为什么用 CTE 分步拆解？</strong><br>
+  首单识别、品类分类、窗口预计算、回访判定、复购统计、Top3 聚合——独立逻辑拆成多个 CTE，每步只用前一步的结果。<code>first_order</code> → <code>first_cate</code> → <code>cust_pay → cust_win → cust_base</code> → <code>cust_visit / cust_repurchase</code> → <code>cust_flag</code> → <code>monthly + top3</code>，像搭积木一样层层递进。
+</div>
+
+<h2>业务术语</h2>
+<table>
+  <tr><th>术语</th><th>含义</th></tr>
+  <tr><td>SKU</td><td>Stock Keeping Unit，单品唯一标识（如 dress_01 = 黑色连衣裙 M 码）</td></tr>
+  <tr><td>cate_nm</td><td>商品品类（Category），本题有 women / men / kids / young</td></tr>
+  <tr><td>回访率</td><td>首单后 30 天内再次访问的用户占比 = 回访人数 ÷ 新客人数</td></tr>
+  <tr><td>复购率</td><td>首单后 30 天内再次下单的用户占比 = 复购人数 ÷ 新客人数</td></tr>
+</table>
+
+<h2>题目描述</h2>
+<p>SHEIN 运营团队想分析<strong>2020年1月起</strong>的新客户：按首单品类分成 A/B/C 三组，看各组在首单后 30 天内的<strong>回访率</strong>和<strong>复购率</strong>，以及复购最多的 Top3 品类。</p>
+
+<div class="frame-card">
+  <div class="frame-label">t2_order_detail（订单表）</div>
+  <div class="frame-caption">每个用户每次订单一行。user_id + pay_time + cate_nm 是关键字段</div>
+  <div class="frame-canvas" id="desc-t1-schema"></div>
+  <div class="frame-canvas" id="desc-t1-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">t2_user_visit_di（回访日志表）</div>
+  <div class="frame-caption">记录用户每天的访问。dt 是 yyyymmdd 格式字符串</div>
+  <div class="frame-canvas" id="desc-t2-schema"></div>
+  <div class="frame-canvas" id="desc-t2-svg"></div>
+</div>
+
+<p><strong>分组规则：</strong></p>
+<ul>
+  <li><strong>A 类</strong>：首单只买了 <code>women</code></li>
+  <li><strong>B 类</strong>：首单买了 <code>women + men</code>（恰好这两种）</li>
+  <li><strong>C 类</strong>：其他所有情况（women+men+kids / 只 kids / 只 young 等）</li>
+</ul>
+
+<h2>图解即思路</h2>
+
+<div class="frame-card">
+  <div class="frame-label">① CTE: first_order — ROW_NUMBER 开窗取每个用户最早一笔</div>
+  <pre><code class="language-sql">WITH ranked AS (
+    -- ① 开窗取首单：ROW_NUMBER 分组排序，rn=1 即最早一笔
+    SELECT user_id, pay_time, sku, cate_nm, sales_cnt,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY pay_time) AS rn
+    FROM t2_order_detail
+),
+first_order AS (
+    SELECT user_id, pay_time AS first_pay,
+           DATE_FORMAT(pay_time, '%Y-%m') AS first_month
+    FROM ranked WHERE rn = 1
+),</code></pre>
+  <div class="frame-canvas" id="frame1-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">② CTE: first_cate — 条件聚合标记每个用户首单买了哪些品类</div>
+  <pre><code class="language-sql">first_cate AS (
+    -- ② 条件聚合：MAX(CASE WHEN) 替代 GROUP_CONCAT，全引擎兼容
+    SELECT f.user_id, f.first_month, f.first_pay,
+           MAX(CASE WHEN o.cate_nm = 'women' THEN 1 ELSE 0 END) AS has_women,
+           MAX(CASE WHEN o.cate_nm = 'men'   THEN 1 ELSE 0 END) AS has_men,
+           MAX(CASE WHEN o.cate_nm = 'kids'  THEN 1 ELSE 0 END) AS has_kids
+    FROM first_order f
+    JOIN ranked o ON f.user_id = o.user_id AND o.rn = 1
+    GROUP BY f.user_id, f.first_month, f.first_pay
+),</code></pre>
+  <div class="frame-canvas" id="frame2-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">③ CTE: new_cust — 用 CASE 分类 A/B/C，只保留 2020年起</div>
+  <pre><code class="language-sql">new_cust AS (
+    -- CASE 分类 + 过滤 2020年起
+    SELECT user_id, first_month,
+           CASE WHEN has_women=1 AND has_men=0 AND has_kids=0 THEN 'A'
+                WHEN has_women=1 AND has_men=1 AND has_kids=0 THEN 'B'
+                ELSE 'C' END AS category
+    FROM first_cate WHERE first_month >= '2020-01'
+),</code></pre>
+  <div class="frame-canvas" id="frame3-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">④-a CTE: cust_pay → cust_win → cust_base — 窗口边界预计算（各格式一次算出，零重复）</div>
+  <pre><code class="language-sql">cust_pay AS (
+    -- ③a1 只解析一次：字符串 first_pay → datetime pay_dt
+    SELECT nc.*, STR_TO_DATE(nc.first_pay, '%Y-%m-%d %H:%i') AS pay_dt
+    FROM new_cust nc
+),
+cust_win AS (
+    -- ③a2 只算一次：pay_dt + 30 天 → pay30_dt
+    SELECT cp.*, DATE_ADD(cp.pay_dt, INTERVAL 30 DAY) AS pay30_dt
+    FROM cust_pay cp
+),
+cust_base AS (
+    -- ③a3 输出边界：按目标格式各格式化一次，无重复表达式
+    SELECT cw.*,
+           DATE_FORMAT(cw.pay_dt,   '%Y%m%d')         AS visit_start,
+           DATE_FORMAT(cw.pay30_dt, '%Y%m%d')         AS visit_end,
+           DATE_FORMAT(cw.pay30_dt, '%Y-%m-%d %H:%i') AS repurchase_end
+    FROM cust_win cw
+),</code></pre>
+  <div class="frame-canvas" id="frame4a-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">④-b CTE: cust_visit + cust_repurchase + cust_flag — JOIN 预聚合 + LEFT JOIN 打标</div>
+  <pre><code class="language-sql">cust_visit AS (
+    -- ③b1 30 天内回访：JOIN 窗口 + DISTINCT 压缩到每用户一行
+    SELECT DISTINCT cb.user_id
+    FROM cust_base cb
+    JOIN t2_user_visit_di v
+      ON v.user_id = cb.user_id
+     AND v.dt BETWEEN cb.visit_start AND cb.visit_end
+),
+cust_repurchase AS (
+    -- ③b2 30 天内复购：JOIN 窗口 + DISTINCT 压缩到每用户一行
+    SELECT DISTINCT cb.user_id
+    FROM cust_base cb
+    JOIN t2_order_detail o2
+      ON o2.user_id = cb.user_id
+     AND o2.pay_time > cb.first_pay
+     AND o2.pay_time <= cb.repurchase_end
+),
+cust_flag AS (
+    -- ③b3 打标：LEFT JOIN 预聚合结果（替代 EXISTS），主查询零膨胀
+    SELECT cb.*,
+           CASE WHEN cv.user_id IS NOT NULL THEN 1 ELSE 0 END AS has_visit,
+           CASE WHEN cr.user_id IS NOT NULL THEN 1 ELSE 0 END AS has_repurchase
+    FROM cust_base cb
+    LEFT JOIN cust_visit cv      ON cv.user_id = cb.user_id
+    LEFT JOIN cust_repurchase cr ON cr.user_id = cb.user_id
+),</code></pre>
+  <div class="frame-canvas" id="frame4-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">⑤ CTE: monthly — 按月×品类聚合，回访率 & 复购率</div>
+  <pre><code class="language-sql">monthly AS (
+    -- ④ 聚合：月度 × 品类统计
+    SELECT first_month, category,
+           COUNT(DISTINCT user_id) AS cust_cnt,
+           COUNT(DISTINCT CASE WHEN has_visit      THEN user_id END) AS visit_cnt,
+           COUNT(DISTINCT CASE WHEN has_repurchase THEN user_id END) AS repurchase_cnt
+    FROM cust_flag GROUP BY first_month, category
+),</code></pre>
+  <div class="frame-canvas" id="frame5-svg"></div>
+</div>
+
+<div class="frame-card">
+  <div class="frame-label">⑥ top3 + 最终输出 — JOIN monthly + top3，拼接回访率/复购率/复购品类</div>
+  <pre><code class="language-sql">top3 AS (
+    -- ④ 开窗取 Top3 复购品类
+    SELECT first_month, category,
+           MAX(CASE WHEN rn=1 THEN cate_nm END) AS top1,
+           MAX(CASE WHEN rn=2 THEN cate_nm END) AS top2,
+           MAX(CASE WHEN rn=3 THEN cate_nm END) AS top3
+    FROM (
+        SELECT nc.first_month, nc.category, o.cate_nm,
+               ROW_NUMBER() OVER (PARTITION BY nc.first_month, nc.category
+                                  ORDER BY COUNT(DISTINCT nc.user_id) DESC, o.cate_nm) AS rn
+        FROM new_cust nc
+        JOIN t2_order_detail o ON o.user_id = nc.user_id
+           AND o.pay_time > nc.first_pay
+           AND o.pay_time <= DATE_ADD(STR_TO_DATE(nc.first_pay, '%Y-%m-%d %H:%i'), INTERVAL 30 DAY)
+        WHERE nc.first_month >= '2020-01'
+        GROUP BY nc.first_month, nc.category, o.cate_nm
+    ) t WHERE rn <= 3
+    GROUP BY first_month, category
+)
+SELECT m.first_month   AS 首单月份,
+       m.category      AS 首单品类,
+       m.cust_cnt      AS 新客人数,
+       m.visit_cnt     AS 回访人数,
+       CONCAT(ROUND(m.visit_cnt*100.0/m.cust_cnt,0),'%') AS 回访率,
+       m.repurchase_cnt AS 复购人数,
+       CONCAT(ROUND(m.repurchase_cnt*100.0/m.cust_cnt,0),'%') AS 复购率,
+       CONCAT_WS(',', t.top1, t.top2, t.top3) AS 复购的top3品类
+FROM monthly m LEFT JOIN top3 t
+    ON m.first_month = t.first_month AND m.category = t.category
+ORDER BY m.first_month, m.category;</code></pre>
+  <div class="frame-canvas" id="frame6-svg"></div>
+</div>
+
+<p class="frame-note">以上 7 帧的 SQL 按顺序拼接（含 top3 CTE + 最终 SELECT），即为完整答案。</p>
+
+<h2>SQL 代码</h2>
+
+<div class="code-block-wrapper">
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
+  <pre><code class="language-sql" id="sql-code">WITH ranked AS (
+    -- ① 开窗取首单：ROW_NUMBER 分组排序，rn=1 即最早一笔
+    SELECT user_id, pay_time, sku, cate_nm, sales_cnt,
+           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY pay_time) AS rn
+    FROM t2_order_detail
+),
+first_order AS (
+    SELECT user_id, pay_time AS first_pay,
+           DATE_FORMAT(pay_time, '%Y-%m') AS first_month
+    FROM ranked WHERE rn = 1
+),
+first_cate AS (
+    -- ② 条件聚合：MAX(CASE WHEN) 替代 GROUP_CONCAT，全引擎兼容
+    SELECT f.user_id, f.first_month, f.first_pay,
+           MAX(CASE WHEN o.cate_nm = 'women' THEN 1 ELSE 0 END) AS has_women,
+           MAX(CASE WHEN o.cate_nm = 'men'   THEN 1 ELSE 0 END) AS has_men,
+           MAX(CASE WHEN o.cate_nm = 'kids'  THEN 1 ELSE 0 END) AS has_kids
+    FROM first_order f
+    JOIN ranked o ON f.user_id = o.user_id AND o.rn = 1
+    GROUP BY f.user_id, f.first_month, f.first_pay
+),
+new_cust AS (
+    -- CASE 分类 + 过滤 2020年起
+    SELECT user_id, first_month,
+           CASE WHEN has_women=1 AND has_men=0 AND has_kids=0 THEN 'A'
+                WHEN has_women=1 AND has_men=1 AND has_kids=0 THEN 'B'
+                ELSE 'C' END AS category
+    FROM first_cate WHERE first_month >= '2020-01'
+),
+cust_pay AS (
+    -- ③a1 只解析一次：字符串 first_pay → datetime pay_dt
+    SELECT nc.*, STR_TO_DATE(nc.first_pay, '%Y-%m-%d %H:%i') AS pay_dt
+    FROM new_cust nc
+),
+cust_win AS (
+    -- ③a2 只算一次：pay_dt + 30 天 → pay30_dt
+    SELECT cp.*, DATE_ADD(cp.pay_dt, INTERVAL 30 DAY) AS pay30_dt
+    FROM cust_pay cp
+),
+cust_base AS (
+    -- ③a3 输出边界：按目标格式各格式化一次，无重复表达式
+    SELECT cw.*,
+           DATE_FORMAT(cw.pay_dt,   '%Y%m%d')         AS visit_start,
+           DATE_FORMAT(cw.pay30_dt, '%Y%m%d')         AS visit_end,
+           DATE_FORMAT(cw.pay30_dt, '%Y-%m-%d %H:%i') AS repurchase_end
+    FROM cust_win cw
+),
+cust_visit AS (
+    -- ③b1 30 天内回访：JOIN 窗口 + DISTINCT 压缩到每用户一行
+    SELECT DISTINCT cb.user_id
+    FROM cust_base cb
+    JOIN t2_user_visit_di v
+      ON v.user_id = cb.user_id
+     AND v.dt BETWEEN cb.visit_start AND cb.visit_end
+),
+cust_repurchase AS (
+    -- ③b2 30 天内复购：JOIN 窗口 + DISTINCT 压缩到每用户一行
+    SELECT DISTINCT cb.user_id
+    FROM cust_base cb
+    JOIN t2_order_detail o2
+      ON o2.user_id = cb.user_id
+     AND o2.pay_time > cb.first_pay
+     AND o2.pay_time <= cb.repurchase_end
+),
+cust_flag AS (
+    -- ③b3 打标：LEFT JOIN 预聚合结果（替代 EXISTS），主查询零膨胀
+    SELECT cb.*,
+           CASE WHEN cv.user_id IS NOT NULL THEN 1 ELSE 0 END AS has_visit,
+           CASE WHEN cr.user_id IS NOT NULL THEN 1 ELSE 0 END AS has_repurchase
+    FROM cust_base cb
+    LEFT JOIN cust_visit cv      ON cv.user_id = cb.user_id
+    LEFT JOIN cust_repurchase cr ON cr.user_id = cb.user_id
+),
+monthly AS (
+    -- ④ 聚合：月度 × 品类统计
+    SELECT first_month, category,
+           COUNT(DISTINCT user_id) AS cust_cnt,
+           COUNT(DISTINCT CASE WHEN has_visit      THEN user_id END) AS visit_cnt,
+           COUNT(DISTINCT CASE WHEN has_repurchase THEN user_id END) AS repurchase_cnt
+    FROM cust_flag GROUP BY first_month, category
+),
+top3 AS (
+    -- ④ 开窗取 Top3 复购品类
+    SELECT first_month, category,
+           MAX(CASE WHEN rn=1 THEN cate_nm END) AS top1,
+           MAX(CASE WHEN rn=2 THEN cate_nm END) AS top2,
+           MAX(CASE WHEN rn=3 THEN cate_nm END) AS top3
+    FROM (
+        SELECT nc.first_month, nc.category, o.cate_nm,
+               ROW_NUMBER() OVER (PARTITION BY nc.first_month, nc.category
+                                  ORDER BY COUNT(DISTINCT nc.user_id) DESC, o.cate_nm) AS rn
+        FROM new_cust nc
+        JOIN t2_order_detail o ON o.user_id = nc.user_id
+           AND o.pay_time > nc.first_pay
+           AND o.pay_time <= DATE_ADD(STR_TO_DATE(nc.first_pay, '%Y-%m-%d %H:%i'), INTERVAL 30 DAY)
+        WHERE nc.first_month >= '2020-01'
+        GROUP BY nc.first_month, nc.category, o.cate_nm
+    ) t WHERE rn <= 3
+    GROUP BY first_month, category
+)
+SELECT m.first_month   AS 首单月份,
+       m.category      AS 首单品类,
+       m.cust_cnt      AS 新客人数,
+       m.visit_cnt     AS 回访人数,
+       CONCAT(ROUND(m.visit_cnt*100.0/m.cust_cnt,0),'%') AS 回访率,
+       m.repurchase_cnt AS 复购人数,
+       CONCAT(ROUND(m.repurchase_cnt*100.0/m.cust_cnt,0),'%') AS 复购率,
+       CONCAT_WS(',', t.top1, t.top2, t.top3) AS 复购的top3品类
+FROM monthly m LEFT JOIN top3 t
+    ON m.first_month = t.first_month AND m.category = t.category
+ORDER BY m.first_month, m.category;</code></pre>
+</div>
+
+<h2>易错点</h2>
+<ul>
+  <li><strong>ROW_NUMBER 取首单比 MIN+JOIN 更简洁</strong>：一次扫描完成排序，避免 MIN 查到时间后再 JOIN 回来取其他字段</li>
+  <li><strong>条件聚合代替字符串拼接</strong>：<code>MAX(CASE WHEN cate_nm='women' THEN 1 ELSE 0 END)</code> — 不依赖 GROUP_CONCAT（MySQL 专属）或 collect_set（Hive 专属），全引擎通用且天然去重</li>
+  <li><strong>日期格式统一 + 零重复表达式</strong>：pay_time 格式 <code>yyyy-MM-dd HH:mm</code>，visit dt 格式 <code>yyyymmdd</code> — <code>cust_pay</code>→<code>cust_win</code>→<code>cust_base</code> 分层递进，<code>pay_dt</code>/<code>pay30_dt</code> 各只算一次，最后按目标格式各自格式化，避免整坨 <code>DATE_FORMAT(DATE_ADD(STR_TO_DATE(...)))</code> 重复书写</li>
+  <li><strong>存在性判断用 JOIN 预聚合而非 EXISTS</strong>：<code>cust_visit</code>/<code>cust_repurchase</code> 先 JOIN 窗口条件 + DISTINCT 把命中用户压缩成一行，再 LEFT JOIN 打标 — 避免相关子查询逐行执行，主查询也不会因多笔订单/多次访问而笛卡尔膨胀</li>
+  <li><strong>Top3 用 MAX(CASE WHEN rn=N)</strong>：比 GROUP_CONCAT 更通用。注意 CONCAT_WS 会自动跳过 NULL（空品类变空串而非 'NULL,NULL'）</li>
+  <li><strong>Hive/Spark 适配</strong>：<code>date_format</code> / <code>date_add</code> 替代 MySQL 的 <code>DATE_FORMAT</code> / <code>DATE_ADD</code>；<code>CONCAT</code> 替代 <code>CONCAT_WS</code> 如遇兼容问题</li>
+</ul>
+
+<details class="collapsible">
+  <summary>本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <div class="collapsible-body">
+    <div class="code-block-wrapper">
+      <button type="button" id="ddlAllCopy" class="copy-btn copy-btn--block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
+      <pre><code class="language-sql" id="ddl-code">CREATE TABLE t2_order_detail (
+    user_id VARCHAR(10), pay_time VARCHAR(20),
+    sku VARCHAR(50), cate_nm VARCHAR(20), sales_cnt INT
+);
+INSERT INTO t2_order_detail VALUES
+('u01','2020-01-05 10:00','dress_01','women',2),
+('u01','2020-01-05 10:30','dress_02','women',1),
+('u01','2020-01-10 14:00','bag_01','women',1),
+('u02','2020-01-10 09:00','shirt_01','women',1),
+('u02','2020-01-10 09:05','pants_01','men',1),
+('u03','2020-01-15 11:00','shirt_02','women',1),
+('u03','2020-01-15 11:00','pants_02','men',1),
+('u03','2020-01-15 11:00','toy_01','kids',1),
+('u04','2020-02-03 08:00','dress_03','women',1),
+('u06','2020-02-12 13:00','toy_02','kids',1);
+
+CREATE TABLE t2_user_visit_di (
+    user_id VARCHAR(10), dt VARCHAR(10)
+);
+INSERT INTO t2_user_visit_di VALUES
+('u01','20200120'),('u01','20200128'),
+('u02','20200115'),('u02','20200203'),
+('u04','20200220'),('u04','20200228'),
+('u06','20200225');
+
+-- 然后执行上方 SQL 代码</code></pre>
+    </div>
+  </div>
+</details>
+
+<details class="selfcheck-box" open>
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
+    <p><strong>Q1:</strong> 如果首单买了 <code>men</code>（只有 men），CASE 会分到哪一类？为什么？</p>
+    <p class="selfcheck-answer"><strong>答：C 类。</strong> CASE 只匹配 <code>'women'</code> 和 <code>'men,women'</code> 两种——只买 men 不匹配任何条件，进 ELSE → C 类。</p>
+    <p><strong>Q2:</strong> 如果需求改为「只看 7 天内回访」，改哪里？</p>
+    <p class="selfcheck-answer"><strong>答：</strong> cust_flag 和 top3 的 CTE 中，把 <code>INTERVAL 30 DAY</code> 改成 <code>INTERVAL 7 DAY</code> 即可。</p>
+  </div>
+</details>
+
+<script>
+const U = window.DrawUtils;
+
+// 表格随网页宽度自适应：宽度取 frame-card 容器宽，resize 时重绘
+function renderFrames() {
+
+// ---- 题目描述：两张源数据表 ----
+document.getElementById('desc-t1-schema').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['列名','类型','说明'],
+      rows: [
+        ['user_id','VARCHAR(10)','用户ID'],
+        ['pay_time','VARCHAR(20)','支付时间 yyyy-MM-dd HH:mm'],
+        ['sku','VARCHAR(50)','SKU编号'],
+        ['cate_nm','VARCHAR(20)','品类 women/men/kids'],
+        ['sales_cnt','INT','销量'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('desc-t1-schema'), height: 145
+});
+document.getElementById('desc-t1-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['user_id','pay_time','cate_nm','sales_cnt'],
+      rows: [
+        ['u01','2020-01-05','women','2'],
+        ['u01','2020-01-05','women','1'],
+        ['u02','2020-01-10','women','1'],
+        ['u02','2020-01-10','men','1'],
+        ['u03','2020-01-15','women','1'],
+        ['u03','2020-01-15','men','1'],
+        ['u03','2020-01-15','kids','1'],
+        ['u04','2020-02-03','women','1'],
+        ['u06','2020-02-12','kids','1'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('desc-t1-svg'), height: 300
+});
+
+document.getElementById('desc-t2-schema').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['列名','类型','说明'],
+      rows: [
+        ['user_id','VARCHAR(10)','用户ID'],
+        ['dt','VARCHAR(10)','访问日期 yyyymmdd'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('desc-t2-schema'), height: 80
+});
+document.getElementById('desc-t2-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'plain', desc: '',
+    table: {
+      headers: ['user_id','dt'],
+      rows: [
+        ['u01','20200120'],['u01','20200128'],
+        ['u02','20200115'],['u02','20200203'],
+        ['u04','20200220'],['u04','20200228'],
+        ['u06','20200225'],
+      ]
+    },
+  }],
+  width: U.frameCardWidth('desc-t2-svg'), height: 230
+});
+
+// ---- 图解帧 ----
+// 帧①: first_order — user_id, first_pay, first_month
+document.getElementById('frame1-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','first_pay','first_month'],
+      rows: [
+        ['u01','2020-01-05','2020-01'],
+        ['u02','2020-01-10','2020-01'],
+        ['u03','2020-01-15','2020-01'],
+        ['u04','2020-02-03','2020-02'],
+        ['u06','2020-02-12','2020-02'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 3, label: '2020-01' },
+      { startRow: 3, count: 2, label: '2020-02' },
+    ]
+  }],
+  width: U.frameCardWidth('frame1-svg'), height: 200
+});
+
+// 帧②: first_cate — user_id, has_women, has_men, has_kids
+document.getElementById('frame2-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','has_women','has_men','has_kids'],
+      rows: [
+        ['u01','1','0','0'],
+        ['u02','1','1','0'],
+        ['u03','1','1','1'],
+        ['u04','1','0','0'],
+        ['u06','0','0','1'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 3, label: '2020-01' },
+      { startRow: 3, count: 2, label: '2020-02' },
+    ]
+  }],
+  width: U.frameCardWidth('frame2-svg'), height: 200
+});
+
+// 帧③: new_cust — user_id, category
+document.getElementById('frame3-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','category'],
+      rows: [
+        ['u01','A'],['u02','B'],['u03','C'],
+        ['u04','A'],['u06','C'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 1, label: 'A' },
+      { startRow: 1, count: 1, label: 'B' },
+      { startRow: 2, count: 3, label: 'C' },
+    ]
+  }],
+  width: U.frameCardWidth('frame3-svg'), height: 200
+});
+
+// 帧④-a: cust_win 中间产物 — user_id, first_pay, pay30_dt, visit_end
+document.getElementById('frame4a-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','first_pay','pay30_dt','visit_end'],
+      rows: [
+        ['u01','2020-01-05','2020-02-04','20200204'],
+        ['u02','2020-01-10','2020-02-09','20200209'],
+        ['u03','2020-01-15','2020-02-14','20200214'],
+        ['u04','2020-02-03','2020-03-04','20200304'],
+        ['u06','2020-02-12','2020-03-13','20200313'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 5, label: '窗口预计算中间产物' },
+    ]
+  }],
+  width: U.frameCardWidth('frame4a-svg'), height: 180
+});
+
+// 帧④-b: cust_visit + cust_repurchase + cust_flag
+document.getElementById('frame4-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['user_id','category','has_visit','has_repurchase'],
+      rows: [
+        ['u01','A','✓','✓'],
+        ['u02','B','✓','✗'],
+        ['u03','C','✗','✗'],
+        ['u04','A','✓','✗'],
+        ['u06','C','✓','✓'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 1, label: 'A' },
+      { startRow: 1, count: 1, label: 'B' },
+      { startRow: 2, count: 3, label: 'C' },
+    ]
+  }],
+  width: U.frameCardWidth('frame4-svg'), height: 200
+});
+
+// 帧⑤: monthly — first_month, category, cust_cnt, visit_cnt, repurchase_cnt
+document.getElementById('frame5-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['first_month','category','cust_cnt','visit_cnt','repurchase_cnt'],
+      rows: [
+        ['2020-01','A','1','1','1'],
+        ['2020-01','B','1','1','0'],
+        ['2020-01','C','1','0','0'],
+        ['2020-02','A','1','1','0'],
+        ['2020-02','C','1','1','1'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 3, label: '2020-01' },
+      { startRow: 3, count: 2, label: '2020-02' },
+    ]
+  }],
+  width: U.frameCardWidth('frame5-svg'), height: 220
+});
+
+// 帧⑥: 最终输出
+document.getElementById('frame6-svg').innerHTML = U.drawWindowFunc({
+  frames: [{
+    type: 'partition', desc: '',
+    table: {
+      headers: ['首单月份','首单品类','新客人数','回访人数','回访率','复购人数','复购率','复购的top3品类'],
+      rows: [
+        ['2020-01','A','1','1','100%','1','100%','women'],
+        ['2020-01','B','1','1','100%','0','0%',''],
+        ['2020-01','C','1','0','0%','0','0%',''],
+        ['2020-02','A','1','1','100%','0','0%',''],
+        ['2020-02','C','1','1','100%','1','100%','kids'],
+      ]
+    },
+    partitions: [
+      { startRow: 0, count: 3, label: '2020-01' },
+      { startRow: 3, count: 2, label: '2020-02' },
+    ]
+  }],
+  width: U.frameCardWidth('frame6-svg'), height: 220
+});
+
+}
+
+renderFrames();
+U.autoFitResize(renderFrames);
+// highlight.js 以 defer 加载，等它执行完再高亮（避免 121KB 阻塞首屏）
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
+
+</script>

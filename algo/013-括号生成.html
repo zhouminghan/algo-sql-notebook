@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/013-括号生成.html">
+<meta name="description" content="013. 括号生成 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>013. 括号生成 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="013. 括号生成">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/generate-parentheses/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   生成所有合法括号组合，本质是一棵决策树：每一步要么放 '(' 要么放 ')'。两条剪枝规则保证结果合法——左括号数量不超过 n，右括号数量不超过当前左括号数（否则会「先右后左」不匹配）。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>数字 <code>n</code> 代表生成括号的对数，设计一个函数，返回所有可能的并且<strong>有效的</strong>括号组合。</p>
 <p><strong>示例：</strong><br><code>n = 3</code> → <code>["((()))","(()())","(())()","()(())","()()()"]</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 决策树：每步放 '(' 或 ')'，剪掉非法分支</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② n=1：先 '(' 再 ')'，得 ()</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   「左括号数 ≤ n」与「右括号数 ≤ 左括号数」两条约束贯穿整棵树，走到 2n 长度就收集一个答案。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def generateParenthesis(n):
     ans = []
     def dfs(s, left, right):
@@ -66,9 +71,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;String&gt; generateParenthesis(int n) {
     List&lt;String&gt; ans = new ArrayList&lt;&gt;();
     dfs(new StringBuilder(), 0, 0, n, ans);
@@ -81,25 +86,25 @@ void dfs(StringBuilder sb, int left, int right, int n, List&lt;String&gt; ans) {
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(C(2n,n)/(n+1) · n) — 卡特兰数个答案，每个答案长 2n</li>
   <li><strong>空间</strong>：O(n) — 递归栈深度 2n</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>剪枝条件写反</strong>：右括号条件是 right < left 而非 right < n，否则会生成 ")(" 这种非法开头</li>
   <li><strong>回溯要恢复现场</strong>：用可变字符串（StringBuilder）时，递归返回后要 deleteCharAt 撤销本次选择</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 为什么第二个条件不是 right < n 而是 right < left？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> right < n 只限制总量，无法阻止右括号出现在左括号之前（如 ')(('）；right < left 保证任意前缀里右括号都不多于左括号，这正是合法的充要条件。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> right < n 只限制总量，无法阻止右括号出现在左括号之前（如 ')(('）；right < left 保证任意前缀里右括号都不多于左括号，这正是合法的充要条件。</p>
     <p><strong>Q:</strong> n=1 会生成什么？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 先放 '('，此时 right(0) < left(1) 可放 ')'，得 '()'；没有其他分支，结果唯一。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 先放 '('，此时 right(0) < left(1) 可放 ')'，得 '()'；没有其他分支，结果唯一。</p>
   </div>
 </details>
 
@@ -113,7 +118,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawBacktrack({"nodes": [{"v
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

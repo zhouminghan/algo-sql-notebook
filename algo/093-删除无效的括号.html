@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/093-删除无效的括号.html">
+<meta name="description" content="093. 删除无效的括号 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>093. 删除无效的括号 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="093. 删除无效的括号">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/remove-invalid-parentheses/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   要删「最少」的括号，按层 BFS：每次尝试删一个括号得到下一层，一旦某层出现合法串，该层就是最小删除层，收集该层所有合法串即可。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定只含 <code>(</code> 和 <code>)</code> 以及小写字母的字符串，删除<strong>最少数量的</strong>无效括号，使剩余字符串合法。返回所有可能的结果。</p>
 <p><strong>示例：</strong><br><code>"()())()"</code> → <code>["(())()","()()()"]</code>；<code>"(a)())()"</code> → <code>["(a())()","(a)()()"]</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 按层 BFS：每删一个括号一层</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 用计数判断合法：左加右减，中途不为负、最后为 0</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   BFS 保证先找到的就是删除最少的，用 visited 去重避免重复状态。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def removeInvalidParentheses(s):
     def valid(t):
         cnt = 0
@@ -75,9 +80,9 @@
         level = nxt</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;String&gt; removeInvalidParentheses(String s) {
     List&lt;String&gt; ans = new ArrayList&lt;&gt;();
     Set&lt;String&gt; level = new HashSet&lt;&gt;();
@@ -103,25 +108,25 @@ boolean valid(String t) {
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：最坏 O(n · 2^n)，但剪枝与去重后通常很快</li>
   <li><strong>空间</strong>：O(n · 层状态数)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>BFS 而非 DFS</strong>：DFS 会先搜到删除更多的解，BFS 保证「最少删除」</li>
   <li><strong>visited 去重</strong>：不同删法可能得到同一串，必须用 set 去重</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 合法判断</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 遍历中计数不能为负，结束时计数必须为 0，二者缺一不可。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 遍历中计数不能为负，结束时计数必须为 0，二者缺一不可。</p>
     <p><strong>Q:</strong> 含字母怎么办？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 字母原样保留，只对括号做删除候选。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 字母原样保留，只对括号做删除候选。</p>
   </div>
 </details>
 
@@ -135,7 +140,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["串"
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

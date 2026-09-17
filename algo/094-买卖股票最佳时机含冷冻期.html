@@ -5,58 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/094-买卖股票最佳时机含冷冻期.html">
+<meta name="description" content="094. 买卖股票最佳时机含冷冻期 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>094. 买卖股票最佳时机含冷冻期 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="094. 买卖股票最佳时机含冷冻期">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-cooldown/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   卖出后次日不能买入。用三状态 DP：hold（持有）、sold（刚卖出）、rest（空仓休息）。每天三态互相转移，最终答案是 max(sold, rest)。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>可以多次买卖，但卖出后存在<strong>一天冷冻期</strong>：卖出股票的次日不能买入。求最大利润。</p>
 <p><strong>示例：</strong><br><code>[1,2,3,0,2]</code> → <code>3</code>（买 1 卖 2、冷冻、买 0 卖 2）</p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 三状态：持有 hold / 刚卖 sold / 空仓 rest</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 状态转移</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 答案 = max(sold, rest) = 3</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   冷冻期体现在「买入只能来自空仓状态」，即不能昨天刚卖今天买。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def maxProfit(prices):
     hold = float('-inf')
     sold = rest = 0
@@ -68,9 +73,9 @@
     return max(sold, rest)</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int maxProfit(int[] prices) {
     int hold = Integer.MIN_VALUE, sold = 0, rest = 0;
     for (int p : prices) {
@@ -83,25 +88,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>买入依赖 rest</strong>：new_hold 用 rest-p 而非 sold-p，体现冷冻期</li>
   <li><strong>状态同时更新</strong>：先算新值再统一赋值，避免同一天状态串味</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 为什么要有 sold 状态？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 若只有持有/空仓，无法表达「昨天刚卖今天不能买」，sold 专门标记刚卖出。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 若只有持有/空仓，无法表达「昨天刚卖今天不能买」，sold 专门标记刚卖出。</p>
     <p><strong>Q:</strong> 最后一天可能持有吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 不可能是最优，答案取 max(sold, rest)，排除仍持有未卖出的情况。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 不可能是最优，答案取 max(sold, rest)，排除仍持有未卖出的情况。</p>
   </div>
 </details>
 
@@ -116,7 +121,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [1, 
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/077-实现Trie(前缀树).html">
+<meta name="description" content="077. 实现Trie(前缀树) — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>077. 实现Trie(前缀树) — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="077. 实现Trie(前缀树)">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/implement-trie-prefix-tree/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   Trie 用「节点 = 字符」的多叉树存储单词，共享公共前缀。每个节点存子节点指针数组 + is_end 标记，插入/查找/前缀判断都是 O(单词长度)。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>实现 Trie（前缀树），支持 <code>insert(word)</code>、<code>search(word)</code>（单词是否存在）、<code>startsWith(prefix)</code>（是否有该前缀）。</p>
 <p><strong>示例：</strong><br><code>insert("apple")</code>；<code>search("apple")→true</code>；<code>search("app")→false</code>；<code>startsWith("app")→true</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 插入 apple、app：共享前缀 a-p-p</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 节点结构：children[26] + is_end</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   逐字符向下走，最后一个字符的 is_end 决定「是完整单词还是仅前缀」。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">class Trie:
     def __init__(self):
         self.children = {}
@@ -78,9 +83,9 @@
         return node</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">class Trie {
     Trie[] next = new Trie[26];
     boolean isEnd;
@@ -109,25 +114,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：插入/查找/前缀均 O(len)</li>
   <li><strong>空间</strong>：O(节点数 × 字符集)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>is_end 与前缀区分</strong>：search 要求 is_end=true，startsWith 只要求路径存在</li>
   <li><strong>字符下标</strong>：小写字母用 c-'a' 映射到 0..25，哈希表版无需关心</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> search("app") 为何 false？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 路径 a-p-p 存在但 'p' 不是插入时的终点（is_end=false），所以只是前缀不是单词。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 路径 a-p-p 存在但 'p' 不是插入时的终点（is_end=false），所以只是前缀不是单词。</p>
     <p><strong>Q:</strong> Trie 的典型应用？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 自动补全、拼写检查、IP 路由最长前缀匹配、词频统计。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 自动补全、拼写检查、IP 路由最长前缀匹配、词频统计。</p>
   </div>
 </details>
 
@@ -141,7 +146,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["节�
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

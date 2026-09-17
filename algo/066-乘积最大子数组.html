@@ -5,58 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/066-乘积最大子数组.html">
+<meta name="description" content="066. 乘积最大子数组 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>066. 乘积最大子数组 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="066. 乘积最大子数组">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/maximum-product-subarray/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   乘积会因负数翻转：当前最小可能变最大。同时维护「以 i 结尾的最大乘积」和「最小乘积」，遇到负数交换两者再乘，取全局最大。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定整数数组，找出乘积最大的连续子数组，返回该乘积。</p>
 <p><strong>示例：</strong><br><code>[2,3,-2,4]</code> → <code>6</code>（[2,3]）；<code>[-2,0,-1]</code> → <code>0</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 同时维护 cur_max 与 cur_min</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 遇负数：max 与 min 互换再乘</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 全局最大 = 6</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   最大最小一起维护，负数一来就互换，再与当前值比较更新。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def maxProduct(nums):
     ans = cur_max = cur_min = nums[0]
     for x in nums[1:]:
@@ -68,9 +73,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int maxProduct(int[] nums) {
     int ans = nums[0], curMax = nums[0], curMin = nums[0];
     for (int i = 1; i &lt; nums.length; i++) {
@@ -84,25 +89,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(1)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>同时维护最小值</strong>：负数乘最小可能得到最大，只维护最大值会漏</li>
   <li><strong>遇 0 重开</strong>：x=0 时 cur_max=cur_min=0，下一个数自动另起炉灶</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> [-2,0,-1] 为何是 0？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 以 0 为界，cur 归零，后面 -1 单段最大 -1，全局仍 0。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 以 0 为界，cur 归零，后面 -1 单段最大 -1，全局仍 0。</p>
     <p><strong>Q:</strong> 为什么不能像最大子数组和那样只维护一个值？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 和是线性叠加，负贡献直接丢弃；乘积遇负会「翻倍变正」，必须保留最小乘积以防翻转。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 和是线性叠加，负贡献直接丢弃；乘积遇负会「翻倍变正」，必须保留最小乘积以防翻转。</p>
   </div>
 </details>
 
@@ -117,7 +122,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [2, 
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

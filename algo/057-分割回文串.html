@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/057-分割回文串.html">
+<meta name="description" content="057. 分割回文串 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>057. 分割回文串 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="057. 分割回文串">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/palindrome-partitioning/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   在字符串上枚举切割点：当前前缀是回文就切下，剩余部分递归分割。用回溯收集所有方案，配合回文预判避免重复判断。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定字符串 <code>s</code>，将 s 分割成若干子串，使每个子串都是<strong>回文串</strong>。返回所有可能的分割方案。</p>
 <p><strong>示例：</strong><br><code>s="aab"</code> → <code>[["a","a","b"],["aa","b"]]</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 在每个位置决定「切 / 不切」</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 前缀回文才切下，否则剪枝</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   枚举每个切点，前缀是回文就继续分割剩余部分，递归到底即得一种方案。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def partition(s):
     n = len(s)
     ans, path = [], []
@@ -69,9 +74,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public List&lt;List&lt;String&gt;&gt; partition(String s) {
     List&lt;List&lt;String&gt;&gt; ans = new ArrayList&lt;&gt;();
     dfs(s, 0, new ArrayList&lt;&gt;(), ans);
@@ -93,25 +98,25 @@ boolean isPal(String s, int l, int r) {
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n · 2^n) — 最坏每个前缀都是回文（如全 a）</li>
   <li><strong>空间</strong>：O(n) — 递归栈 + path</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>回溯恢复 path</strong>：切下后要 pop，否则方案之间互相污染</li>
   <li><strong>前缀回文判断</strong>：用双指针或 sub==sub[::-1] 判断，别漏单字符（恒为回文）</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> s 全相同字符如 "aaa"？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 每个前缀都回文，方案数为 2^(n-1)，这是最坏情况。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 每个前缀都回文，方案数为 2^(n-1)，这是最坏情况。</p>
     <p><strong>Q:</strong> 如何优化回文判断？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 用 DP 预计算 pal[i][j]，把 isPal 从 O(n) 降到 O(1)。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 用 DP 预计算 pal[i][j]，把 isPal 从 O(n) 降到 O(1)。</p>
   </div>
 </details>
 
@@ -125,7 +130,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["前�
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/033-不同路径.html">
+<meta name="description" content="033. 不同路径 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>033. 不同路径 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="033. 不同路径">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/unique-paths/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   到达每个格子只能「从上边来」或「从左边来」，所以 dp[i][j] = dp[i-1][j] + dp[i][j-1]。第一行第一列恒为 1。这是最经典的二维 DP 入门。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>一个机器人位于 m×n 网格的左上角，每次只能向下或向右移动一步，问到达右下角共有多少条不同路径。</p>
 <p><strong>示例：</strong><br><code>m=3, n=7</code> → <code>28</code>；<code>m=3, n=2</code> → <code>3</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 第一行第一列都只有 1 条路径</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② dp[i][j] = dp[i-1][j] + dp[i][j-1]</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   逐格填表，右下角的值就是总路径数。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def uniquePaths(m, n):
     dp = [[1] * n for _ in range(m)]
     for i in range(1, m):
@@ -61,9 +66,9 @@
     return dp[-1][-1]</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int uniquePaths(int m, int n) {
     int[][] dp = new int[m][n];
     for (int i = 0; i &lt; m; i++) dp[i][0] = 1;
@@ -75,25 +80,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(m · n)</li>
   <li><strong>空间</strong>：O(m · n) — 可滚动数组优化到 O(n)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>初始化边界</strong>：第一行与第一列全是 1，不能漏</li>
   <li><strong>递推方向</strong>：只能从左上到右下，保证 dp[i-1][j]、dp[i][j-1] 已算好</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> m=1 或 n=1？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 只有一行或一列时只有一条路径，返回 1，初始化已覆盖。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 只有一行或一列时只有一条路径，返回 1，初始化已覆盖。</p>
     <p><strong>Q:</strong> 如何优化空间？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> dp 只依赖上一行和当前行左侧，用一维数组 dp[j] += dp[j-1] 即可 O(n) 空间。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> dp 只依赖上一行和当前行左侧，用一维数组 dp[j] += dp[j-1] 即可 O(n) 空间。</p>
   </div>
 </details>
 
@@ -107,7 +112,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["", "
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

@@ -5,57 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/003-无重复字符的最长子串.html">
+<meta name="description" content="003. 无重复字符的最长子串 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>003. 无重复字符的最长子串 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="003. 无重复字符的最长子串">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/longest-substring-without-repeating-characters/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   维护一个「无重复字符」的窗口，右指针扩张、左指针在遇到重复时收缩。用哈希集合记录窗口内字符，O(n) 一次扫完。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定字符串，找出其中<strong>不含重复字符</strong>的最长子串的长度。</p><p><strong>示例：</strong><br><code>"abcabcbb"</code> → <code>3</code>（abc）；<code>"bbbbb"</code> → <code>1</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 右指针扩张，字符进集合</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 遇到重复 a，左指针收缩到重复之后</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 全程记录窗口最大长度</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   窗口内始终无重复，右扩左缩，记录最大宽度。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def lengthOfLongestSubstring(s):
     window = set()
     l = ans = 0
@@ -68,9 +73,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int lengthOfLongestSubstring(String s) {
     Set&lt;Character&gt; set = new HashSet&lt;&gt;();
     int l = 0, ans = 0;
@@ -83,25 +88,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n) — 左右指针各走一遍</li>
   <li><strong>空间</strong>：O(字符集) — 集合</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>左指针要 while 收缩</strong>：重复字符可能在窗口内部，需一直删到把重复字符移除为止</li>
   <li><strong>更新答案的时机</strong>：每次右扩后都要用 r-l+1 更新最大</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> "pwwkew" 答案？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 3（wke）。遇到第二个 w 时左指针跳到第一个 w 之后。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 3（wke）。遇到第二个 w 时左指针跳到第一个 w 之后。</p>
     <p><strong>Q:</strong> 为什么用 while 不用 if？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 重复字符位置不确定，if 只删一个可能删不掉窗口里的那个重复字符。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 重复字符位置不确定，if 只删一个可能删不掉窗口里的那个重复字符。</p>
   </div>
 </details>
 
@@ -116,7 +121,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": ["a"
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

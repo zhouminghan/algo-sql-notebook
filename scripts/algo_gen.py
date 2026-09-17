@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 """算法题页面生成器。
 
-从 scripts/specs/*.py 读取题目规格，输出到 algo/NNN-标题.html。
-规格字段见 algo_spec 示例。运行：python3 scripts/algo_gen.py
+从 scripts/specs/algo/*.py 读取题目规格，输出到 algo/NNN-标题.html，
+并把 file / leetcode 字段回写到 assets/js/problems.js。
+
+页面本身只写「正文」：题头、左侧导航、右侧目录、上一题/下一题
+都由 assets/js/common.js 在运行时注入（见 AGENTS.md「页面外壳」一节）。
+
+运行：
+    python3 scripts/algo_gen.py            # 全量生成 100 题
+    python3 scripts/algo_gen.py --id 1     # 只重新生成 001
 """
 import html
 import importlib.util
@@ -14,6 +21,14 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 ALGO_DIR = ROOT / "algo"
 PROBLEMS_JS = ROOT / "assets" / "js" / "problems.js"
 SPECS_DIR = ROOT / "scripts" / "specs" / "algo"
+
+# highlight.min.js 用 defer 加载（121KB，不该阻塞首屏），
+# 所以页面里要等它执行完再调用高亮。
+HL_BOOT = (
+    "function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }\n"
+    "if (document.readyState === 'complete') highlightCode();\n"
+    "else window.addEventListener('load', highlightCode);"
+)
 
 
 def esc_text(s: str) -> str:
@@ -33,21 +48,28 @@ HEAD = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="@@FILE@@">
+<meta name="description" content="@@NUM@@. @@TITLE@@ — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>@@NUM@@. @@TITLE@@ — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="@@NUM@@. @@TITLE@@">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
 
@@ -56,9 +78,9 @@ HEAD = """<!DOCTYPE html>
 
 def _frame_html(idx: int, f: dict) -> str:
     return (
-        f'<div class="frame-card" style="margin-bottom:1.25rem;">\n'
+        f'<div class="frame-card">\n'
         f'  <div class="frame-label">{esc_text(f["label"])}</div>\n'
-        f'  <div id="frame{idx}-svg"></div>\n'
+        f'  <div class="frame-canvas" id="frame{idx}-svg"></div>\n'
         f'</div>\n'
     )
 
@@ -96,18 +118,14 @@ def render(prob: dict) -> str:
     head = HEAD.replace("@@FILE@@", file).replace("@@NUM@@", num).replace("@@TITLE@@", prob["title"])
     parts = [head]
 
-    parts.append(
-        f'<a class="origin-link" href="{prob["origin"]}" target="_blank">→ LeetCode 原题</a>\n\n'
-    )
-
     parts.append('<div class="why-box">\n')
     parts.append(f'  <strong>为什么用这个思路？</strong><br>\n  {prob["why"]}\n')
     parts.append('</div>\n\n')
 
-    parts.append('<h3>题目描述</h3>\n')
+    parts.append('<h2>题目描述</h2>\n')
     parts.append(prob["desc"].strip() + '\n\n')
 
-    parts.append('<h3>图解即思路</h3>\n')
+    parts.append('<h2>图解即思路</h2>\n')
     if prob.get("concept"):
         parts.append('<div class="why-box">\n  ' + prob["concept"].strip() + '\n</div>\n')
     for i, f in enumerate(prob["frames"], start=1):
@@ -116,40 +134,40 @@ def render(prob: dict) -> str:
         parts.append('<div class="why-box">\n  <strong>结论</strong><br>\n  ' + prob["conclusion"].strip() + '\n</div>\n')
     parts.append('\n')
 
-    parts.append('<h3>最优解代码</h3>\n\n')
-    parts.append('<h4 style="margin-bottom:0.25rem;">Python</h4>\n')
+    parts.append('<h2>最优解代码</h2>\n\n')
+    parts.append('<h4>Python</h4>\n')
     parts.append('<div class="code-block-wrapper">\n')
-    parts.append('  <button class="copy-btn" onclick="copyCode(this, \'py-code\')">复制</button>\n')
+    parts.append('  <button type="button" class="copy-btn" onclick="copyCode(this, \'py-code\')">复制</button>\n')
     parts.append(f'  <pre><code class="language-python" id="py-code">{esc_text(prob["py"].strip())}</code></pre>\n')
     parts.append('</div>\n\n')
-    parts.append('<h4 style="margin-bottom:0.25rem;">Java</h4>\n')
+    parts.append('<h4>Java</h4>\n')
     parts.append('<div class="code-block-wrapper">\n')
-    parts.append('  <button class="copy-btn" onclick="copyCode(this, \'java-code\')">复制</button>\n')
+    parts.append('  <button type="button" class="copy-btn" onclick="copyCode(this, \'java-code\')">复制</button>\n')
     parts.append(f'  <pre><code class="language-java" id="java-code">{esc_text(prob["java"].strip())}</code></pre>\n')
     parts.append('</div>\n\n')
 
-    parts.append('<h3>复杂度分析</h3>\n<ul>\n')
+    parts.append('<h2>复杂度分析</h2>\n<ul>\n')
     parts.append(f'  <li><strong>时间</strong>：{prob["time"]}</li>\n')
     parts.append(f'  <li><strong>空间</strong>：{prob["space"]}</li>\n')
     parts.append('</ul>\n\n')
 
-    parts.append('<h3>易错点</h3>\n<ul>\n')
+    parts.append('<h2>易错点</h2>\n<ul>\n')
     for bold, text in prob["pitfalls"]:
         parts.append(f'  <li><strong>{bold}</strong>：{text}</li>\n')
     parts.append('</ul>\n\n')
 
     parts.append('<details class="selfcheck-box" open>\n')
-    parts.append('  <summary><strong>自我检验</strong></summary>\n')
-    parts.append('  <div style="margin-top:0.5rem;">\n')
+    parts.append('  <summary>自我检验</summary>\n')
+    parts.append('  <div class="selfcheck-body">\n')
     for q, a in prob["selfcheck"]:
         parts.append(f'    <p><strong>Q:</strong> {q}</p>\n')
-        parts.append(f'    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> {a}</p>\n')
+        parts.append(f'    <p class="selfcheck-answer"><strong>答：</strong> {a}</p>\n')
     parts.append('  </div>\n</details>\n\n')
 
     parts.append('<script>\nconst U = window.DrawUtils;\n\nfunction renderFrames() {\n')
     for i, f in enumerate(prob["frames"], start=1):
         parts.append(_frame_js(i, f) + '\n')
-    parts.append('}\n\nrenderFrames();\nU.autoFitResize(renderFrames);\nhljs.highlightAll();\n</script>\n')
+    parts.append('}\n\nrenderFrames();\nU.autoFitResize(renderFrames);\n' + HL_BOOT + '\n</script>\n')
 
     parts.append('</body>\n</html>\n')
     return ''.join(parts)

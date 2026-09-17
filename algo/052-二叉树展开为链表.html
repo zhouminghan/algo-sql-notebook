@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/052-二叉树展开为链表.html">
+<meta name="description" content="052. 二叉树展开为链表 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>052. 二叉树展开为链表 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="052. 二叉树展开为链表">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/flatten-binary-tree-to-linked-list/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   按「前序」的顺序把树展平成右链表。逆前序（右→左→根）遍历，用一个全局 prev 记录上一个访问节点，把当前节点右指针接到 prev、左指针置空即可，原地完成。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定二叉树根节点，将其<strong>原地</strong>展开为单链表：展开后的链表顺序为前序遍历顺序，每个节点左指针为 null、右指针指向下一个节点。</p>
 <p><strong>示例：</strong><br><code>[1,2,5,3,4,null,6]</code> → <code>[1,null,2,null,3,null,4,null,5,null,6]</code></p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 原树：前序顺序 1→2→3→4→5→6</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 逆前序（右→左→根）串成右链</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   逆前序保证「下一个该接的节点」已经处理完，prev 始终指向链表头部。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def flatten(root):
     prev = [None]
     def dfs(node):
@@ -66,9 +71,9 @@
     dfs(root)</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">TreeNode prev = null;
 public void flatten(TreeNode root) {
     if (root == null) return;
@@ -80,25 +85,25 @@ public void flatten(TreeNode root) {
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(h) — 递归栈</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>左指针置空</strong>：展平后每个节点 left 必须是 null，漏掉会残留旧结构</li>
   <li><strong>先右后左</strong>：逆前序顺序是 右→左→根，顺序错了链表次序不对</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 为什么用逆前序而不是前序？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 前序先访问根时，它的右子树还没处理，根无法指向「已串好的后续」；逆序则保证后续已就绪。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 前序先访问根时，它的右子树还没处理，根无法指向「已串好的后续」；逆序则保证后续已就绪。</p>
     <p><strong>Q:</strong> O(1) 额外空间做法？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 用「找左子树最右节点，把右子树挂过去」的原地拼接，可避免递归栈。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 用「找左子树最右节点，把右子树挂过去」的原地拼接，可避免递归栈。</p>
   </div>
 </details>
 
@@ -112,7 +117,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawLinkedList({"nodes": [{"
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

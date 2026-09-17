@@ -5,58 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/030-最大子数组和.html">
+<meta name="description" content="030. 最大子数组和 — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>030. 最大子数组和 — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="030. 最大子数组和">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/maximum-subarray/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   Kadane 算法：以 i 结尾的最大子数组和，要么接着前面的（pre + x），要么另起炉灶（x）。每步取较大者，同时更新全局最大，一次遍历 O(n)。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>给定一个整数数组，找出一个具有<strong>最大和</strong>的连续子数组，返回其最大和。</p>
 <p><strong>示例：</strong><br><code>[-2,1,-3,4,-1,2,1,-5,4]</code> → <code>6</code>（子数组 <code>[4,-1,2,1]</code>）</p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 到 i 为止：接前面 or 另起</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 递推：dp[i] = max(dp[i-1]+x, x)</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">③ 全局最大 = max(dp) = 6</div>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   「当前子数组和」一旦变负就果断丢弃、重新开始，过程中记录到的最大值就是答案。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def maxSubArray(nums):
     cur = ans = nums[0]
     for x in nums[1:]:
@@ -65,9 +70,9 @@
     return ans</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int maxSubArray(int[] nums) {
     int cur = nums[0], ans = nums[0];
     for (int i = 1; i &lt; nums.length; i++) {
@@ -78,25 +83,25 @@
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n) — 一次遍历</li>
   <li><strong>空间</strong>：O(1) — 只维护两个变量</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>全负数组</strong>：cur 初始化为 nums[0] 并逐个比较，仍能返回最大的那个负数</li>
   <li><strong>cur 变负要丢弃</strong>：cur+x < x 时说明前面是累赘，应另起炉灶，这是 Kadane 的核心</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 全负数组 [-2,-3,-1] 答案？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> -1。每步 cur 都会重置为当前更大的值，ans 保持 -1。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> -1。每步 cur 都会重置为当前更大的值，ans 保持 -1。</p>
     <p><strong>Q:</strong> 需要记录子数组下标吗？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 本题只求最大和；若要下标，可在 cur 重置时记录起点，更新 ans 时记录终点。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 本题只求最大和；若要下标，可在 cur 重置时记录起点，更新 ans 时记录终点。</p>
   </div>
 </details>
 
@@ -111,7 +116,9 @@ document.getElementById('frame3-svg').innerHTML = U.drawTwoPointers({"arr": [-2,
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

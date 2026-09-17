@@ -5,54 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="algo/097-打家劫舍 III.html">
+<meta name="description" content="097. 打家劫舍 III — 图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <title>097. 打家劫舍 III — algo-sql-notebook</title>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="097. 打家劫舍 III">
+<meta property="og:description" content="图解思路 + Python/Java 最优解 + 复杂度分析 + 易错点 + 自我检验。">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
-
-<a class="origin-link" href="https://leetcode.cn/problems/house-robber-iii/" target="_blank">→ LeetCode 原题</a>
 
 <div class="why-box">
   <strong>为什么用这个思路？</strong><br>
   房屋排成二叉树，父子不能同时偷。每个节点返回 (偷它, 不偷它) 两个值：偷 = 自己 + 左右「不偷」，不偷 = max(左偷/不偷) + max(右偷/不偷)。自底向上。
 </div>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>所有房屋排成一棵二叉树，相邻（直接相连）房屋被同时闯入会报警。求能偷到的最高金额。</p>
 <p><strong>示例：</strong><br><code>[3,2,3,null,3,null,1]</code> → <code>7</code>（偷 3+3+1）</p>
 
-<h3>图解即思路</h3>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<h2>图解即思路</h2>
+<div class="frame-card">
   <div class="frame-label">① 每个节点返回 (偷, 不偷)</div>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
-<div class="frame-card" style="margin-bottom:1.25rem;">
+<div class="frame-card">
   <div class="frame-label">② 偷 = 自己 + 左右不偷；不偷 = max(左) + max(右)</div>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 <div class="why-box">
   <strong>结论</strong><br>
   树形 DP 自底向上，每个节点维护「偷/不偷」两个状态，根取较大者。
 </div>
 
-<h3>最优解代码</h3>
+<h2>最优解代码</h2>
 
-<h4 style="margin-bottom:0.25rem;">Python</h4>
+<h4>Python</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'py-code')">复制</button>
   <pre><code class="language-python" id="py-code">def rob(root):
     def dfs(node):
         if not node:
@@ -65,9 +70,9 @@
     return max(dfs(root))</code></pre>
 </div>
 
-<h4 style="margin-bottom:0.25rem;">Java</h4>
+<h4>Java</h4>
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'java-code')">复制</button>
   <pre><code class="language-java" id="java-code">public int rob(TreeNode root) {
     int[] res = dfs(root);
     return Math.max(res[0], res[1]);
@@ -81,25 +86,25 @@ int[] dfs(TreeNode n) {
 }</code></pre>
 </div>
 
-<h3>复杂度分析</h3>
+<h2>复杂度分析</h2>
 <ul>
   <li><strong>时间</strong>：O(n)</li>
   <li><strong>空间</strong>：O(h)</li>
 </ul>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>偷必须跳过孩子</strong>：take = 自己 + 左右「不偷」值，不是 max(左右)</li>
   <li><strong>不偷时孩子可偷可不偷</strong>：skip 对每个孩子取 max(偷, 不偷)</li>
 </ul>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q:</strong> 为什么自底向上？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 父节点的决策依赖孩子两个状态，必须先把子树算完。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 父节点的决策依赖孩子两个状态，必须先把子树算完。</p>
     <p><strong>Q:</strong> 根节点答案？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> 返回 max(根偷, 根不偷)。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> 返回 max(根偷, 根不偷)。</p>
   </div>
 </details>
 
@@ -113,7 +118,9 @@ document.getElementById('frame2-svg').innerHTML = U.drawTable({"headers": ["节�
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 </script>
 </body>
 </html>

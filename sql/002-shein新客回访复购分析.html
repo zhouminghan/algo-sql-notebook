@@ -5,21 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <meta name="asn-file" content="sql/002-shein新客回访复购分析.html">
+<meta name="description" content="002. SHEIN新客回访复购分析 — SQL 机试题图解：源数据 + CTE 分帧 + 完整答案 + 易错点 + 自我检验。">
 <title>002. SHEIN新客回访复购分析 — algo-sql-notebook</title>
-<link rel="stylesheet" href="../assets/vendor/pico.min.css">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="002. SHEIN新客回访复购分析">
+<meta property="og:description" content="SQL 机试题图解：源数据 + CTE 分帧 + 完整答案 + 易错点 + 自我检验。">
+<script>
+(function () {
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
+})();
+</script>
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/vendor/github.min.css">
 <script src="../assets/js/problems.js"></script>
 <script src="../assets/js/common.js"></script>
 <script src="../assets/js/draw-utils.js"></script>
-<script src="../assets/vendor/highlight.min.js"></script>
-<script>
-(function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
-})();
-</script>
+<script defer src="../assets/vendor/highlight.min.js"></script>
 </head>
 <body>
 
@@ -28,7 +35,7 @@
   首单识别、品类分类、窗口预计算、回访判定、复购统计、Top3 聚合——独立逻辑拆成多个 CTE，每步只用前一步的结果。<code>first_order</code> → <code>first_cate</code> → <code>cust_pay → cust_win → cust_base</code> → <code>cust_visit / cust_repurchase</code> → <code>cust_flag</code> → <code>monthly + top3</code>，像搭积木一样层层递进。
 </div>
 
-<h4>业务术语</h4>
+<h2>业务术语</h2>
 <table>
   <tr><th>术语</th><th>含义</th></tr>
   <tr><td>SKU</td><td>Stock Keeping Unit，单品唯一标识（如 dress_01 = 黑色连衣裙 M 码）</td></tr>
@@ -37,21 +44,21 @@
   <tr><td>复购率</td><td>首单后 30 天内再次下单的用户占比 = 复购人数 ÷ 新客人数</td></tr>
 </table>
 
-<h3>题目描述</h3>
+<h2>题目描述</h2>
 <p>SHEIN 运营团队想分析<strong>2020年1月起</strong>的新客户：按首单品类分成 A/B/C 三组，看各组在首单后 30 天内的<strong>回访率</strong>和<strong>复购率</strong>，以及复购最多的 Top3 品类。</p>
 
-<div class="frame-card" style="margin-bottom:1rem;">
+<div class="frame-card">
   <div class="frame-label">t2_order_detail（订单表）</div>
-  <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">每个用户每次订单一行。user_id + pay_time + cate_nm 是关键字段</div>
-  <div id="desc-t1-schema"></div>
-  <div id="desc-t1-svg"></div>
+  <div class="frame-caption">每个用户每次订单一行。user_id + pay_time + cate_nm 是关键字段</div>
+  <div class="frame-canvas" id="desc-t1-schema"></div>
+  <div class="frame-canvas" id="desc-t1-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1rem;">
+<div class="frame-card">
   <div class="frame-label">t2_user_visit_di（回访日志表）</div>
-  <div class="frame-caption" style="font-size:0.8rem;color:var(--color-neutral);margin-bottom:0.5rem;">记录用户每天的访问。dt 是 yyyymmdd 格式字符串</div>
-  <div id="desc-t2-schema"></div>
-  <div id="desc-t2-svg"></div>
+  <div class="frame-caption">记录用户每天的访问。dt 是 yyyymmdd 格式字符串</div>
+  <div class="frame-canvas" id="desc-t2-schema"></div>
+  <div class="frame-canvas" id="desc-t2-svg"></div>
 </div>
 
 <p><strong>分组规则：</strong></p>
@@ -61,9 +68,9 @@
   <li><strong>C 类</strong>：其他所有情况（women+men+kids / 只 kids / 只 young 等）</li>
 </ul>
 
-<h3>图解即思路</h3>
+<h2>图解即思路</h2>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">① CTE: first_order — ROW_NUMBER 开窗取每个用户最早一笔</div>
   <pre><code class="language-sql">WITH ranked AS (
     -- ① 开窗取首单：ROW_NUMBER 分组排序，rn=1 即最早一笔
@@ -76,10 +83,10 @@ first_order AS (
            DATE_FORMAT(pay_time, '%Y-%m') AS first_month
     FROM ranked WHERE rn = 1
 ),</code></pre>
-  <div id="frame1-svg"></div>
+  <div class="frame-canvas" id="frame1-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">② CTE: first_cate — 条件聚合标记每个用户首单买了哪些品类</div>
   <pre><code class="language-sql">first_cate AS (
     -- ② 条件聚合：MAX(CASE WHEN) 替代 GROUP_CONCAT，全引擎兼容
@@ -91,10 +98,10 @@ first_order AS (
     JOIN ranked o ON f.user_id = o.user_id AND o.rn = 1
     GROUP BY f.user_id, f.first_month, f.first_pay
 ),</code></pre>
-  <div id="frame2-svg"></div>
+  <div class="frame-canvas" id="frame2-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">③ CTE: new_cust — 用 CASE 分类 A/B/C，只保留 2020年起</div>
   <pre><code class="language-sql">new_cust AS (
     -- CASE 分类 + 过滤 2020年起
@@ -104,10 +111,10 @@ first_order AS (
                 ELSE 'C' END AS category
     FROM first_cate WHERE first_month >= '2020-01'
 ),</code></pre>
-  <div id="frame3-svg"></div>
+  <div class="frame-canvas" id="frame3-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">④-a CTE: cust_pay → cust_win → cust_base — 窗口边界预计算（各格式一次算出，零重复）</div>
   <pre><code class="language-sql">cust_pay AS (
     -- ③a1 只解析一次：字符串 first_pay → datetime pay_dt
@@ -127,10 +134,10 @@ cust_base AS (
            DATE_FORMAT(cw.pay30_dt, '%Y-%m-%d %H:%i') AS repurchase_end
     FROM cust_win cw
 ),</code></pre>
-  <div id="frame4a-svg"></div>
+  <div class="frame-canvas" id="frame4a-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">④-b CTE: cust_visit + cust_repurchase + cust_flag — JOIN 预聚合 + LEFT JOIN 打标</div>
   <pre><code class="language-sql">cust_visit AS (
     -- ③b1 30 天内回访：JOIN 窗口 + DISTINCT 压缩到每用户一行
@@ -158,10 +165,10 @@ cust_flag AS (
     LEFT JOIN cust_visit cv      ON cv.user_id = cb.user_id
     LEFT JOIN cust_repurchase cr ON cr.user_id = cb.user_id
 ),</code></pre>
-  <div id="frame4-svg"></div>
+  <div class="frame-canvas" id="frame4-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">⑤ CTE: monthly — 按月×品类聚合，回访率 & 复购率</div>
   <pre><code class="language-sql">monthly AS (
     -- ④ 聚合：月度 × 品类统计
@@ -171,10 +178,10 @@ cust_flag AS (
            COUNT(DISTINCT CASE WHEN has_repurchase THEN user_id END) AS repurchase_cnt
     FROM cust_flag GROUP BY first_month, category
 ),</code></pre>
-  <div id="frame5-svg"></div>
+  <div class="frame-canvas" id="frame5-svg"></div>
 </div>
 
-<div class="frame-card" style="margin-bottom:1.5rem;">
+<div class="frame-card">
   <div class="frame-label">⑥ top3 + 最终输出 — JOIN monthly + top3，拼接回访率/复购率/复购品类</div>
   <pre><code class="language-sql">top3 AS (
     -- ④ 开窗取 Top3 复购品类
@@ -206,15 +213,15 @@ SELECT m.first_month   AS 首单月份,
 FROM monthly m LEFT JOIN top3 t
     ON m.first_month = t.first_month AND m.category = t.category
 ORDER BY m.first_month, m.category;</code></pre>
-  <div id="frame6-svg"></div>
+  <div class="frame-canvas" id="frame6-svg"></div>
 </div>
 
-<p style="margin-top:1rem;color:var(--color-neutral);font-size:0.85rem;">以上 7 帧的 SQL 按顺序拼接（含 top3 CTE + 最终 SELECT），即为完整答案。</p>
+<p class="frame-note">以上 7 帧的 SQL 按顺序拼接（含 top3 CTE + 最终 SELECT），即为完整答案。</p>
 
-<h3>SQL 代码</h3>
+<h2>SQL 代码</h2>
 
 <div class="code-block-wrapper">
-  <button class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
+  <button type="button" class="copy-btn" onclick="copyCode(this, 'sql-code')">复制</button>
   <pre><code class="language-sql" id="sql-code">WITH ranked AS (
     -- ① 开窗取首单：ROW_NUMBER 分组排序，rn=1 即最早一笔
     SELECT user_id, pay_time, sku, cate_nm, sales_cnt,
@@ -328,7 +335,7 @@ FROM monthly m LEFT JOIN top3 t
 ORDER BY m.first_month, m.category;</code></pre>
 </div>
 
-<h3>易错点</h3>
+<h2>易错点</h2>
 <ul>
   <li><strong>ROW_NUMBER 取首单比 MIN+JOIN 更简洁</strong>：一次扫描完成排序，避免 MIN 查到时间后再 JOIN 回来取其他字段</li>
   <li><strong>条件聚合代替字符串拼接</strong>：<code>MAX(CASE WHEN cate_nm='women' THEN 1 ELSE 0 END)</code> — 不依赖 GROUP_CONCAT（MySQL 专属）或 collect_set（Hive 专属），全引擎通用且天然去重</li>
@@ -338,11 +345,11 @@ ORDER BY m.first_month, m.category;</code></pre>
   <li><strong>Hive/Spark 适配</strong>：<code>date_format</code> / <code>date_add</code> 替代 MySQL 的 <code>DATE_FORMAT</code> / <code>DATE_ADD</code>；<code>CONCAT</code> 替代 <code>CONCAT_WS</code> 如遇兼容问题</li>
 </ul>
 
-<details id="ddlToggle">
-  <summary class="collapsible-toggle" onclick="this.classList.toggle('open');document.getElementById('ddlBody').classList.toggle('open');document.getElementById('ddlAllCopy').style.display=document.getElementById('ddlBody').classList.contains('open')?'block':'none';">本地复现（CREATE TABLE + INSERT + SQL）</summary>
-  <div id="ddlBody" class="collapsible-body">
+<details class="collapsible">
+  <summary>本地复现（CREATE TABLE + INSERT + SQL）</summary>
+  <div class="collapsible-body">
     <div class="code-block-wrapper">
-      <button id="ddlAllCopy" class="copy-btn" style="display:block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
+      <button type="button" id="ddlAllCopy" class="copy-btn copy-btn--block" onclick="copyCode(this, 'ddl-code')">一键复制全部</button>
       <pre><code class="language-sql" id="ddl-code">CREATE TABLE t2_order_detail (
     user_id VARCHAR(10), pay_time VARCHAR(20),
     sku VARCHAR(50), cate_nm VARCHAR(20), sales_cnt INT
@@ -374,12 +381,12 @@ INSERT INTO t2_user_visit_di VALUES
 </details>
 
 <details class="selfcheck-box" open>
-  <summary><strong>自我检验</strong></summary>
-  <div style="margin-top:0.5rem;">
+  <summary>自我检验</summary>
+  <div class="selfcheck-body">
     <p><strong>Q1:</strong> 如果首单买了 <code>men</code>（只有 men），CASE 会分到哪一类？为什么？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：C 类。</strong> CASE 只匹配 <code>'women'</code> 和 <code>'men,women'</code> 两种——只买 men 不匹配任何条件，进 ELSE → C 类。</p>
+    <p class="selfcheck-answer"><strong>答：C 类。</strong> CASE 只匹配 <code>'women'</code> 和 <code>'men,women'</code> 两种——只买 men 不匹配任何条件，进 ELSE → C 类。</p>
     <p><strong>Q2:</strong> 如果需求改为「只看 7 天内回访」，改哪里？</p>
-    <p style="color:var(--color-done);margin-left:1rem;"><strong>答：</strong> cust_flag 和 top3 的 CTE 中，把 <code>INTERVAL 30 DAY</code> 改成 <code>INTERVAL 7 DAY</code> 即可。</p>
+    <p class="selfcheck-answer"><strong>答：</strong> cust_flag 和 top3 的 CTE 中，把 <code>INTERVAL 30 DAY</code> 改成 <code>INTERVAL 7 DAY</code> 即可。</p>
   </div>
 </details>
 
@@ -613,8 +620,12 @@ document.getElementById('frame6-svg').innerHTML = U.drawWindowFunc({
 
 renderFrames();
 U.autoFitResize(renderFrames);
-hljs.highlightAll();
+// highlight.js 以 defer 加载，等它执行完再高亮（避免 121KB 阻塞首屏）
+function highlightCode() { if (window.hljs) window.hljs.highlightAll(); }
+if (document.readyState === 'complete') highlightCode();
+else window.addEventListener('load', highlightCode);
 
 </script>
+
 </body>
 </html>

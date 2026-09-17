@@ -4,15 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
-<title>algo-sql-notebook · 算法 + SQL 图解题库</title>
+<meta name="description" content="算法 + SQL 图解题库：LeetCode Hot 100 与字节 / SHEIN 机试题，每题为独立页面，配图解、完整代码、复杂度分析、易错点与自我检验。">
+<title>算法 + SQL 图解题库 — algo-sql-notebook</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="算法 + SQL 图解题库">
+<meta property="og:description" content="LeetCode Hot 100 · 字节 / SHEIN 机试题 · 图解码题 · 纯静态零构建">
 <script>
 (function () {
-  var s = localStorage.getItem('asn-theme');
-  var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', d);
+  // localStorage 在隐私模式/受限环境可能抛异常，兜底回退到系统偏好
+  try {
+    var s = localStorage.getItem('asn-theme');
+    var d = s || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', d);
+  } catch (e) {}
 })();
 </script>
-<link rel="stylesheet" href="assets/vendor/pico.min.css">
 <link rel="stylesheet" href="assets/css/style.css">
 <script src="assets/js/problems.js"></script>
 <script src="assets/js/common.js"></script>
@@ -20,14 +27,15 @@
 <body>
 
 <main class="index-body">
-  <div class="hero">
+  <section class="index-hero">
     <h1><span class="accent">算法 + SQL</span> 图解题库</h1>
-    <p>LeetCode Hot 100 · 字节 / SHEIN 机试题 · 纯静态 · 零构建 · 图解码题</p>
+    <p>LeetCode Hot 100 · 字节 / SHEIN 机试题 · 图解码题 · 纯静态零构建</p>
     <div class="hero-stats" id="heroStats"></div>
-  </div>
+  </section>
 
   <div class="index-toolbar">
-    <div class="filter-chips" id="diffChips">
+    <div class="catalog-tabs" id="catalogTabs" role="tablist" aria-label="题库切换"></div>
+    <div class="filter-chips" id="diffChips" role="group" aria-label="按难度筛选">
       <button type="button" class="filter-chip active" data-diff="all">全部难度</button>
       <button type="button" class="filter-chip" data-diff="easy">简单</button>
       <button type="button" class="filter-chip" data-diff="medium">中等</button>
@@ -35,155 +43,9 @@
     </div>
   </div>
 
-  <div id="sections"></div>
+  <div id="catalog"></div>
   <div class="empty-state" id="emptyState" style="display:none;">没有匹配的题目</div>
 </main>
 
-<script>
-const DIFF_MAP = { easy: '简单', medium: '中等', hard: '困难' };
-const DIFF_CLASS = { easy: 'tag-easy', medium: 'tag-medium', hard: 'tag-hard' };
-const CAT_ORDER = ['哈希', '双指针', '滑动窗口', '数组', '矩阵', '链表', '二叉树', '图', '回溯', '二分查找', '栈', '堆', '贪心', '动态规划', '位运算', '字符串'];
-
-let diffFilter = 'all';
-let query = '';
-
-function implemented(list) { return list.filter(p => p.file); }
-
-function matches(p) {
-  if (diffFilter !== 'all' && p.diff !== diffFilter) return false;
-  if (query) {
-    const q = query.toLowerCase();
-    if ((p.title + ' ' + (p.tags || []).join(' ') + ' ' + p.id).toLowerCase().indexOf(q) === -1) return false;
-  }
-  return true;
-}
-
-function renderStats() {
-  const algo = implemented(ASN.PROBLEMS.algo);
-  const sql = implemented(ASN.PROBLEMS.sql);
-  const all = algo.concat(sql);
-  const done = all.filter(p => ASN.isDone(p.file)).length;
-  document.getElementById('heroStats').innerHTML =
-    `<div class="hero-stat"><b>${algo.length}</b><span>算法题</span></div>` +
-    `<div class="hero-stat"><b>${sql.length}</b><span>SQL 题</span></div>` +
-    `<div class="hero-stat"><b>${done}</b><span>已阅读</span></div>`;
-}
-
-function card(p) {
-  const li = document.createElement('li');
-  li.className = 'prob-card';
-  const a = document.createElement('a');
-  a.className = 'prob-card-link';
-  a.href = p.file;
-
-  const top = document.createElement('div');
-  top.className = 'prob-card-top';
-  const num = document.createElement('span');
-  num.className = 'prob-card-num';
-  num.textContent = String(p.id).padStart(3, '0');
-  top.appendChild(num);
-  if (ASN.isDone(p.file)) {
-    const check = document.createElement('span');
-    check.className = 'prob-check';
-    check.textContent = '✓';
-    top.appendChild(check);
-  }
-  const title = document.createElement('span');
-  title.className = 'prob-card-title';
-  title.textContent = p.title;
-  top.appendChild(title);
-  a.appendChild(top);
-
-  const meta = document.createElement('div');
-  meta.className = 'prob-card-meta';
-  const diff = document.createElement('span');
-  diff.className = `tag-badge ${DIFF_CLASS[p.diff]}`;
-  diff.textContent = DIFF_MAP[p.diff];
-  meta.appendChild(diff);
-  (p.tags || []).slice(0, 2).forEach(t => {
-    const tag = document.createElement('span');
-    tag.className = 'tag-badge tag-ds';
-    tag.textContent = t;
-    meta.appendChild(tag);
-  });
-  a.appendChild(meta);
-  li.appendChild(a);
-
-  return li;
-}
-
-function grid(listEl, problems) {
-  problems.forEach(p => listEl.appendChild(card(p)));
-}
-
-function section(title, count, problems) {
-  const sec = document.createElement('details');
-  sec.className = 'cat-section';
-  const sum = document.createElement('summary');
-  const caret = document.createElement('span');
-  caret.className = 'cat-caret';
-  caret.innerHTML = ASN.ICONS.chevron;
-  const name = document.createElement('span');
-  name.className = 'cat-name';
-  name.textContent = title;
-  const c = document.createElement('span');
-  c.className = 'count';
-  c.textContent = count + ' 题';
-  sum.appendChild(caret);
-  sum.appendChild(name);
-  sum.appendChild(c);
-  sec.appendChild(sum);
-  const ul = document.createElement('ul');
-  ul.className = 'prob-grid';
-  grid(ul, problems);
-  sec.appendChild(ul);
-  if (query || diffFilter !== 'all') sec.setAttribute('open', '');
-  return sec;
-}
-
-function renderAll() {
-  const root = document.getElementById('sections');
-  root.innerHTML = '';
-
-  const algo = implemented(ASN.PROBLEMS.algo).filter(matches);
-  const sql = implemented(ASN.PROBLEMS.sql).filter(matches);
-
-  // 算法按分类分组
-  const byCat = {};
-  algo.forEach(p => {
-    const c = p.cat || '其他';
-    (byCat[c] = byCat[c] || []).push(p);
-  });
-  const cats = CAT_ORDER.filter(c => byCat[c]);
-  Object.keys(byCat).filter(c => !CAT_ORDER.includes(c)).forEach(c => cats.push(c));
-  cats.forEach(c => {
-    const list = byCat[c];
-    const visible = list.filter(matches);
-    if (visible.length) root.appendChild(section(c, visible.length, visible));
-  });
-
-  // SQL 区
-  if (sql.length) {
-    root.appendChild(section('SQL 高级题', sql.length, sql));
-  }
-
-  document.getElementById('emptyState').style.display = (algo.length || sql.length) ? 'none' : 'block';
-  renderStats();
-}
-
-document.getElementById('diffChips').addEventListener('click', e => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
-  if (btn.dataset.diff) {
-    diffFilter = btn.dataset.diff;
-    document.querySelectorAll('#diffChips [data-diff]').forEach(b => b.classList.toggle('active', b === btn));
-  }
-  renderAll();
-});
-
-window.addEventListener('asn:search', e => { query = e.detail || ''; renderAll(); });
-
-renderAll();
-</script>
 </body>
 </html>

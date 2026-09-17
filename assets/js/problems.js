@@ -1121,7 +1121,8 @@ window.PROBLEMS = {
     "窗口函数",
     "日期"
    ],
-   "file": "sql/001-连续登录天数.html"
+   "file": "sql/001-连续登录天数.html",
+   "cat": "窗口函数"
   },
   {
    "id": 2,
@@ -1132,7 +1133,8 @@ window.PROBLEMS = {
     "窗口函数",
     "条件聚合"
    ],
-   "file": "sql/002-shein新客回访复购分析.html"
+   "file": "sql/002-shein新客回访复购分析.html",
+   "cat": "多表 JOIN"
   },
   {
    "id": 3,
@@ -1143,7 +1145,8 @@ window.PROBLEMS = {
     "JOIN",
     "聚合过滤"
    ],
-   "file": "sql/003-shein平台合并与过滤.html"
+   "file": "sql/003-shein平台合并与过滤.html",
+   "cat": "过滤与聚合"
   },
   {
    "id": 4,
@@ -1154,7 +1157,8 @@ window.PROBLEMS = {
     "日期计算",
     "聚合"
    ],
-   "file": "sql/004-shein库存售罄天数分析.html"
+   "file": "sql/004-shein库存售罄天数分析.html",
+   "cat": "窗口函数"
   },
   {
    "id": 5,
@@ -1164,7 +1168,8 @@ window.PROBLEMS = {
     "自连接",
     "字节"
    ],
-   "file": "sql/005-字节互相关注用户对.html"
+   "file": "sql/005-字节互相关注用户对.html",
+   "cat": "自连接"
   },
   {
    "id": 6,
@@ -1175,7 +1180,8 @@ window.PROBLEMS = {
     "日期",
     "条件聚合"
    ],
-   "file": "sql/006-b站大会员续费率.html"
+   "file": "sql/006-b站大会员续费率.html",
+   "cat": "窗口函数"
   }
  ]
 };
